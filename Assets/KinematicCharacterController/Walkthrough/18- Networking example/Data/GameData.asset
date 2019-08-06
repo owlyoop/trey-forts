@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6f2099fde799a5409ce32b8595c1da6, type: 3}
+  m_Name: GameData
+  m_EditorClassIdentifier: 
+  LobbySceneName: WalkthroughScene18_lobby
+  GameSceneName: WalkthroughScene18_game
+  OnlineSessionPrefab: {fileID: 114537813142812452, guid: c16e988346d65cb46944b111118514a5,
+    type: 2}
+  PlayerPrefab: {fileID: 114704580741738786, guid: 1da9cafdc57dc08429347d323832529a,
+    type: 2}
+  CameraPrefab: {fileID: 114286553450668838, guid: f56166822055d4f4799b217c2a0aa2aa,
+    type: 2}
+  CharacterPrefab: {fileID: 114764949568670984, guid: 50be84c7759680f4cb8ea068ea6fd4a8,
+    type: 2}

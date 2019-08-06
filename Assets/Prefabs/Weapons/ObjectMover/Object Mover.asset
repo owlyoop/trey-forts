@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f71755a93b22004eb98834c640dd52d, type: 3}
+  m_Name: Object Mover
+  m_EditorClassIdentifier: 
+  weaponName: Object Mover
+  weaponDescription: 
+  icon: {fileID: 21300000, guid: a776431b7b9b1a7418c138f5df48c0c5, type: 3}
+  weaponPrefab: {fileID: 1461582885398818, guid: a1f8acb9959d689438f0aec065860b4a,
+    type: 2}
+  baseDamage: 0
+  shotsPerSecond: 0
+  clipSize: 0
+  reloadTime: 0
+  maxAmmo: 0
+  damageType: 0
+  weaponComponents: []
