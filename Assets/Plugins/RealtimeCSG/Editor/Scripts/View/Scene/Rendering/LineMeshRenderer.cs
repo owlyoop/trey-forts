@@ -42,8 +42,8 @@ namespace RealtimeCSG
 				int n = vertexCount;
 				vertices1[n] = B; vertices2[n] = A; offsets[n] = new Vector4(thickness, -1, dashSize); colors[n] = color; n++;
 				vertices1[n] = B; vertices2[n] = A; offsets[n] = new Vector4(thickness, +1, dashSize); colors[n] = color; n++;
-				vertices1[n] = A; vertices2[n] = B; offsets[n] = new Vector4(thickness, +1, dashSize); colors[n] = color; n++;
 				vertices1[n] = A; vertices2[n] = B; offsets[n] = new Vector4(thickness, -1, dashSize); colors[n] = color; n++;
+				vertices1[n] = A; vertices2[n] = B; offsets[n] = new Vector4(thickness, +1, dashSize); colors[n] = color; n++;
 				vertexCount = n;
 			}
 			
@@ -69,6 +69,7 @@ namespace RealtimeCSG
 				} else
 				{
 					mesh = new Mesh();
+					mesh.hideFlags = HideFlags.HideAndDontSave | HideFlags.DontUnloadUnusedAsset;
 					mesh.MarkDynamic();
 				}
 

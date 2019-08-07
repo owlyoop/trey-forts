@@ -4,19 +4,23 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3697567d521421745ab7cacf3a126e3a, type: 3}
   m_Name: Rocketeer
   m_EditorClassIdentifier: 
+  isElite: 0
   maxHealth: 200
-  moveSpeedMultiplier: 1
-  jumpHeightMultiplier: 1
+  moveSpeedPercentAdd: 0
+  jumpHeightPercentAdd: 0
   weaponList:
-  - {fileID: 11400000, guid: 03b338d3733f89544813dfcc8c9e1695, type: 2}
-  - {fileID: 11400000, guid: 87305ff0fee978142a382845857563a5, type: 2}
   - {fileID: 11400000, guid: b99812d663e3a9c4db0f37957a58b6ec, type: 2}
+  - {fileID: 11400000, guid: 314c9e3079787ca4ab1b3427005a87e4, type: 2}
+  - {fileID: 11400000, guid: 573e374d206bb204d8363fcb3bec802b, type: 2}
+  PassiveEffects: []
   className: Rocketeer
   icon: {fileID: 21300000, guid: 743f19924e583fb46b7d5074a30537eb, type: 3}
+  defaultState: 2

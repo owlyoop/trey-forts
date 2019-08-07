@@ -17,8 +17,9 @@ namespace RealtimeCSG.Components
 		AutoUpdateRigidBody		= 512,
 		PreserveUVs             = 1024,
 		AutoRebuildUVs			= 2048,
-//		NoAutoRebuildColliders	= 4096,
-		IgnoreNormals			= 8192
+		StitchLightmapSeams		= 4096,
+		IgnoreNormals			= 8192,
+		TwoSidedShadows			= 16384,
 	}
 
 	[Serializable]
@@ -49,12 +50,14 @@ namespace RealtimeCSG.Components
 		[HideInInspector] public float Version = CurrentVersion;
 
 		public bool	IsRenderable			{ get { return (Settings & ModelSettingsFlags.DoNotRender) == (ModelSettingsFlags)0; } }
+		public bool	IsTwoSidedShadows		{ get { return (Settings & ModelSettingsFlags.TwoSidedShadows) != (ModelSettingsFlags)0; } }
 		public bool	HaveCollider			{ get { return (Settings & ModelSettingsFlags.NoCollider) == (ModelSettingsFlags)0; } }
 		public bool	IsTrigger				{ get { return (Settings & ModelSettingsFlags.IsTrigger) != (ModelSettingsFlags)0; } }
 		public bool	InvertedWorld			{ get { return (Settings & ModelSettingsFlags.InvertedWorld) != (ModelSettingsFlags)0; } }
 		public bool	SetColliderConvex		{ get { return (Settings & ModelSettingsFlags.SetColliderConvex) != (ModelSettingsFlags)0; } }
 		public bool	NeedAutoUpdateRigidBody	{ get { return (Settings & ModelSettingsFlags.AutoUpdateRigidBody) == (ModelSettingsFlags)0; } }
 		public bool	PreserveUVs         	{ get { return (Settings & ModelSettingsFlags.PreserveUVs) != (ModelSettingsFlags)0; } }
+		public bool StitchLightmapSeams		{ get { return (Settings & ModelSettingsFlags.StitchLightmapSeams) != (ModelSettingsFlags)0; } }		
 		public bool	AutoRebuildUVs         	{ get { return (Settings & ModelSettingsFlags.AutoRebuildUVs) != (ModelSettingsFlags)0; } }
 		public bool	IgnoreNormals  			{ get { return (Settings & ModelSettingsFlags.IgnoreNormals) != (ModelSettingsFlags)0; } }
 
@@ -69,7 +72,7 @@ namespace RealtimeCSG.Components
 		[HideInInspector][NonSerialized] public readonly ParentNodeData	parentData				= new ParentNodeData();
 		[HideInInspector][NonSerialized] public GeneratedMeshes			generatedMeshes;
 		[HideInInspector][NonSerialized] public Transform				cachedTransform			= null;
-		[HideInInspector][NonSerialized] public CSGBrush				infiniteBrush			= null;
+		[HideInInspector][SerializeField] public CSGBrush				infiniteBrush			= null;
 		[HideInInspector][NonSerialized] public bool					forceUpdate				= false;
 		[HideInInspector][NonSerialized] public bool					isActive				= false; // this allows us to detect if we're enabled/disabled
 		
@@ -88,26 +91,32 @@ namespace RealtimeCSG.Components
 
 		[EnumAsFlags] public ModelSettingsFlags				Settings		= ((ModelSettingsFlags)UnityEngine.Rendering.ShadowCastingMode.On) | ModelSettingsFlags.PreserveUVs;
 		[EnumAsFlags] public Foundation.VertexChannelFlags	VertexChannels	= Foundation.VertexChannelFlags.All;
+        
+        #if UNITY_2017_3_OR_NEWER
+        [EnumAsFlags] public MeshColliderCookingOptions MeshColliderCookingOptions = MeshColliderCookingOptions.CookForFasterSimulation |
+                                                                                     MeshColliderCookingOptions.EnableMeshCleaning |
+                                                                                     MeshColliderCookingOptions.WeldColocatedVertices;
+        #endif
 
 		#endregion
 		
 		#region Editor Settings
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
 
 		public bool             ShowGeneratedMeshes     = false;
 		public PhysicMaterial   DefaultPhysicsMaterial  = null;
 
-		#region Export settings
+        #region Export settings
 		public ExportType		exportType				= ExportType.FBX;
 		public OriginType		originType				= OriginType.ModelCenter;
 		public bool				exportColliders			= false;
 		public string			exportPath				= null;
-		#endregion
+        #endregion
 
-#endif
+        #endif
 
-		#region Lightmap settings
-		public const float	MinAngleError    = 0.001f;
+        #region Lightmap settings
+        public const float	MinAngleError    = 0.001f;
 		public const float	MinAreaError     = 0.001f;
 		public const float	MaxAngleError    = 1.000f;
 		public const float	MaxAreaError     = 1.000f;

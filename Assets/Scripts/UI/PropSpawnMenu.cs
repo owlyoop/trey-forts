@@ -6,10 +6,12 @@ using UnityEngine.UI;
 public class PropSpawnMenu : MonoBehaviour
 {
 	public UIManager mainUI;
-	PlayerStats playersStats;
+	public PlayerStats playersStats;
 
 	public FortwarsPropData selectedProp;
-	public int selectedPropIndex;
+
+	public GameObject slotPrefab;
+	public Transform propGrid;
 
 	public Image selectedPropImage;
 	public Text selectedPropName;
@@ -26,17 +28,27 @@ public class PropSpawnMenu : MonoBehaviour
 
 	private void Start()
 	{
-		playersStats = mainUI.GetComponent<PlayerStats>();
+		
 		hasPropSelected = false;
+
+		for (int i = 0; i < playersStats._gameManager.buildPhaseProps.Count; i++)
+		{
+			GameObject slot = Instantiate(slotPrefab, propGrid);
+			slot.GetComponent<PropMenuSlot>().prop = playersStats._gameManager.buildPhaseProps[i];
+			slot.GetComponent<PropMenuSlot>().propMenuUI = this.GetComponent<PropSpawnMenu>();
+			slot.GetComponent<PropMenuSlot>().icon.sprite = playersStats._gameManager.buildPhaseProps[i].icon;
+			slot.GetComponent<PropMenuSlot>().iconText.text = playersStats._gameManager.buildPhaseProps[i].PropName;
+		}
 	}
 
 	public void OnClickCreateButton()
 	{
 		if (selectedProp != null && playersStats.currentCurrency > selectedProp.currencyCost)
 		{
-			mainUI.player.playerWeapons.player.GetComponent<PlayerInput>().selectedPropMenuIndex = selectedPropIndex;
-			mainUI.player.playerWeapons.SetSelectedProp(selectedProp);
 			hasPropSelected = true;
+			mainUI.player.playerWeapons.SetSelectedProp(selectedProp);
+			
+			Debug.Log("poopoo");
 
 			if (selectedProp.currencyCost > playersStats.currentCurrency)
 			{

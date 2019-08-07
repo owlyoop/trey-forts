@@ -87,7 +87,12 @@ namespace RealtimeCSG
 			EditorApplication.hierarchyWindowChanged	-= OnHierarchyWindowChanged;
 #endif
 			EditorApplication.hierarchyWindowItemOnGUI	-= HierarchyWindowItemGUI.OnHierarchyWindowItemOnGUI;
+
+#if UNITY_2019_1_OR_NEWER
+			SceneView.duringSceneGui					-= SceneViewEventHandler.OnScene;
+#else
 			SceneView.onSceneGUIDelegate				-= SceneViewEventHandler.OnScene;
+#endif
 			Undo.undoRedoPerformed						-= UndoRedoPerformed;
 
 			initialized = false;
@@ -186,11 +191,16 @@ namespace RealtimeCSG
 				EditorApplication.update += OnWaitUntillStoppedPlaying;
 				return;
 			}
-			
-			SceneView.onSceneGUIDelegate -= SceneViewEventHandler.OnScene;
-			SceneView.onSceneGUIDelegate += SceneViewEventHandler.OnScene;
-			Undo.undoRedoPerformed		 -= UndoRedoPerformed;
-			Undo.undoRedoPerformed		 += UndoRedoPerformed;
+
+#if UNITY_2019_1_OR_NEWER
+			SceneView.duringSceneGui		-= SceneViewEventHandler.OnScene;
+			SceneView.duringSceneGui		+= SceneViewEventHandler.OnScene;
+#else
+			SceneView.onSceneGUIDelegate	-= SceneViewEventHandler.OnScene;
+			SceneView.onSceneGUIDelegate	+= SceneViewEventHandler.OnScene;
+#endif
+            Undo.undoRedoPerformed			-= UndoRedoPerformed;
+			Undo.undoRedoPerformed			+= UndoRedoPerformed;
 			
 //			InternalCSGModelManager.UpdateHierarchy();
 			
@@ -234,7 +244,8 @@ namespace RealtimeCSG
 		
 			try
 			{
-				ColorSettings.Update();
+				if (!ColorSettings.isInitialized)
+					ColorSettings.Update();
 				InternalCSGModelManager.CheckForChanges(forceHierarchyUpdate: false);
 				TooltipUtility.CleanCache();
 			}

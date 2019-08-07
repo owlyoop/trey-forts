@@ -54,8 +54,22 @@ namespace RealtimeCSG
 					return;
 				}
 
-				if (pointMesh != null) pointMesh.Clear(true); else { pointMesh = new Mesh(); pointMesh.MarkDynamic(); }
-				if (lineMesh  != null) lineMesh .Clear(true); else { lineMesh  = new Mesh(); lineMesh.MarkDynamic(); }
+				if (pointMesh != null)
+					pointMesh.Clear(true);
+				else
+				{
+					pointMesh = new Mesh();
+					pointMesh.hideFlags = HideFlags.HideAndDontSave | HideFlags.DontUnloadUnusedAsset;
+					pointMesh.MarkDynamic();
+				}
+				if (lineMesh  != null)
+					lineMesh .Clear(true);
+				else
+				{
+					lineMesh  = new Mesh();
+					lineMesh.hideFlags = HideFlags.HideAndDontSave | HideFlags.DontUnloadUnusedAsset;
+					lineMesh.MarkDynamic();
+				}
 				
 				
 				Vector3[]	newVertices;

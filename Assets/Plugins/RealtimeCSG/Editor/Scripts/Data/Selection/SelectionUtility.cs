@@ -30,7 +30,8 @@ namespace RealtimeCSG
 					if ((flags & (HideFlags.HideInHierarchy | HideFlags.NotEditable | HideFlags.DontSaveInBuild)) == 0)
 						returnModel = lastUsedModelInstance;
 				}
-				if (returnModel != null)
+				if (returnModel != null &&
+                    returnModel.gameObject.activeInHierarchy)
 				{
 					return returnModel;
 				}
@@ -38,7 +39,8 @@ namespace RealtimeCSG
 				foreach (var model in InternalCSGModelManager.Models)
 				{
 					var flags = model.gameObject.hideFlags;
-					if ((flags & (HideFlags.HideInHierarchy | HideFlags.NotEditable | HideFlags.DontSaveInBuild)) == 0)
+					if ((flags & (HideFlags.HideInHierarchy | HideFlags.NotEditable | HideFlags.DontSaveInBuild)) == 0 &&
+                        model.gameObject.activeInHierarchy)
 					{
 						// don't want new stuff to be added to a prefab instance
 						if (CSGPrefabUtility.IsPrefabAssetOrInstance(model.gameObject))
@@ -56,7 +58,8 @@ namespace RealtimeCSG
 					return;
 
 				var flags = value.gameObject.hideFlags;
-				if ((flags & (HideFlags.HideInHierarchy | HideFlags.NotEditable | HideFlags.DontSaveInBuild)) != 0)
+				if ((flags & (HideFlags.HideInHierarchy | HideFlags.NotEditable | HideFlags.DontSaveInBuild)) != 0 &&
+                    value.gameObject.activeInHierarchy)
 					return;
 
 				// don't want new stuff to be added to a prefab instance
@@ -380,10 +383,10 @@ namespace RealtimeCSG
 		{
 			GameObject gameobject;
 			SceneQueryUtility.FindClickWorldIntersection(Event.current.mousePosition, out gameobject);
+            
+			gameobject = SceneQueryUtility.FindSelectionBase(gameobject);
 
-			gameobject = SceneQueryUtility.GetGroupGameObjectIfObjectIsPartOfGroup(gameobject);
-
-			var selectedObjectsOnClick = new List<int>(Selection.instanceIDs);
+            var selectedObjectsOnClick = new List<int>(Selection.instanceIDs);
 			bool addedSelection = false;
 			if (EditorGUI.actionKey)
 			{

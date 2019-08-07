@@ -242,8 +242,8 @@ namespace RealtimeCSG
 				case DistanceUnit.Meters:		break;
 				case DistanceUnit.Centimeters:	result *= meter_to_centimeter; break;
 				case DistanceUnit.Millimeters:	result *= meter_to_millimeter; break;
-				case DistanceUnit.Inches:		result *= meter_to_inches; result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
-				case DistanceUnit.Feet:			result *= meter_to_feet; result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
+				case DistanceUnit.Inches:		result *= meter_to_inches;     result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
+				case DistanceUnit.Feet:			result *= meter_to_feet;       result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
 				default:
 				{
 					Debug.LogWarning("Tried to convert value to unknown distance unit");
@@ -270,8 +270,8 @@ namespace RealtimeCSG
 				case DistanceUnit.Meters:		break;
 				case DistanceUnit.Centimeters:	result /= meter_to_centimeter; break;
 				case DistanceUnit.Millimeters:	result /= meter_to_millimeter; break;
-				case DistanceUnit.Inches:		result /= meter_to_inches; result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
-				case DistanceUnit.Feet:			result /= meter_to_feet; result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
+				case DistanceUnit.Inches:		result /= meter_to_inches;     result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
+				case DistanceUnit.Feet:			result /= meter_to_feet;       result = Math.Round(result * emperial_rounding) / emperial_rounding; break;
 				default:
 				{
 					Debug.LogWarning("Tried to convert value from unknown distance unit");

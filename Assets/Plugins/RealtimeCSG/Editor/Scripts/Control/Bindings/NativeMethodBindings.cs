@@ -1372,8 +1372,8 @@ namespace RealtimeCSG
 //			methods.FitSurfaceX					= FitSurfaceX;
 //			methods.FitSurfaceY					= FitSurfaceY;
 			methods.GetSurfaceMinMaxTexCoords	= GetSurfaceMinMaxTexCoords;
-			methods.ConvertWorldToTextureCoord	= ConvertWorldToTextureCoord;
-			methods.ConvertTextureToWorldCoord	= ConvertTextureToWorldCoord;
+			methods.ConvertModelToTextureSpace	= ConvertWorldToTextureCoord;
+			methods.ConvertTextureToModelSpace	= ConvertTextureToWorldCoord;
 
 			methods.GetBrushOutlineGeneration	= GetBrushOutlineGeneration;
 			methods.GetBrushOutline				= GetBrushOutline;

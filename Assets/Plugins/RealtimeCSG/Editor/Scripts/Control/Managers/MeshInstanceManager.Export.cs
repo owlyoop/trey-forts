@@ -123,18 +123,24 @@ namespace InternalRealtimeCSG
 						 
 					if (surfaceType == RenderSurfaceType.Collider)
 					{
-						subObj.name = "no-material (" + colliderCounter + ") COLLIDER"; colliderCounter++;
+						subObj.name = "no-material Mesh (" + colliderCounter + ") COLLIDER"; colliderCounter++;
 					} else
 					{ 
 						if (surfaceType == RenderSurfaceType.ShadowOnly)
 						{
-							subObj.name = "shadow-only (" + shadowOnlyCounter + ")"; shadowOnlyCounter++;
+							subObj.name = "shadow-only Mesh (" + shadowOnlyCounter + ")"; shadowOnlyCounter++;
 							var meshRenderer = subObj.GetComponent<MeshRenderer>();
 							if (meshRenderer)
 								meshRenderer.sharedMaterial = MaterialUtility.DefaultMaterial;
 						} else
 						{
-							subObj.name = instance.RenderMaterial.name + " (" + counter + ")"; counter++;
+							Material renderMaterial = instance.RenderMaterial;
+							if (!renderMaterial)
+							{
+								renderMaterial = MaterialUtility.DefaultMaterial;
+								subObj.name = "missing-material Mesh (" + counter + ")"; counter++;
+							} else
+								subObj.name = renderMaterial.name + " Mesh (" + counter + ")"; counter++;
 							materialMeshCounters[instance.RenderMaterial] = counter;
 						}
 

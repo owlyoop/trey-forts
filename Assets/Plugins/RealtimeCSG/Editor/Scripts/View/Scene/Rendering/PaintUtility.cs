@@ -491,9 +491,7 @@ namespace RealtimeCSG
 			
 			if (material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				thickness *= EditorGUIUtility.pixelsPerPoint;
-#endif
 				thickness *= 100;
 				
 				var thickness0 = new Vector3(thickness, -1, 0);
@@ -530,9 +528,7 @@ namespace RealtimeCSG
 			
 			if (material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				thickness *= EditorGUIUtility.pixelsPerPoint;
-#endif
 				thickness *= 100;
 
 				//var cameraPosition = matrix.inverse.MultiplyPoint(Camera.current.transform.position);
@@ -733,11 +729,7 @@ namespace RealtimeCSG
 			var material = CustomWireDottedMaterial;
 			if (material && material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				var dashSize = sreenSpaceSize * EditorGUIUtility.pixelsPerPoint;
-#else
-				var dashSize = sreenSpaceSize;
-#endif
 				GL.Begin(GL.LINES);
 				for (int i = 0, c = 0; i < indices.Length; i += 2, c++)
 				{
@@ -766,11 +758,7 @@ namespace RealtimeCSG
 			var material = CustomWireDottedMaterial;
 			if (material && material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				var dashSize = sreenSpaceSize * EditorGUIUtility.pixelsPerPoint;
-#else
-				var dashSize = sreenSpaceSize;
-#endif
 				GL.Begin(GL.LINES);
 				GL.Color(color);
 				for (int i = 0, c = 0; i < indices.Length; i += 2, c++)
@@ -796,11 +784,7 @@ namespace RealtimeCSG
 			var material = CustomWireDottedMaterial;
 			if (material && material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				var dashSize = sreenSpaceSize * EditorGUIUtility.pixelsPerPoint;
-#else
-				var dashSize = sreenSpaceSize;
-#endif
 				GL.PushMatrix();
 				GL.MultMatrix(matrix);
 				GL.Begin(GL.LINES);
@@ -835,11 +819,7 @@ namespace RealtimeCSG
 			var material = CustomWireDottedMaterial;
 			if (material && material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				var dashSize = sreenSpaceSize * EditorGUIUtility.pixelsPerPoint;
-#else
-				var dashSize = sreenSpaceSize;
-#endif
 				GL.PushMatrix();
 				GL.MultMatrix(matrix);
 				GL.Begin(GL.LINES);
@@ -1050,9 +1030,7 @@ namespace RealtimeCSG
 			
 			if (material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				thickness *= EditorGUIUtility.pixelsPerPoint;
-#endif
 				thickness *= 100;
 
 				//var cameraPosition = Camera.current.transform.position;
@@ -1242,9 +1220,7 @@ namespace RealtimeCSG
 			
 			if (material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				thickness *= EditorGUIUtility.pixelsPerPoint;
-#endif
 				thickness *= 100;
 
 				//var cameraPosition = matrix.inverse.MultiplyPoint(Camera.current.transform.position);
@@ -1318,9 +1294,7 @@ namespace RealtimeCSG
 			
 			if (material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				thickness *= EditorGUIUtility.pixelsPerPoint;
-#endif
 				thickness *= 100;
 
 				//var cameraPosition = Camera.current.transform.position;
@@ -1393,11 +1367,7 @@ namespace RealtimeCSG
 			float m02 = clipmatrix.m02, m32 = clipmatrix.m32;
 			float m03 = clipmatrix.m03, m33 = clipmatrix.m33;
 			
-#if UNITY_5_4_OR_NEWER
 			float pixelsPerPoint = (thickness * kHandleSize) * EditorGUIUtility.pixelsPerPoint;
-#else
-			float pixelsPerPoint = (thickness * kHandleSize);
-#endif
 			
 			for (int i = 0; i < positions.Length; i++)
 			{
@@ -1438,9 +1408,7 @@ namespace RealtimeCSG
 			
 			if (material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				thickness *= EditorGUIUtility.pixelsPerPoint;
-#endif
 				thickness *= 100;
 				
 				var thickness0 = new Vector3(thickness, -1, 0);
@@ -1487,9 +1455,7 @@ namespace RealtimeCSG
 
 			if (material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				thickness *= EditorGUIUtility.pixelsPerPoint;
-#endif
 				thickness *= 100;
 				
 				var thickness0 = new Vector3(thickness, -1, 0);
@@ -1629,11 +1595,7 @@ namespace RealtimeCSG
 			var material = CustomWireDottedMaterial;
 			if (material && material.SetPass(0))
 			{
-#if UNITY_5_4_OR_NEWER
 				var dashSize = sreenSpaceSize * EditorGUIUtility.pixelsPerPoint;
-#else
-				var dashSize = sreenSpaceSize;
-#endif
 				GL.Begin(GL.LINES);
 				GL.Color(c);
 				var pt0 = vertices[vertices.Length - 1];

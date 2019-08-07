@@ -174,8 +174,8 @@ namespace RealtimeCSG
 					continue;
 				obj.transform.rotation = hoverRotation;
 				obj.transform.position = hoverPosition;
-				if (hoverParent != null && !CSGPrefabUtility.IsPrefabAsset(hoverParent.gameObject))
-					obj.transform.SetParent(hoverParent, true);
+			//	if (hoverParent != null && !CSGPrefabUtility.IsPrefabAsset(hoverParent.gameObject))
+			//		obj.transform.SetParent(hoverParent, true);
 				obj.transform.SetSiblingIndex(hoverSiblingIndex + counter);
 				counter++;
 			}
@@ -262,7 +262,7 @@ namespace RealtimeCSG
 
 					hoverPosition += RealtimeCSG.CSGGrid.SnapDeltaToGrid(MathConstants.zeroVector3, localPoints);
 				}
-				hoverPosition	= GeometryUtility.ProjectPointOnPlane(intersection.worldPlane, hoverPosition) + (normal * 0.01f);
+				hoverPosition	= GeometryUtility.ProjectPointOnPlane(intersection.worldPlane, hoverPosition);// + (normal * 0.01f);
 
 				EnableVisualObjects();
 				return true;
@@ -326,7 +326,7 @@ namespace RealtimeCSG
 			finally
 			{
 				RealtimeCSG.CSGGrid.ForcedGridCenter	= prevForcedGridCenter;
-				RealtimeCSG.CSGGrid.ForcedGridRotation = prevForcedGridRotation;
+				RealtimeCSG.CSGGrid.ForcedGridRotation	= prevForcedGridRotation;
 				RealtimeCSG.CSGGrid.ForceGrid			= false;
 			}
 		}

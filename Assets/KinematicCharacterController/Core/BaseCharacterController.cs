@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
+using Photon.Pun;
 
 namespace KinematicCharacterController
 {
-    public abstract class BaseCharacterController : NetworkBehaviour
+    public abstract class BaseCharacterController : MonoBehaviourPunCallbacks
     {
         /// <summary>
         // The KinematicCharacterMotor that will be assigned to this CharacterController via the inspector

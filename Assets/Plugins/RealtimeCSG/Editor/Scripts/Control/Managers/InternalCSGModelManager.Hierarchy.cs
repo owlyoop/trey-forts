@@ -341,7 +341,7 @@ namespace RealtimeCSG
 		#endregion
 
 		#region FindParentOperationAndModel
-		static void FindParentOperationAndModel(Transform opTransform, out CSGOperation parentOp, out CSGModel parentModel)
+		internal static void FindParentOperationAndModel(Transform opTransform, out CSGOperation parentOp, out CSGModel parentModel)
 		{
 			parentOp = null;
 			parentModel = null;

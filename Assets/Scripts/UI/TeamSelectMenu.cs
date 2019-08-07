@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using KinematicCharacterController.Examples;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,58 +17,76 @@ public class TeamSelectMenu : MonoBehaviour
 
 	void Start()
 	{
+		if (!player.photonView.IsMine)
+			return;
 		Cursor.lockState = CursorLockMode.None;
-		player.GetComponentInChildren<PlayerLook>().viewLocked = true;
 	}
+
 	public void OnClickBlueTeamButton()
 	{
-		player.SetTeam(1);
-		player.playerTeam = 1;
-		ActivatePlayer();
-		CloseUI();
-
-		OpenClassMenu();
-		player.OnDeath();
+		//if (!player.photonView.IsMine)
+		//	return;
+		if (player.playerClass.className != "Spectator")
+		{
+			player.SetTeam(1);
+			player.RespawnAndInitialize();
+			player.ChangeAwayFromSpectator();
+			CloseUI();
+			OpenClassMenu();
+		}
+		else
+		{
+			// player is spectator, we dont want to spawn them until they pick a class
+			player.GetComponent<PlayerInput>().mainUI.classMenu.QueuedTeam = 1;
+			player.GetComponent<PlayerInput>().mainUI.classMenu.cameFromTeamMenu = true;
+			CloseUI();
+			OpenClassMenu();
+		}
 	}
 
 	public void OnClickRedTeamButton()
 	{
-		player.SetTeam(2);
-		player.playerTeam = 2;
-		ActivatePlayer();
-		CloseUI();
+	//	if (!player.photonView.IsMine)
+	//		return;
+		if (player.playerClass.className != "Spectator")
+		{
+			player.SetTeam(2);
+			player.RespawnAndInitialize();
+			player.ChangeAwayFromSpectator();
+			CloseUI();
+			OpenClassMenu();
+		}
+		else
+		{
+			player.GetComponent<PlayerInput>().mainUI.classMenu.QueuedTeam = 2;
+			player.GetComponent<PlayerInput>().mainUI.classMenu.cameFromTeamMenu = true;
+			CloseUI();
+			OpenClassMenu();
+			
+		}
 
-		OpenClassMenu();
-		player.OnDeath();
 	}
 
 	public void OnClickSpectateTeamButton()
 	{
+		//if (!player.photonView.IsMine)
+	//		return;
 		player.SetTeam(0);
-		player.playerTeam = 0;
-		ActivatePlayer();
+		player.ChangeToSpectator();
 		CloseUI();
-
 	}
 
 	void OpenClassMenu()
 	{
-		if (player.playerClass.className == "Spectator")
-		{
-			player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(true);
-		}
+		player.GetComponent<PlayerInput>().mainUI.TeamSelectMenuSetActive(false);
+		player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(true);
 	}
 
 	void CloseUI()
 	{
 		Cursor.lockState = CursorLockMode.Locked;
-		player.GetComponentInChildren<PlayerLook>().viewLocked = false;
-		gameObject.SetActive(false);
+		//player.GetComponentInChildren<OrbitCamera>().viewLocked = false;
+		player.GetComponent<PlayerInput>().mainUI.TeamSelectMenuSetActive(false);
 	}
-
-	public void ActivatePlayer()
-	{
-		player.GetComponent<CharacterController>().enabled = true;
-		//player.playerModelRoot.SetActive(true);
-	}
+	
 }

@@ -1,20 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
+using Photon.Pun;
 
 public class PropSpawner : WeaponMotor
 {
 
 	public PlayerInput player;
-	PlayerStats playersStats;
+	public PlayerStats playersStats;
 	public UIManager playerUI;
 	public PropSpawnMenu propUI;
 	public WeaponSlots wepSlots;
 	public FortwarsProp theProp;
 	Camera cam;
 	
-	public GameObject thePropObj;
+	public GameObject ghostProp;
 	
 	public GameObject newProp;
 
@@ -23,31 +23,28 @@ public class PropSpawner : WeaponMotor
 	public float allowedRange = 10f;
 
 	float angleOffsetY = 0f;
-	float angleOffsetX = 0f;
+	public float angleOffsetX = 0f;
 
-	[SyncVar]
-	public Vector3 networkPropPosition;
-	[SyncVar]
-	public Quaternion networkPropRotation;
+	public GamePhases gameManager;
 
+    public LayerMask allowedLayers;
 
 	private void Start()
 	{
+		gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
 		InitilaizeValues();
 
 		if (player.playerWeapons.selectedProp != null)
 		{
 			SetSelectedProp();
 		}
+
+		
 	}
 
 	private void InitilaizeValues()
 	{
 		isPlacingObject = false;
-		player = GetComponentInParent<WeaponSlots>().player.GetComponent<PlayerInput>();
-		playerUI = player.mainUI;
-		wepSlots = GetComponentInParent<WeaponSlots>();
-		propUI = playerUI.GetComponentInChildren<PropSpawnMenu>();
 		cam = player.cam;
 	}
 
@@ -55,15 +52,22 @@ public class PropSpawner : WeaponMotor
 	{
 		InitilaizeValues();
 
-		Destroy(thePropObj);
-		if (player.GetComponent<PlayerStats>().currentCurrency > player.mainUI.props[player.selectedPropMenuIndex].currencyCost && player.mainUI.propMenu.hasPropSelected)
+		Destroy(ghostProp);
+		Debug.Log("pp 2");
+		Debug.Log(player.mainUI.propMenu.hasPropSelected.ToString());
+		if (playersStats.currentCurrency > playersStats.wepSlots.selectedProp.currencyCost)
 		{
-			thePropObj = Instantiate(player.mainUI.props[player.selectedPropMenuIndex].propPrefab);
-			theProp = thePropObj.GetComponent<FortwarsProp>();
-			//thePropObj.layer = 10;
-			isPlacingObject = true;
-			thePropObj.GetComponent<Renderer>().material = theProp.placementModeMat;
-			thePropObj.GetComponent<Collider>().enabled = false;
+			if (player.mainUI.propMenu.hasPropSelected)
+			{
+				Debug.Log("peepee ");
+				ghostProp = Instantiate(playersStats.wepSlots.selectedProp.propPrefab);
+				theProp = ghostProp.GetComponent<FortwarsProp>();
+				//thePropObj.layer = 10;
+				isPlacingObject = true;
+				ghostProp.GetComponent<FortwarsProp>().rend.material = theProp.placementModeMat;
+				ghostProp.GetComponent<FortwarsProp>().col.enabled = false;
+			}
+			
 		}
 
 	}
@@ -71,26 +75,37 @@ public class PropSpawner : WeaponMotor
 
 	private void Update()
 	{
-		if (thePropObj != null && isPlacingObject)
+		if (ghostProp != null && isPlacingObject)
 		{
 			RaycastHit shot;
 			Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 			Vector3 shootDirection = cam.transform.forward;
 
-			int layermask = 1 << 10;
-			layermask = ~layermask;
 			
-			if (Physics.Raycast(rayOrigin, shootDirection, out shot, allowedRange, layermask))
+			if (Physics.Raycast(rayOrigin, shootDirection, out shot, allowedRange, allowedLayers))
 			{
-				thePropObj.transform.rotation = Quaternion.FromToRotation(Vector3.up, shot.normal);
-				thePropObj.transform.rotation = Quaternion.FromToRotation(Vector3.forward, Vector3.Cross(shot.normal, Vector3.up));
-				thePropObj.transform.position = shot.point;
+				ghostProp.transform.rotation = Quaternion.FromToRotation(Vector3.up, shot.normal);
+				ghostProp.transform.rotation = Quaternion.FromToRotation(Vector3.forward, Vector3.Cross(shot.normal, Vector3.up));
+				ghostProp.transform.Rotate(new Vector3(angleOffsetX, angleOffsetY, 0));
+				ghostProp.transform.position = shot.point;
 
-				thePropObj.transform.position = new Vector3(thePropObj.transform.position.x + shot.normal.x,
-															thePropObj.transform.position.y + (shot.normal.y * -theProp.snapPositionBottom.transform.localPosition.y),
-															thePropObj.transform.position.z + shot.normal.z);
+				ghostProp.transform.position = new Vector3(ghostProp.transform.position.x + (shot.normal.x * theProp.snapPositionRight.transform.localPosition.x),
+											ghostProp.transform.position.y + (shot.normal.y * -theProp.snapPositionBottom.transform.localPosition.y),
+											ghostProp.transform.position.z + (shot.normal.z * theProp.snapPositionRight.transform.localPosition.x));
+				
+				if (angleOffsetX == 45f || angleOffsetX == 135f)
+				{
+					ghostProp.transform.position = new Vector3(ghostProp.transform.position.x,
+							ghostProp.transform.position.y - -theProp.snapPositionBottom.localPosition.y/3.2f,
+							ghostProp.transform.position.z);
+				}
 
-				thePropObj.transform.Rotate(new Vector3(angleOffsetX, angleOffsetY, 0));
+				if (angleOffsetX == 225f || angleOffsetX == 315f)
+				{
+					ghostProp.transform.position = new Vector3(ghostProp.transform.position.x,
+							ghostProp.transform.position.y - -theProp.snapPositionBottom.localPosition.y / 3.2f,
+							ghostProp.transform.position.z);
+				}
 
 				Debug.DrawRay(shot.point, shot.normal * 5f, Color.cyan);
 				Debug.DrawRay(theProp.snapPositionBottom.transform.position, Vector3.Cross(shot.normal, theProp.snapPositionBottom.transform.up) * 5f, Color.red);
@@ -101,14 +116,26 @@ public class PropSpawner : WeaponMotor
 
 	public override void PrimaryFire()
 	{
-		if (thePropObj != null && isPlacingObject && player.mainUI.propMenu.hasPropSelected)
+		if (ghostProp != null && isPlacingObject && player.mainUI.propMenu.hasPropSelected)
 		{
-			player.playerWeapons.playersProps.Add(thePropObj);
+			//angleOffsetY = 0f;
 
-			networkPropPosition = thePropObj.transform.position;
-			networkPropRotation = thePropObj.transform.rotation;
+			//player rpc call to spawn
+			string prefabName = playersStats.wepSlots.selectedProp.propPrefab.name;
+			Debug.Log(prefabName);
 
-			angleOffsetY = 0f;
+			if (playersStats.currentCurrency - theProp.currencyCost > 0)
+			{
+				player.GetComponent<PhotonView>().RPC("SpawnFortwarsProp", RpcTarget.AllViaServer,
+					playersStats.GetComponent<PhotonView>().ViewID, prefabName, ghostProp.transform.position, ghostProp.transform.rotation);
+
+				playersStats.currentCurrency -= theProp.currencyCost;
+				playersStats.OnChangeCurrencyAmount(playersStats.currentCurrency);
+			}
+
+
+
+			
 		}
 	}
 
@@ -116,34 +143,42 @@ public class PropSpawner : WeaponMotor
 	{
 		//rotate the object
 
-		if (thePropObj != null && isPlacingObject)
+		if (ghostProp != null && isPlacingObject)
 		{
 			angleOffsetY += 45f;
+			if (angleOffsetY == 360)
+				angleOffsetY = 0;
 		}
 	}
 
 	public override void ReloadButton()
 	{
-		if (thePropObj != null && isPlacingObject)
+		if (ghostProp != null && isPlacingObject)
 		{
+			
 			angleOffsetX += 45f;
+			if (angleOffsetX == 360)
+				angleOffsetX = 0;
 		}
 	}
 
 	public override void OnSwitchToWeapon()
 	{
-		SetSelectedProp();
+		if (player.playerWeapons.selectedProp != null)
+		{
+			SetSelectedProp();
+		}
 	}
 
 	public override void OnSwitchAwayFromWeapon()
 	{
-		GameObject.Destroy(thePropObj);
+		GameObject.Destroy(ghostProp);
 	}
 
 	public override void UpdateUI()
 	{
 		playersStats = GetComponentInParent<WeaponSlots>().player;
-		playersStats.ammoAmount.text = "";
-		playersStats.ammoInClip.text = "";
+		playersStats.ui.ammoAmount.text = "";
+		playersStats.ui.ammoInClip.text = "";
 	}
 }

@@ -46,11 +46,15 @@ namespace RealtimeCSG
 																											"brush is moved in the world. When \n" +
 																											"set it'll move with the brush.");
 		
+		private static readonly GUIContent	ContentSelectAllSurfaces	= new GUIContent("Select all brush surfaces");
+		private static readonly ToolTip		TooltipSelectAllSurfaces	= new ToolTip("Select all brush surfaces", "Select all the surfaces of all the\n" +
+																												   "brushes that are currently selected.");
+		
 
 		private static readonly GUIContent	ContentReset			= new GUIContent("Reset");
 		private static readonly GUIContent	ContentResetXY			= new GUIContent("UV");
 		private static readonly GUIContent	ContentResetX			= new GUIContent("U");
-		private static readonly GUIContent	ContentResetY			= new GUIContent("Y");
+		private static readonly GUIContent	ContentResetY			= new GUIContent("V");
 		private static readonly ToolTip		ToolTipResetXY			= new ToolTip("Reset U & V coordinates", "Reset the texture coordinates in the U and V direction");
 		private static readonly ToolTip		ToolTipResetX			= new ToolTip("Reset U coordinates", "Reset the texture coordinates in the U direction");
 		private static readonly ToolTip		ToolTipResetY			= new ToolTip("Reset V coordinates", "Reset the texture coordinates in the V direction");

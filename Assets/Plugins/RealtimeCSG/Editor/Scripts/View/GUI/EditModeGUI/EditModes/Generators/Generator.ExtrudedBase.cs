@@ -36,6 +36,8 @@ namespace RealtimeCSG
 		
 		[SerializeField] internal bool		smearTextures			= true;
 		[NonSerialized] internal bool		forceDragHandle;
+        [NonSerialized] internal CSGOperationType? forceDragSource = null;
+		[NonSerialized] internal bool       commitExtrusionAfterRelease = false;
 
 		[NonSerialized] CSGPlane			movePlane;
 		[NonSerialized] Vector3				movePolygonDirection;
@@ -119,6 +121,7 @@ namespace RealtimeCSG
 		public override void Reset() 
 		{
 			base.Reset();
+			commitExtrusionAfterRelease = false;
 			extrusionPoints = new ExtrusionPoint[2];
 			extrusionPoints[0].Position = MathConstants.zeroVector3;
 			extrusionPoints[1].Position = MathConstants.zeroVector3;
@@ -127,7 +130,8 @@ namespace RealtimeCSG
 			smearTextures = true;
 			polygons	= null;
 			shapeEdges	= null;
-		}
+            forceDragSource = null;
+        }
 
 		protected override bool StartEditMode()
 		{
@@ -222,20 +226,35 @@ namespace RealtimeCSG
 				if (HaveHeight)
 				{
 					bool invertedWorld = parentModel != null && (parentModel.Settings & ModelSettingsFlags.InvertedWorld) == ModelSettingsFlags.InvertedWorld;
-					if (invertedWorld? (Height > 0 && planeOnGeometry) : (Height > 0 || !planeOnGeometry))
+                    CSGOperationType desiredOperation;
+
+                    if (planeOnGeometry)
+                    {
+                        if (forceDragSource.HasValue && forceDragSource.Value != CSGOperationType.Additive)
+                        {
+                            if (Height > 0)
+                                desiredOperation = CSGOperationType.Subtractive;
+                            else
+                                desiredOperation = CSGOperationType.Additive;
+                        } else
+                        { 
+                            if (Height > 0)
+                                desiredOperation = CSGOperationType.Additive;
+                            else
+                                desiredOperation = CSGOperationType.Subtractive;
+                        }
+                    } else
+                    {
+                        if (invertedWorld)
+					        desiredOperation = CSGOperationType.Subtractive;
+					    else
+                            desiredOperation = CSGOperationType.Additive;
+                    }
+					
+                    if (currentCSGOperationType != desiredOperation)
 					{
-						if (currentCSGOperationType != CSGOperationType.Additive)
-						{
-							currentCSGOperationType = CSGOperationType.Additive;
-							UpdateOperationType(currentCSGOperationType);
-						}
-					} else
-					{
-						if (currentCSGOperationType != CSGOperationType.Subtractive)
-						{
-							currentCSGOperationType = CSGOperationType.Subtractive;
-							UpdateOperationType(currentCSGOperationType);
-						}
+						currentCSGOperationType = desiredOperation;
+						UpdateOperationType(currentCSGOperationType);
 					}
 				}
 			}
@@ -819,7 +838,8 @@ namespace RealtimeCSG
 					case EventType.MouseUp:
 					{
 						forceDragHandle = false;
-						if (GUIUtility.hotControl == extrusionPoints[p].ID &&
+                        //forceDragSource = null;
+                        if (GUIUtility.hotControl == extrusionPoints[p].ID &&
 							Event.current.button == 0 &&
 							(Tools.viewTool == ViewTool.None || Tools.viewTool == ViewTool.Pan))
                         {
@@ -841,6 +861,26 @@ namespace RealtimeCSG
 							if (!HaveExtrusion)
 							{
 								RevertToEditVertices();
+							}
+							
+							if (commitExtrusionAfterRelease)
+							{
+								var prevGeneratedBrushes = generatedBrushes;
+								Commit();
+								// did we switch to edit mode?
+								if (EditModeManager.EditMode == ToolEditMode.Edit &&
+									prevGeneratedBrushes != null)
+								{
+									EditModeManager.UpdateTool();
+									EditModeManager.UpdateSelection(true);
+									var tool = EditModeManager.ActiveTool as EditModeMeshEdit;
+									if (tool)
+									{
+										var brush			= prevGeneratedBrushes[0];
+										var polygonCount	= brush.ControlMesh.Polygons.Length;
+										tool.SelectPolygon(brush, polygonCount - 2); // select front most polygon
+									}
+								}
 							}
 							break;
 						}

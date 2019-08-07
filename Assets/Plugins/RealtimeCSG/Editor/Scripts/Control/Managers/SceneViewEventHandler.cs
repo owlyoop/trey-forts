@@ -7,12 +7,15 @@ using System.Collections;
 using System.Reflection;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using RealtimeCSG.Helpers;
 
 namespace RealtimeCSG
 {
 	internal sealed class SceneViewEventHandler
 	{
 		static bool mousePressed;
+
+        static int prevFocusControl;
 
 		internal static void OnScene(SceneView sceneView)
 		{
@@ -23,9 +26,16 @@ namespace RealtimeCSG
 				return;
 			UpdateLoop.UpdateOnSceneChange();
 
-			if (Event.current.type == EventType.Repaint &&
-				!ColorSettings.isInitialized)
-				ColorSettings.Update();
+			if (!RealtimeCSG.CSGSettings.EnableRealtimeCSG)
+				ColorSettings.isInitialized = false;
+			else
+			if (!ColorSettings.isInitialized)
+			{
+				if (Event.current.type == EventType.Repaint)
+				{
+					ColorSettings.Update();
+				}
+			}
 
 			if (!UpdateLoop.IsActive())
 				UpdateLoop.ResetUpdateRoutine();
@@ -67,6 +77,16 @@ namespace RealtimeCSG
 					Handles.EndGUI();
 				}
 			}
+
+            if (Event.current.type == EventType.Layout)
+            {
+                var currentFocusControl = CSGHandles.FocusControl;
+                if (prevFocusControl != currentFocusControl)
+                {
+                    prevFocusControl = currentFocusControl;
+                    HandleUtility.Repaint();
+                }
+            }
 		}
 	}
 }

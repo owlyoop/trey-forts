@@ -212,8 +212,8 @@ namespace RealtimeCSG
 		public GetItemsInFrustumDelegate            GetItemsInFrustum;
 		
 		public GetSurfaceMinMaxTexCoordsDelegate	GetSurfaceMinMaxTexCoords;
-		public ConvertWorldToTextureCoordDelegate	ConvertWorldToTextureCoord;
-		public ConvertTextureToWorldCoordDelegate	ConvertTextureToWorldCoord;
+		public ConvertWorldToTextureCoordDelegate	ConvertModelToTextureSpace;
+		public ConvertTextureToWorldCoordDelegate	ConvertTextureToModelSpace;
 		
 				
 		public GetBrushOutlineGenerationDelegate	GetBrushOutlineGeneration;

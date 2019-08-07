@@ -753,10 +753,10 @@ namespace RealtimeCSG
 				GeometryUtility.MoveControlMeshVertices(generatedBrushes, -center);
 				SurfaceUtility.TranslateSurfacesInWorldSpace(generatedBrushes, -center);
 				ControlMeshUtility.RebuildShapes(generatedBrushes);
-				InternalCSGModelManager.CheckForChanges(forceHierarchyUpdate: true);
 
-				operationGameObject.transform.position += center;
+                operationGameObject.transform.position += center;
 
+                InternalCSGModelManager.CheckForChanges(forceHierarchyUpdate: true);
 				Undo.CollapseUndoOperations(undoGroupIndex);
 				Cleanup();
 

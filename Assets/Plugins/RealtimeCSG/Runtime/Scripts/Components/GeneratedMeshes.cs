@@ -88,7 +88,7 @@ namespace InternalRealtimeCSG
 
 		public void SetMeshInstances(GeneratedMeshInstance[] instances)
 		{
-			helperSurfaceLookup.Clear();
+			meshInstanceLookup.Clear();
 			if (instances != null)
 			{
 				foreach (var instance in instances)

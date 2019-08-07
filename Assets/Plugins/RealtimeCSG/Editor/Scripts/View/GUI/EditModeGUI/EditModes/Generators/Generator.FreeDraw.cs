@@ -5,6 +5,7 @@ using UnityEngine;
 using InternalRealtimeCSG;
 using RealtimeCSG.Legacy;
 using RealtimeCSG.Components;
+using RealtimeCSG.Foundation;
 
 namespace RealtimeCSG
 {	
@@ -75,16 +76,19 @@ namespace RealtimeCSG
 		public override void Init()
 		{
 			base.Init();
-			haveDragged = false;
+            forceDragSource = null;
+            haveDragged = false;
 		}
 		
-		public void GenerateFromPolygon(CSGBrush brush, CSGPlane plane, Vector3 direction, Vector3[] meshVertices, int[] indices, uint[] smoothingGroups, bool drag)
+		public void GenerateFromPolygon(CSGBrush brush, CSGPlane plane, Vector3 direction, Vector3[] meshVertices, int[] indices, uint[] smoothingGroups, bool drag, CSGOperationType forceDragSource, bool commitExtrusionAfterRelease)
 		{
 			generateSmoothing = false;
 			Init();
-			
+		
+			base.commitExtrusionAfterRelease = commitExtrusionAfterRelease;
 			base.forceDragHandle = drag;
-			base.ignoreOrbit = true;
+            base.forceDragSource = forceDragSource;
+            base.ignoreOrbit = true;
 			base.planeOnGeometry = true;
 			base.smearTextures = false;
 			
@@ -1263,7 +1267,7 @@ namespace RealtimeCSG
 					{
 						GrabHeightHandle(1);
 						forceDragHandle = false;
-					}
+                    }
 				}
 			}
 			
@@ -1927,8 +1931,7 @@ namespace RealtimeCSG
 								StartExtrudeMode(showErrorMessage: false);
 							}
 							UpdateBaseShape(registerUndo: false);
-
-
+							
 							GUI.changed = true;
 							Event.current.Use(); 
 							haveDragged = true;
@@ -2002,6 +2005,7 @@ namespace RealtimeCSG
 							{
 								Cancel();
 							}
+
 							haveDragged = false;
 							break;
 						}

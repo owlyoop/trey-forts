@@ -47,6 +47,23 @@ namespace InternalRealtimeCSG
         }
 
 
+		public void Select(CSGBrush brush, int polygonIndex)
+		{
+			for (var i = Brushes.Length - 1; i >= 0; i--)
+			{
+				if (Brushes[i] == brush)
+				{
+					var polygons = States[i].Selection.Polygons;
+					for (int j = 0; j < polygons.Length; j++)
+					{
+						if (j == polygonIndex)
+							polygons[j] = SelectState.Selected;
+						else
+							polygons[j] = SelectState.None;
+					}
+				}
+			}
+		}
 
         public void Select(HashSet<CSGBrush> foundBrushes)
         {

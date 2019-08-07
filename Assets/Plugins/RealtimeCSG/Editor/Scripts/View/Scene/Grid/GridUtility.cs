@@ -103,6 +103,26 @@ namespace RealtimeCSG
 			
 			return position;
 		}
+        
+		static public float CleanFloat(float position)
+		{
+			float   sign     = Mathf.Sign(position);			
+			float   absPos   = position * sign;
+			int     intPos   = Mathf.FloorToInt(absPos);
+			float   fractPos = (absPos - intPos);
+
+			fractPos = Mathf.Round(fractPos * 1000.0f) / 1000.0f;
+
+			const float epsilon = MathConstants.EqualityEpsilon;
+			if (fractPos <      epsilon) fractPos = 0;
+			if (fractPos >= 1 - epsilon) fractPos = 1;
+
+			if (!float.IsNaN(fractPos) && 
+                !float.IsInfinity(fractPos))
+                position = (intPos + fractPos) * sign;
+			
+			return position;
+		}
 
 		static public Vector3 FixPosition(Vector3 currentPosition, Matrix4x4 worldToLocalMatrix, Matrix4x4 localToWorldMatrix, Vector3 previousPosition, bool toggleSnapToGrid = false, bool ignoreAxisLocking = false)
 		{

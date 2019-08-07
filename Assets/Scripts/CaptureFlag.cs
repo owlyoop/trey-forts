@@ -15,27 +15,34 @@ public class CaptureFlag : MonoBehaviour
 
 	public Collider pickupCollider;
 
-	public Transform flagSpawn;
+	public Vector3 flagSpawn;
 
 	public enum Team { Blue, Red}
+	public CaptureFlag.Team team;
 
 	public PlayerStats playerHoldingFlag;
 
+	public bool isBeingHeld = false;
+
 	private void Start()
 	{
-		flagSpawn = this.transform;
+		flagSpawn = new Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z);
 	}
 
 	private void Update()
 	{
 		
 	}
-
-	private void OnTriggerEnter(Collider other)
+	
+	public void SetIsRotating(bool choice)
 	{
-		if (other.gameObject.tag == "Player")
+		if (choice == true)
 		{
-			PlayerStats player = other.GetComponent<PlayerStats>();
+
+		}
+
+		if (choice == false)
+		{
 
 		}
 	}

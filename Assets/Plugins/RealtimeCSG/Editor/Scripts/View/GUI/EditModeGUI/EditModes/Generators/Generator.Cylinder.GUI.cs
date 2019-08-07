@@ -201,7 +201,7 @@ namespace RealtimeCSG
 				GUILayout.EndVertical();
 
 				{
-					generator.CircleSides = IntSettingsSlider(generator.CircleSides, 3, 144, SidesContent, isSceneGUI);
+					generator.CircleSides = IntSettingsSlider(generator.CircleSides, 3, RealtimeCSG.CSGSettings.MaxCircleSides, SidesContent, isSceneGUI);
 					TooltipUtility.SetToolTip(SidesTooltip);
 				}
 				{

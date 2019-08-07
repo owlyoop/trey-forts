@@ -1,13 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
+using Photon.Pun;
 
 public class ObjectMover : WeaponMotor
 {
 
 	float distance;
-	Camera cam;
+	public Camera cam;
 	public Transform gunEnd;
 
 	PlayerStats playersStats;
@@ -25,29 +25,16 @@ public class ObjectMover : WeaponMotor
 	public float allowedRange = 12f;
 
 	public float rotationSpeed = 100f;
-
-	[SyncVar]
-	public Vector3 networkPos;
-
-	[SyncVar]
-	public Quaternion networkRot;
 	
-	[SyncVar]
-	public NetworkInstanceId idOfObj;
-
-	[SyncVar]
-	public float netRotY;
-	
-	[SyncVar]
-	public float netRotX;
 	
 	public string debugID;
 
 
 	private void Start()
 	{
-
-		cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
+		
+		//cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
+		playersStats = cam.GetComponentInParent<PlayerStats>();
 		laserLine = GetComponent<LineRenderer>();
 		isHoldingObject = false;
 		isRotatingObject = false;
@@ -79,18 +66,17 @@ public class ObjectMover : WeaponMotor
 				theObject.isKinematic = false;
 				theObject.constraints = RigidbodyConstraints.None;
 				theObject.freezeRotation = false;
-				idOfObj = shot.collider.GetComponent<FortwarsProp>().nid;
-				cam.GetComponentInParent<PlayerInput>().holdingPropID = shot.collider.GetComponent<FortwarsProp>().nid;
-				cam.GetComponentInParent<PlayerInput>().debugID = shot.collider.GetComponent<FortwarsProp>().nid.ToString();
-				Debug.Log(idOfObj.ToString());
-				debugID = idOfObj.ToString();
-				theObject.GetComponent<Smooth.SmoothSync>().sendRate = 24f;
+				//idOfObj = shot.collider.GetComponent<FortwarsProp>().nid;
+				//cam.GetComponentInParent<PlayerInput>().holdingPropID = shot.collider.GetComponent<FortwarsProp>().nid;
+				//cam.GetComponentInParent<PlayerInput>().debugID = shot.collider.GetComponent<FortwarsProp>().nid.ToString();
+				//Debug.Log(idOfObj.ToString());
+				//debugID = idOfObj.ToString();
 			}
 		}
 		
 	}
 
-	private void Update()
+	private void FixedUpdate()
 	{
 
 		if (isHoldingObject)
@@ -120,17 +106,13 @@ public class ObjectMover : WeaponMotor
 
 				float rotY = Input.GetAxis("Mouse Y") * rotationSpeed * Mathf.Deg2Rad;
 				float rotX = Input.GetAxis("Mouse X") * rotationSpeed * Mathf.Deg2Rad;
-
-				netRotY = rotY;
-				netRotX = rotX;
+				
 
 				theObject.freezeRotation = false;
 
-				//theObject.transform.Rotate(Vector3.up, -rotX, Space.World);
-				//theObject.transform.Rotate(cam.transform.right, rotY, Space.World);
-
-				networkPos = theObject.transform.position;
-				networkRot = theObject.transform.rotation;
+				theObject.transform.Rotate(Vector3.up, -rotX, Space.World);
+				theObject.transform.Rotate(cam.transform.right, rotY, Space.World);
+				
 			}
 
 			theObject.velocity = force.normalized * theObject.velocity.magnitude;
@@ -141,13 +123,10 @@ public class ObjectMover : WeaponMotor
 			if (theObject.velocity.magnitude > 10f)
 			{
 				theObject.velocity = theObject.velocity / 2.4f;
+				//theObject.AddForce(-theObject.velocity /2f);
 			}
-
-
-			networkPos = theObject.transform.position;
-			networkRot = theObject.transform.rotation;
-
-			theObject.GetComponent<Smooth.SmoothSync>().sendRate = 24f;
+			
+			
 
 		}
 
@@ -163,7 +142,28 @@ public class ObjectMover : WeaponMotor
 			theObject.useGravity = false;
 			isFrozen = true;
 			isHoldingObject = false;
-			theObject.GetComponent<Smooth.SmoothSync>().sendRate = 1f;
+
+			int propIndex = 0;
+
+			if (theObject.GetComponent<FortwarsProp>().player.PropsOwnedByPlayer != null)
+			{
+				for (int i = 0; i < theObject.GetComponent<FortwarsProp>().player.PropsOwnedByPlayer.Count; i++)
+				{
+					if (theObject.gameObject == theObject.GetComponent<FortwarsProp>().player.PropsOwnedByPlayer[i])
+					{
+						propIndex = i;
+						Debug.Log(propIndex.ToString());
+					}
+				}
+			}
+			
+
+		
+			
+			playersStats.GetComponent<PhotonView>().RPC("UpdateFortwarsPropTransform", RpcTarget.AllViaServer,
+				theObject.GetComponent<FortwarsProp>().idOfOwner, propIndex, theObject.transform.position, theObject.transform.rotation);
+
+			propIndex = 0;
 		}
 	}
 
@@ -175,8 +175,8 @@ public class ObjectMover : WeaponMotor
 	public override void UseButtonHolding()
 	{
 		isRotatingObject = true;
+		Cursor.lockState = CursorLockMode.None;
 
-		
 	}
 
 	public override void UseButtonUp()
@@ -185,7 +185,8 @@ public class ObjectMover : WeaponMotor
 		origCamRot = cam.transform.rotation;
 		isRotatingObject = false;
 		theObject.freezeRotation = true;
-		cam.GetComponent<PlayerLook>().viewLocked = false;
+		//cam.GetComponent<PlayerLook>().viewLocked = false;
+		Cursor.lockState = CursorLockMode.Locked;
 	}
 
 	public override void ScrollWheelUp()
@@ -213,7 +214,7 @@ public class ObjectMover : WeaponMotor
 	public override void UpdateUI()
 	{
 		playersStats = GetComponentInParent<WeaponSlots>().player;
-		playersStats.ammoAmount.text = "";
-		playersStats.ammoInClip.text = "";
+		playersStats.ui.ammoAmount.text = "";
+		playersStats.ui.ammoInClip.text = "";
 	}
 }

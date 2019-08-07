@@ -137,6 +137,7 @@ namespace RealtimeCSG
 				} else
 				{
 					mesh = new Mesh();
+					mesh.hideFlags = HideFlags.HideAndDontSave | HideFlags.DontUnloadUnusedAsset;
 					mesh.MarkDynamic();
 				}
 				

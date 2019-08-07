@@ -183,7 +183,8 @@ namespace InternalRealtimeCSG
 		{
 			// Workaround for when Unity gets confused with some prefab instance merging and moves 
 			//	the GeneratedMeshInstances out of its GeneratedMeshes container
-			if (!transform.parent.GetComponent<GeneratedMeshes>())
+			if (transform.parent &&
+				!transform.parent.GetComponent<GeneratedMeshes>())
 			{
 				this.gameObject.hideFlags = HideFlags.None;
 				try

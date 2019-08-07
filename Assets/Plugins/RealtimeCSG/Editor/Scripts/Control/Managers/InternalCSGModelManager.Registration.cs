@@ -305,7 +305,8 @@ namespace RealtimeCSG
 			} else
 			{
 				var model = component.ChildData.Model;
-				model.ClearCache();
+				if (model)
+					model.ClearCache();
 			}
 		}
 		public static void OnDisabled(CSGOperation component)

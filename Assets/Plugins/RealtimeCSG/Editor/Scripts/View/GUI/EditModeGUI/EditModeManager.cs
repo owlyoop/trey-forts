@@ -6,6 +6,7 @@ using UnityEngine;
 using InternalRealtimeCSG;
 using RealtimeCSG.Legacy;
 using RealtimeCSG.Components;
+using RealtimeCSG.Foundation;
 
 namespace RealtimeCSG
 {
@@ -94,7 +95,7 @@ namespace RealtimeCSG
 			EditorApplication.modifierKeysChanged += OnModifierKeysChanged;
 
 
-			var managers = FindObjectsOfType<EditModeManager>().ToArray();
+			var managers = Resources.FindObjectsOfTypeAll<EditModeManager>().ToArray();
 			for (int i = 0; i < managers.Length; i++)
 				DestroyImmediate(managers[i]);
 			instance = ScriptableObject.CreateInstance<EditModeManager>();
@@ -116,7 +117,7 @@ namespace RealtimeCSG
 			brushTools = new IEditMode[values.Count];
 			for (int j = 0; j < types.Length; j++)
 			{
-				var objects = FindObjectsOfType(types[j]).ToArray();
+				var objects = Resources.FindObjectsOfTypeAll(types[j]).ToArray();
 				for (int i = 0; i < objects.Length; i++)
 					DestroyImmediate(objects[i]);
 
@@ -293,15 +294,16 @@ namespace RealtimeCSG
 			}
 		}
 
-		static void UpdateTool()
+		public static void UpdateTool()
 		{
 			if (EditorApplication.isPlayingOrWillChangePlaymode)
 				return;
 
-			if (!RealtimeCSG.CSGSettings.EnableRealtimeCSG)
-				return;
-
-			var newTool = CurrentTool;
+            IEditMode newTool;
+            if (!RealtimeCSG.CSGSettings.EnableRealtimeCSG)
+                newTool = null;
+            else
+                newTool = CurrentTool;
 			if (instance.activeTool != newTool)
 			{
 				if (instance.activeTool != null)
@@ -592,12 +594,12 @@ namespace RealtimeCSG
 		}
 
 
-		public static void GenerateFromSurface(CSGBrush cSGBrush, CSGPlane polygonPlane, Vector3 direction, Vector3[] points, int[] pointIndices, uint[] smoothingGroups, bool drag)
+		public static void GenerateFromSurface(CSGBrush cSGBrush, CSGPlane polygonPlane, Vector3 direction, Vector3[] points, int[] pointIndices, uint[] smoothingGroups, bool drag, CSGOperationType forceDragSource, bool autoCommitExtrusion)
 		{
 			EditModeManager.EditMode = ToolEditMode.Generate;
 			UpdateTool();
 			var generateBrushTool = brushTools[(int)ToolEditMode.Generate] as EditModeGenerate;
-			generateBrushTool.GenerateFromPolygon(cSGBrush, polygonPlane, direction, points, pointIndices, smoothingGroups, drag);
+			generateBrushTool.GenerateFromPolygon(cSGBrush, polygonPlane, direction, points, pointIndices, smoothingGroups, drag, forceDragSource, autoCommitExtrusion);
 		}
 
 		public delegate void SetTransformation(Transform newTransform, Transform originalTransform);

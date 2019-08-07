@@ -24,13 +24,8 @@ namespace RealtimeCSG
 				Rect bottomBarRect;
 				if (haveOffset)
 				{
-#if UNITY_5_5_OR_NEWER
 					bottomBarRect = new Rect(0, height - (CSG_GUIStyleUtility.BottomToolBarHeight + 18), 
 											  width, CSG_GUIStyleUtility.BottomToolBarHeight);
-#else
-					bottomBarRect = new Rect(0, height - (CSG_GUIStyleUtility.BottomToolBarHeight + SceneView.kToolbarHeight + 1),
-												width, CSG_GUIStyleUtility.BottomToolBarHeight);
-#endif
 				} else
 					bottomBarRect = new Rect(0, height - (CSG_GUIStyleUtility.BottomToolBarHeight + 1), width, CSG_GUIStyleUtility.BottomToolBarHeight);
 
@@ -594,7 +589,7 @@ namespace RealtimeCSG
 				foreach (var scene in scenes)
 					UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
 				
-				text.AppendFormat("{0} brushes. ", Foundation.CSGManager.TreeBrushCount);
+				text.AppendFormat(CultureInfo.InvariantCulture, "{0} brushes. ", Foundation.CSGManager.TreeBrushCount);
 				
 				Debug.Log(text.ToString());
 			}
@@ -707,7 +702,7 @@ namespace RealtimeCSG
 
 			if (updateSurfaces)
 			{
-				MeshInstanceManager.UpdateHelperSurfaceVisibility();
+				MeshInstanceManager.UpdateHelperSurfaceVisibility(force: true);
 			}
 			
 			if (modified)

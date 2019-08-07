@@ -48,7 +48,10 @@ namespace RealtimeCSG
 				if (gameObject == null)
 					continue;
 
-				if (gameObject.GetComponentInChildren<CSGBrush>() == null)
+				if (gameObject.GetComponent<CSGNode>() == null)
+					continue;
+
+				if (gameObject.GetComponentsInChildren<CSGBrush>() == null)
 					continue;
 
 				if (!CSGPrefabUtility.IsPrefabAsset(gameObject))
@@ -83,26 +86,26 @@ namespace RealtimeCSG
 		}
 #endregion
 
-#region ValidateDropPoint
-		public bool ValidateDropPoint(bool inSceneView)
-		{
-			return true;
-		}
-#endregion
+		#region ValidateDropPoint
+				public bool ValidateDropPoint(bool inSceneView)
+				{
+					return true;
+				}
+		#endregion
 
-#region Reset
-		public void Reset()
-		{
-			CleanUp();
-			hoverBrushSurface	= null;
-			dragGameObjects		= null;
+		#region Reset
+				public void Reset()
+				{
+					CleanUp();
+					hoverBrushSurface	= null;
+					dragGameObjects		= null;
 
-			hoverPosition = MathConstants.zeroVector3;
-			hoverRotation = MathConstants.identityQuaternion;
-			hoverParent = null;
-			hoverSiblingIndex = int.MaxValue;
-		}
-#endregion
+					hoverPosition = MathConstants.zeroVector3;
+					hoverRotation = MathConstants.identityQuaternion;
+					hoverParent = null;
+					hoverSiblingIndex = int.MaxValue;
+				}
+		#endregion
 
 		void CleanUp()
 		{
@@ -304,7 +307,7 @@ namespace RealtimeCSG
 
 					hoverPosition += RealtimeCSG.CSGGrid.SnapDeltaToGrid(MathConstants.zeroVector3, localPoints);
 				}
-				hoverPosition	= GeometryUtility.ProjectPointOnPlane(intersection.worldPlane, hoverPosition) + (normal * 0.01f);
+                hoverPosition = GeometryUtility.ProjectPointOnPlane(intersection.worldPlane, hoverPosition);// + (normal * 0.01f);
 
 				EnableVisualObjects();
 				return true;

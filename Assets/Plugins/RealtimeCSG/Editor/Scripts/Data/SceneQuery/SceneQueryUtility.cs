@@ -138,10 +138,69 @@ namespace InternalRealtimeCSG
 			var operation = GetGroupOperationForNode(node);
 			return operation == null ? gameObject : operation.gameObject;
 		}
-		#endregion
+        #endregion
 
-		#region GetGroupOperationForNode (private)
-		private static CSGOperation GetGroupOperationForNode(CSGNode node)
+        internal static bool GameObjectContainsAttribute<T>(GameObject go) where T : Attribute
+        {
+            var behaviours = go.GetComponents(typeof(Component));
+            for (var index = 0; index < behaviours.Length; index++)
+            {
+                var behaviour = behaviours[index];
+                if (behaviour == null)
+                    continue;
+
+                var behaviourType = behaviour.GetType();
+                if (behaviourType.GetCustomAttributes(typeof(T), true).Length > 0)
+                    return true;
+            }
+            return false;
+        }
+
+        internal static GameObject FindSelectionBase(GameObject go)
+        {
+            if (go == null)
+                return null;
+
+#if UNITY_2018_3_OR_NEWER
+            Transform prefabBase = null;
+            if (PrefabUtility.IsPartOfNonAssetPrefabInstance(go))
+            {
+                prefabBase = PrefabUtility.GetOutermostPrefabInstanceRoot(go).transform;
+            }
+#endif
+
+            GameObject group = null;
+            Transform groupTransform = null;
+            var node = go.GetComponentInChildren<CSGNode>();
+            if (node)
+            {
+                var operation = GetGroupOperationForNode(node);
+                group = (operation == null) ? null : operation.gameObject;
+                groupTransform = (operation == null) ? null : operation.transform;
+            }
+
+
+            Transform tr = go.transform;
+            while (tr != null)
+            {
+#if UNITY_2018_3_OR_NEWER
+                if (tr == prefabBase)
+                    return tr.gameObject;
+#endif
+                if (tr == groupTransform)
+                    return group;
+
+                if (GameObjectContainsAttribute<SelectionBaseAttribute>(tr.gameObject))
+                    return tr.gameObject;
+
+                tr = tr.parent;
+            }
+
+            return go;
+        }
+
+        #region GetGroupOperationForNode (private)
+        private static CSGOperation GetGroupOperationForNode(CSGNode node)
 		{
 			if (!node)
 				return null;
@@ -163,9 +222,9 @@ namespace InternalRealtimeCSG
 			}
 			return null;
 		}
-		#endregion
+        #endregion
 
-		#region GetTopMostGroupForNode
+        #region GetTopMostGroupForNode
 		public static CSGNode GetTopMostGroupForNode(CSGNode node)
 		{
 			if (!node)
@@ -189,10 +248,10 @@ namespace InternalRealtimeCSG
 			}
 			return topSelected;
 		}
-		#endregion
+        #endregion
 
 
-		#region DeselectAllChildBrushes (private)
+        #region DeselectAllChildBrushes (private)
 		private static void DeselectAllChildBrushes(Transform transform, HashSet<GameObject> objectsInFrustum)
 		{
 			var visibleLayers = Tools.visibleLayers;
@@ -209,9 +268,9 @@ namespace InternalRealtimeCSG
 				DeselectAllChildBrushes(childTransform.transform, objectsInFrustum);
 			}
 		}
-		#endregion
+        #endregion
 
-		#region AreAllBrushesSelected (private)
+        #region AreAllBrushesSelected (private)
 		private static bool AreAllBrushesSelected(Transform transform, HashSet<GameObject> objectsInFrustum)
 		{			
 			var visibleLayers = Tools.visibleLayers;
@@ -277,10 +336,10 @@ namespace InternalRealtimeCSG
 			}
 			return false;
 		}
-		#endregion
+        #endregion
 
 
-		#region GetItemsInFrustum
+        #region GetItemsInFrustum
 		public static bool GetItemsInFrustum(Plane[] planes,
 											 HashSet<GameObject> objectsInFrustum)
 		{
@@ -322,9 +381,9 @@ namespace InternalRealtimeCSG
 			}
 			return found;
 		}
-		#endregion
+        #endregion
 
-		#region GetPointsInFrustum
+        #region GetPointsInFrustum
 		internal static PointSelection[] GetPointsInFrustum(SceneView sceneView,
 															Plane[] planes,
 														    CSGBrush[] brushes,
@@ -363,9 +422,9 @@ namespace InternalRealtimeCSG
 			}
 			return pointSelection.ToArray();
 		}
-		#endregion
+        #endregion
 
-		#region DeepSelection (private)
+        #region DeepSelection (private)
 
 		private static LegacyBrushIntersection[] _deepClickIntersections;
 		private static Vector2 _prevSceenPos = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
@@ -379,14 +438,14 @@ namespace InternalRealtimeCSG
 			_deepIndex = 0;
 		}
 
-		#endregion
+        #endregion
 
-		#region Find..xx..Intersection
+        #region Find..xx..Intersection
 
-		#region FindClickWorldIntersection
+        #region FindClickWorldIntersection
 		public static bool FindClickWorldIntersection(Vector2 screenPos, out GameObject foundObject)
 		{
-			var sceneView = SceneView.currentDrawingSceneView;// ? SceneView.currentDrawingSceneView : SceneView.lastActiveSceneView;
+            var sceneView = SceneView.currentDrawingSceneView;// ? SceneView.currentDrawingSceneView : SceneView.lastActiveSceneView;
 			var camera = sceneView ? sceneView.camera : Camera.current;
 
 			foundObject = null;
@@ -478,13 +537,14 @@ namespace InternalRealtimeCSG
 				for (var i = 0; i < modelMeshes.Length; i++)
 				{
 					hideFlags[i] = modelMeshes[i].hideFlags;
-					modelMeshes[i].hideFlags = HideFlags.None;
+                    if (modelMeshes[i].hideFlags != HideFlags.None)
+					    modelMeshes[i].hideFlags = HideFlags.None;
 				}
 			}
 
-			var gameObject = HandleUtility.PickGameObject(screenPos, false);
+            var gameObject = HandleUtility.PickGameObject(screenPos, true);
 
-			if (modelMeshes != null)
+            if (modelMeshes != null)
 			{
 				for (var i = 0; i < modelMeshes.Length; i++)
 				{
@@ -495,7 +555,8 @@ namespace InternalRealtimeCSG
 					if (gameObject == modelMesh)
 						gameObject = null;
 
-					modelMesh.hideFlags = hideFlags[i];
+                    if (modelMesh.hideFlags != hideFlags[i])
+                        modelMesh.hideFlags = hideFlags[i];
 				}
 			}
 
@@ -510,9 +571,9 @@ namespace InternalRealtimeCSG
 			foundObject = gameObject;
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#region FindMeshIntersection
+        #region FindMeshIntersection
 		public static LegacyBrushIntersection FindMeshIntersection(Vector2 screenPos, CSGBrush[] ignoreBrushes = null, HashSet<Transform> ignoreTransforms = null)
 		{
 			var worldRay = HandleUtility.GUIPointToWorldRay(screenPos);
@@ -575,9 +636,9 @@ namespace InternalRealtimeCSG
 				worldPlane = gridPlane
 			};
 		}
-		#endregion
+        #endregion
 
-		#region FindUnityWorldIntersection
+        #region FindUnityWorldIntersection
 		public static bool FindUnityWorldIntersection(Vector2 screenPos, out GameObject foundObject)
 		{
 			var sceneView = SceneView.currentDrawingSceneView;// ? SceneView.currentDrawingSceneView : SceneView.lastActiveSceneView;
@@ -653,9 +714,9 @@ namespace InternalRealtimeCSG
 			foundObject = gameObject;
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#region FindWorldIntersection
+        #region FindWorldIntersection
 		public static bool FindWorldIntersection(Vector2 screenPos, out LegacyBrushIntersection intersection, bool ignoreInvisibleSurfaces = true, bool ignoreUnrenderables = true, CSGBrush[] ignoreBrushes = null)
 		{
 			var worldRay = HandleUtility.GUIPointToWorldRay(screenPos);
@@ -737,9 +798,9 @@ namespace InternalRealtimeCSG
 			
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#region FindMultiWorldIntersection
+        #region FindMultiWorldIntersection
 		public static bool FindMultiWorldIntersection(Vector3 worldRayStart, Vector3 worldRayEnd, out LegacyBrushIntersection[] intersections, bool ignoreInvisibleSurfaces = true, bool ignoreUnrenderables = true, CSGBrush[] ignoreBrushes = null)
 		{
 			intersections = null;
@@ -805,9 +866,9 @@ namespace InternalRealtimeCSG
 			intersections = sortedIntersections;
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#region FindBrushIntersection
+        #region FindBrushIntersection
 		public static bool FindBrushIntersection(CSGBrush brush, Matrix4x4 modelTransformation, Vector3 rayStart, Vector3 rayEnd, out LegacyBrushIntersection intersection)
 		{
 			intersection = null;
@@ -826,9 +887,9 @@ namespace InternalRealtimeCSG
 				return false;
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#region FindSurfaceIntersection
+        #region FindSurfaceIntersection
 		public static bool FindSurfaceIntersection(CSGBrush brush, Matrix4x4 modelTransformation, Int32 surfaceIndex, Vector2 screenPos, out LegacySurfaceIntersection intersection)
 		{
 			var worldRay = HandleUtility.GUIPointToWorldRay(screenPos);
@@ -862,9 +923,8 @@ namespace InternalRealtimeCSG
 			}
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#endregion
-	
+        #endregion	
 	}
 }

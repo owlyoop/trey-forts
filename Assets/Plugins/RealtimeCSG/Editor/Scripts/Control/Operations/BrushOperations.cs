@@ -41,13 +41,13 @@ namespace InternalRealtimeCSG
                 worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToGrid(worldDeltaMovement, worldPoints.ToArray(), snapToGridPlane: false, snapToSelf: false);
             }
 
-            if (worldDeltaMovement == MathConstants.zeroVector3)
+            if (worldDeltaMovement.x == 0.0f && worldDeltaMovement.y == 0.0f && worldDeltaMovement.z == 0.0f)
                 return;
 
             for (var b = 0; b < transforms.Count; b++)
             {
                 var transform = transforms[b];
-                transform.position += worldDeltaMovement;
+                transform.position = GridUtility.CleanPosition(transform.position + worldDeltaMovement);
             }
         }
 

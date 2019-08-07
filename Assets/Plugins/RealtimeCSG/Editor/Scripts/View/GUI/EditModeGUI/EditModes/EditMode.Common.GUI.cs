@@ -9,6 +9,15 @@ namespace InternalRealtimeCSG
 {
 	internal sealed partial class EditModeCommonGUI
 	{
+		public static bool IndentableButton(GUIContent content, ref Rect rect, GUIStyle style = null)
+		{
+			var indentRect = EditorGUI.IndentedRect(rect);
+			rect.y += 20;
+			return style == null ?
+				GUI.Button(indentRect, content) :
+				GUI.Button(indentRect, content, style);
+		}
+
 		public static bool IndentableButton(GUIContent content, GUIStyle style = null)
 		{
 			return style == null ?
@@ -16,10 +25,26 @@ namespace InternalRealtimeCSG
 				GUI.Button(EditorGUI.IndentedRect(EditorGUILayout.GetControlRect()), content, style);
 		}
 
-		public static bool UpdateButtons(CSGModel[] models)
+		public static void UpdateLightmapUVButton(ref Rect rect)
 		{
 			CSG_GUIStyleUtility.InitStyles();
+			if (IndentableButton(UpdateLightmapUVContent, ref rect, CSG_GUIStyleUtility.redButton))
+			{
+				CSGModelManager.BuildLightmapUvs();
+			}
+		}
 
+		public static void UpdateLightmapUVButton()
+		{
+			CSG_GUIStyleUtility.InitStyles();
+			if (IndentableButton(UpdateLightmapUVContent, CSG_GUIStyleUtility.redButton))
+			{
+				CSGModelManager.BuildLightmapUvs();
+			}
+		}
+
+		public static bool NeedLightmapUVUpdate(CSGModel[] models)
+		{
 			bool needLightmapUVUpdate = false;
 //			bool needColliderUpdate   = false;
 			
@@ -32,25 +57,27 @@ namespace InternalRealtimeCSG
 //				needColliderUpdate   = needColliderUpdate   || (MeshInstanceManager.NeedToGenerateCollidersForModel(models[m])   && !models[m].AutoRebuildColliders);
 			}
 
-			if (needLightmapUVUpdate)
-			{
-				if (IndentableButton(UpdateLightmapUVContent, CSG_GUIStyleUtility.redButton))
-				{
-					CSGModelManager.BuildLightmapUvs();
-				}
-				
-			}
-/*
-			if (needColliderUpdate)
-			{
-				if (GUILayout.Button(UpdateCollidersContent))
-				{
-					CSGModelManager.BuildColliders();
-				}
-				GUILayout.Space(10);
-			}
-*/
 			return needLightmapUVUpdate;
+		}
+
+		public static bool UpdateButtons(CSGModel[] models)
+		{
+			if (NeedLightmapUVUpdate(models))
+			{
+				UpdateLightmapUVButton();
+				return true;
+			}
+			return false;
+		}
+
+		public static bool UpdateButtons(CSGModel[] models, ref Rect rect)
+		{
+			if (NeedLightmapUVUpdate(models))
+			{
+				UpdateLightmapUVButton(ref rect);
+				return true;	
+			}
+			return false;
 		}
 
 		public class SurfaceFlagState
@@ -126,7 +153,6 @@ namespace InternalRealtimeCSG
 				}
 				if (EditorGUI.EndChangeCheck())
 					SurfaceUtility.SetSurfaceTexGenFlags(selectedBrushSurfaces, TexGenFlags.NoReceiveShadows, state.noReceiveShadows.Value);
-				EditorGUI.EndDisabledGroup();
 				EditorGUI.BeginChangeCheck();
 				{
 					// TODO: implement support
@@ -175,19 +201,22 @@ namespace InternalRealtimeCSG
 		
 				EditorGUI.BeginChangeCheck();
 				{
-					EditorGUI.showMixedValue = !state.noReceiveShadows.HasValue;
+					var mixed = !state.noReceiveShadows.HasValue;
+					var enabled = !(state.noReceiveShadows ?? (state.noRender ?? true));
+					EditorGUI.showMixedValue = mixed;
 					tempRect.Set(rect.x + 53, rect.y + 1, 90 - 4, 15);
-					state.noReceiveShadows = !GUI.Toggle(tempRect, !(state.noReceiveShadows ?? (state.noRender ?? true)), ContentReceiveShadowsSurfaces, leftStyle);
+					state.noReceiveShadows = !GUI.Toggle(tempRect, enabled, ContentReceiveShadowsSurfaces, leftStyle);
 					TooltipUtility.SetToolTip(ToolTipReceiveShadowsSurfaces, tempRect);
 				}
 				if (EditorGUI.EndChangeCheck())
 					SurfaceUtility.SetSurfaceTexGenFlags(selectedBrushSurfaces, TexGenFlags.NoReceiveShadows, state.noReceiveShadows.Value);
-				EditorGUI.EndDisabledGroup();
 				EditorGUI.BeginChangeCheck();
 				{
-					EditorGUI.showMixedValue = !state.noCastShadows.HasValue;
+					var mixed = !state.noCastShadows.HasValue;
+					var enabled = !(state.noCastShadows ?? true);
+					EditorGUI.showMixedValue = mixed;
 					tempRect.Set(rect.x + 143 - 4, rect.y + 1, 74 - 4, 15);
-					state.noCastShadows = !GUI.Toggle(tempRect, !(state.noCastShadows ?? true), ContentCastShadowsSurfaces, rightStyle);
+					state.noCastShadows = !GUI.Toggle(tempRect, enabled, ContentCastShadowsSurfaces, rightStyle);
 					TooltipUtility.SetToolTip(ToolTipCastShadowsSurfaces, tempRect);
 				}
 				if (EditorGUI.EndChangeCheck())
@@ -196,18 +225,22 @@ namespace InternalRealtimeCSG
 			{
 				EditorGUI.BeginChangeCheck();
 				{
-					EditorGUI.showMixedValue = !state.noRender.HasValue;
+					var mixed = !state.noRender.HasValue;
+					var enabled = !(state.noRender ?? true);
+					EditorGUI.showMixedValue = mixed;
 					tempRect.Set(rect.x + 4, rect.y + 18, 94, 15);
-					state.noRender = !GUI.Toggle(tempRect, !(state.noRender ?? true), ContentVisibleSurfaces, leftStyle);
+					state.noRender = !GUI.Toggle(tempRect, enabled, ContentVisibleSurfaces, leftStyle);
 					TooltipUtility.SetToolTip(ToolTipVisibleSurfaces, tempRect);
 				}
 				if (EditorGUI.EndChangeCheck())
 					SurfaceUtility.SetSurfaceTexGenFlags(selectedBrushSurfaces, TexGenFlags.NoRender, state.noRender.Value);
 				EditorGUI.BeginChangeCheck();
 				{
-					EditorGUI.showMixedValue = !state.noCollision.HasValue;
+					var mixed = !state.noCollision.HasValue;
+					var enabled = !(state.noCollision ?? true);
+					EditorGUI.showMixedValue = mixed;
 					tempRect.Set(rect.x + 98, rect.y + 18, 112, 15);
-					state.noCollision = !GUI.Toggle(tempRect, !(state.noCollision ?? true), ContentCollisionSurfaces, rightStyle);
+					state.noCollision = !GUI.Toggle(tempRect, enabled, ContentCollisionSurfaces, rightStyle);
 					TooltipUtility.SetToolTip(ToolTipCollisionSurfaces, tempRect);
 				}
 				if (EditorGUI.EndChangeCheck())
@@ -296,6 +329,16 @@ namespace InternalRealtimeCSG
 		{
 			if (UpdateButtons(InternalCSGModelManager.Models))
 				GUILayout.Space(10);
+		}
+
+
+		public static Rect StartToolGUI(Rect rect)
+		{
+			if (UpdateButtons(InternalCSGModelManager.Models, ref rect))
+			{
+				rect.y += 10;
+			}
+			return rect;
 		}
 	}
 }

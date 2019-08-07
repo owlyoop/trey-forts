@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Game Manager
+  - Damagable
   layers:
   - Default
   - TransparentFX
@@ -14,10 +16,10 @@ TagManager:
   - 
   - 
   - PostProcessing
-  - Player
-  - Props not placed yet
-  - 
-  - 
+  - ragdoll
+  - player
+  - projectiles
+  - player_hitbox
   - 
   - 
   - 

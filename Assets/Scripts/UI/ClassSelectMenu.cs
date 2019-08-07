@@ -25,6 +25,10 @@ public class ClassSelectMenu : MonoBehaviour
 	public GameObject classGrid;
 	public GameObject wepGrid;
 
+	public int QueuedTeam;
+
+	public bool cameFromTeamMenu = false;
+
 	private void Start()
 	{
 		classSelectButton.interactable = false;
@@ -32,6 +36,8 @@ public class ClassSelectMenu : MonoBehaviour
 		for (int i = 0; i < classListDataAll.Count; i++)
 		{
 			GameObject slot = Instantiate(classButtonPrefab, classGrid.transform);
+			slot.GetComponent<ClassSelectSlot>()._weaponSet = classListDataAll[i];
+
 			slot.GetComponent<ClassSelectSlot>().icon.sprite = classListDataAll[i].icon;
 			slot.GetComponent<ClassSelectSlot>().buttonText.text = classListDataAll[i].className;
 			classListUISlots.Add(slot);
@@ -41,11 +47,35 @@ public class ClassSelectMenu : MonoBehaviour
 
 	public void OnClickSelectButton()
 	{
-		player.OnDeath();
-		player.playerClass = selectedClass;
-		player.GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
+		if (!player.photonView.IsMine)
+			return;
+		if (player.playerClass.className == "Spectator")
+		{
+			player.queuedClass = selectedClass;
+			player.ChangeAwayFromSpectator();
+			SetTeamIfWasSpectator(QueuedTeam);
+			player.ui.SetActiveMainHud(true);
+		}
+		else
+		{
+			player.queuedClass = selectedClass;
+			player.ui.SetActiveMainHud(true);
+		}
+
+
+
 		player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(false);
-		player.InitializeValues();
+
+		cameFromTeamMenu = false;
+
+	}
+
+	public void SetTeamIfWasSpectator(int team)
+	{
+		player.SetTeam(team);
+		player.playerTeam = team;
+		player.playerClass = selectedClass;
+		player.RespawnAndInitialize();
 	}
 
 	public void UpdateUI()

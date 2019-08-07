@@ -4,13 +4,6 @@ using UnityEngine;
 
 namespace KinematicCharacterController
 {
-    public enum CharacterSystemInterpolationMethod
-    {
-        None,
-        Unity,
-        Custom
-    }
-
     /// <summary>
     /// The system that manages the simulation of KinematicCharacterMotor and PhysicsMover
     /// </summary>
@@ -39,39 +32,10 @@ namespace KinematicCharacterController
         private const int CharacterMotorsBaseCapacity = 100;
         private const int PhysicsMoversBaseCapacity = 100;
 
-        [SerializeField]
-        private static CharacterSystemInterpolationMethod _internalInterpolationMethod = CharacterSystemInterpolationMethod.Custom;
         /// <summary>
-        /// Sets the interpolation method of the system:
-        /// - None: no interpolation
-        /// - Unity: uses Unity's built-in rigidbody interpolation
-        /// - Custom: uses a custom interpolation
+        /// Should interpolation of characters and PhysicsMovers be handled
         /// </summary>
-        public static CharacterSystemInterpolationMethod InterpolationMethod
-        {
-            get
-            {
-                return _internalInterpolationMethod; 
-            }
-            set
-            {
-                _internalInterpolationMethod = value;
-
-                MoveActorsToDestination();
-
-                // Setup rigidbodies for interpolation
-                RigidbodyInterpolation interpMethod = (_internalInterpolationMethod == CharacterSystemInterpolationMethod.Unity) ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
-                for (int i = 0; i < CharacterMotors.Count; i++)
-                {
-                    CharacterMotors[i].Rigidbody.interpolation = interpMethod;
-                }
-                for (int i = 0; i < PhysicsMovers.Count; i++)
-                {
-                    PhysicsMovers[i].Rigidbody.interpolation = interpMethod;
-                }
-
-            }
-        }
+        public static bool Interpolate = true;
 
         /// <summary>
         /// Creates a KinematicCharacterSystem instance if there isn't already one
@@ -116,9 +80,6 @@ namespace KinematicCharacterController
         public static void RegisterCharacterMotor(KinematicCharacterMotor motor)
         {
             CharacterMotors.Add(motor);
-            
-            RigidbodyInterpolation interpMethod = (_internalInterpolationMethod == CharacterSystemInterpolationMethod.Unity) ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
-            motor.Rigidbody.interpolation = interpMethod;
         }
 
         /// <summary>
@@ -149,8 +110,7 @@ namespace KinematicCharacterController
         {
             PhysicsMovers.Add(mover);
 
-            RigidbodyInterpolation interpMethod = (_internalInterpolationMethod == CharacterSystemInterpolationMethod.Unity) ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
-            mover.Rigidbody.interpolation = interpMethod;
+            mover.Rigidbody.interpolation = RigidbodyInterpolation.None;
         }
 
         /// <summary>
@@ -177,60 +137,58 @@ namespace KinematicCharacterController
             if (AutoSimulation)
             {
                 float deltaTime = Time.deltaTime;
-                
-                PreSimulationUpdate(deltaTime);
-                Simulate(deltaTime);
-                PostSimulationUpdate(deltaTime);
+
+                if (Interpolate)
+                {
+                    PreSimulationInterpolationUpdate(deltaTime);
+                }
+
+                Simulate(deltaTime, CharacterMotors, CharacterMotors.Count, PhysicsMovers, PhysicsMovers.Count);
+
+                if (Interpolate)
+                {
+                    PostSimulationInterpolationUpdate(deltaTime);
+                }
             }
         }
 
         private void Update()
         {
-            if (InterpolationMethod == CharacterSystemInterpolationMethod.Custom)
+            if (Interpolate)
             {
                 CustomInterpolationUpdate();
             }
         }
 
         /// <summary>
-        /// Ticks the character system (ticks all KinematicCharacterMotors and PhysicsMovers)
+        /// Remembers the point to interpolate from for KinematicCharacterMotors and PhysicsMovers
         /// </summary>
-        public static void Simulate(float deltaTime)
+        public static void PreSimulationInterpolationUpdate(float deltaTime)
         {
-            // Update PhysicsMover velocities
-            for (int i = 0; i < PhysicsMovers.Count; i++)
-            {
-                PhysicsMovers[i].VelocityUpdate(deltaTime);
-            }
-
-            // Character controller update phase 1
+            // Save pre-simulation poses and place transform at transient pose
             for (int i = 0; i < CharacterMotors.Count; i++)
             {
-                CharacterMotors[i].UpdatePhase1(deltaTime);
+                CharacterMotors[i].InitialTickPosition = CharacterMotors[i].TransientPosition;
+                CharacterMotors[i].InitialTickRotation = CharacterMotors[i].TransientRotation;
+
+                CharacterMotors[i].Transform.SetPositionAndRotation(CharacterMotors[i].TransientPosition, CharacterMotors[i].TransientRotation);
             }
 
-            // Simulate PhysicsMover displacement
             for (int i = 0; i < PhysicsMovers.Count; i++)
             {
+                PhysicsMovers[i].InitialTickPosition = PhysicsMovers[i].TransientPosition;
+                PhysicsMovers[i].InitialTickRotation = PhysicsMovers[i].TransientRotation;
+
                 PhysicsMovers[i].Transform.SetPositionAndRotation(PhysicsMovers[i].TransientPosition, PhysicsMovers[i].TransientRotation);
                 PhysicsMovers[i].Rigidbody.position = PhysicsMovers[i].TransientPosition;
                 PhysicsMovers[i].Rigidbody.rotation = PhysicsMovers[i].TransientRotation;
-            }
-
-            // Character controller update phase 2 and move
-            for (int i = 0; i < CharacterMotors.Count; i++)
-            {
-                CharacterMotors[i].UpdatePhase2(deltaTime);
-                CharacterMotors[i].Transform.SetPositionAndRotation(CharacterMotors[i].TransientPosition, CharacterMotors[i].TransientRotation);
-                CharacterMotors[i].Rigidbody.position = CharacterMotors[i].TransientPosition;
-                CharacterMotors[i].Rigidbody.rotation = CharacterMotors[i].TransientRotation;
             }
         }
 
         /// <summary>
         /// Ticks the character system (ticks all KinematicCharacterMotors and PhysicsMovers)
         /// </summary>
-        public static void Simulate(float deltaTime, KinematicCharacterMotor[] motors, int characterMotorsCount, PhysicsMover[] movers, int physicsMoversCount)
+        public static void Simulate(float deltaTime, List<KinematicCharacterMotor> motors, int characterMotorsCount, List<PhysicsMover> movers, int physicsMoversCount)
         {
 #pragma warning disable 0162
             // Update PhysicsMover velocities
@@ -257,89 +215,35 @@ namespace KinematicCharacterController
             for (int i = 0; i < characterMotorsCount; i++)
             {
                 motors[i].UpdatePhase2(deltaTime);
+
                 motors[i].Transform.SetPositionAndRotation(motors[i].TransientPosition, motors[i].TransientRotation);
-                motors[i].Rigidbody.position = motors[i].TransientPosition;
-                motors[i].Rigidbody.rotation = motors[i].TransientRotation;
             }
+
+            Physics.SyncTransforms();
 #pragma warning restore 0162
-        }
-
-        /// <summary>
-        /// Remembers the point to interpolate from for KinematicCharacterMotors and PhysicsMovers
-        /// </summary>
-        public static void PreSimulationUpdate(float deltaTime)
-        {
-            // Make sure all actors have reached their interpolation destination
-            if (InterpolationMethod == CharacterSystemInterpolationMethod.Custom)
-            {
-                MoveActorsToDestination();
-            }
-
-            // Save pre-simulation poses
-            for (int i = 0; i < CharacterMotors.Count; i++)
-            {
-                CharacterMotors[i].InitialTickPosition = CharacterMotors[i].Transform.position;
-                CharacterMotors[i].InitialTickRotation = CharacterMotors[i].Transform.rotation;
-            }
-            for (int i = 0; i < PhysicsMovers.Count; i++)
-            {
-                PhysicsMovers[i].InitialTickPosition = PhysicsMovers[i].Transform.position;
-                PhysicsMovers[i].InitialTickRotation = PhysicsMovers[i].Transform.rotation;
-            }
         }
 
         /// <summary>
         /// Initiates the interpolation for KinematicCharacterMotors and PhysicsMovers
         /// </summary>
-        public static void PostSimulationUpdate(float deltaTime)
+        public static void PostSimulationInterpolationUpdate(float deltaTime)
         {
-            // A sync is required here to make MovePosition/Rotation work properly 
-            // without getting overridden by transform changes made during simulation
-#if UNITY_2017_2_OR_NEWER
-            Physics.SyncTransforms();
-#endif
+            _lastCustomInterpolationStartTime = Time.time;
+            _lastCustomInterpolationDeltaTime = deltaTime;
 
-            if (InterpolationMethod == CharacterSystemInterpolationMethod.Custom)
-            {
-                _lastCustomInterpolationStartTime = Time.time;
-                _lastCustomInterpolationDeltaTime = deltaTime;
-            }
-
-            // Return characters to their initial poses and move to target
+            // Return interpolated roots to their initial poses
             for (int i = 0; i < CharacterMotors.Count; i++)
             {
-                CharacterMotors[i].Rigidbody.position = CharacterMotors[i].InitialTickPosition;
-                CharacterMotors[i].Rigidbody.rotation = CharacterMotors[i].InitialTickRotation;
-                CharacterMotors[i].Rigidbody.MovePosition(CharacterMotors[i].TransientPosition);
-                CharacterMotors[i].Rigidbody.MoveRotation(CharacterMotors[i].TransientRotation);
+                CharacterMotors[i].Transform.SetPositionAndRotation(CharacterMotors[i].InitialTickPosition, CharacterMotors[i].InitialTickRotation);
             }
 
-            // Return movers to their initial poses and move to target
             for (int i = 0; i < PhysicsMovers.Count; i++)
             {
                 PhysicsMovers[i].Rigidbody.position = PhysicsMovers[i].InitialTickPosition;
                 PhysicsMovers[i].Rigidbody.rotation = PhysicsMovers[i].InitialTickRotation;
+
                 PhysicsMovers[i].Rigidbody.MovePosition(PhysicsMovers[i].TransientPosition);
                 PhysicsMovers[i].Rigidbody.MoveRotation(PhysicsMovers[i].TransientRotation);
-            }
-        }
-
-        /// <summary>
-        /// Move all actors to their goal instantly
-        /// </summary>
-        private static void MoveActorsToDestination()
-        {
-            for (int i = 0; i < CharacterMotors.Count; i++)
-            {
-                CharacterMotors[i].Transform.SetPositionAndRotation(CharacterMotors[i].TransientPosition, CharacterMotors[i].TransientRotation);
-                CharacterMotors[i].Rigidbody.position = CharacterMotors[i].TransientPosition;
-                CharacterMotors[i].Rigidbody.rotation = CharacterMotors[i].TransientRotation;
-            }
-            for (int i = 0; i < PhysicsMovers.Count; i++)
-            {
-                PhysicsMovers[i].Transform.SetPositionAndRotation(PhysicsMovers[i].TransientPosition, PhysicsMovers[i].TransientRotation);
-                PhysicsMovers[i].Rigidbody.position = PhysicsMovers[i].TransientPosition;
-                PhysicsMovers[i].Rigidbody.rotation = PhysicsMovers[i].TransientRotation;
             }
         }
 

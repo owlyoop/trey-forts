@@ -33,7 +33,7 @@ namespace RealtimeCSG.Legacy
 			var normal		 = Plane.normal;
 			var tangent		 = Tangent;
 			var biNormal	 = BiNormal;
-			var pointOnPlane = normal * -Plane.d;
+			var pointOnPlane = Plane.pointOnPlane;
 			
 			return new Matrix4x4()
 			{ 

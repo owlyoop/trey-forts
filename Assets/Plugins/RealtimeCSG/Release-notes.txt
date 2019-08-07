@@ -1,6 +1,101 @@
+Version 1.556 - 15 jun 2019
+- Fixed UV generation being damaged by Unity's own MeshUtility.Optimize method (thanks @hippocoder for letting me know about UV issues)
+- Fixed not being able to select non-CSG mesh when a CSG object was behind it (thanks @GloomyGhoul)
+- Fixed button labeled "V" when it should've been labeled "UV" (thanks @Hunted)
+- Fixed generator properly finishing a commit when the toolmode is changed before enter is pressed, or the commit button is clicked (thanks @Hunted)
+- Fixed some pivot issues (thanks @Hunted)
+- Fixed that pressing the hotkey for center pivot only works when in Rotate/EditMode-Place mode because otherwise there wouldn't be visual feedback (thanks @Hunted)
+- Fixed loads of other small things (thanks @Hunted)
+- Removed 'created infinite brush' debug message that should've been removed before, apologies! (thanks @Hunted)
+- Creating a Model/Brush/Operation in the hierarchy using the context menu now places the gameobjects underneath the clicked item (thanks for the suggestion @GloomyGhoul)
+
+
+Version 1.555 - 04 jun 2019
+- Fixed issue where rotation tool would not be visible in Place mode when no CSG objects are selected (thanks @GloomyGhoul)
+
+Version 1.554 - 03 jun 2019
+- Fixed issue that in model inverted mode, it would add new (hidden) infinite brushes instead of reusing the previous one (thanks @Hunted)
+- Fixed issue where the last used model would still be used even when it's disabled (newly created brushes wouldn't be visible)
+- Fixed issue where rotation tool would not be visible in Place mode when no CSG objects are selected (thanks @GloomyGhoul)
+- Fixed issue with planes not being removed which was due to floating point inaccuracies while normalizing normals (thanks @Hunted)
+- Position Handles now highlight when hovering over the arrows, just like modern regular unity position handles (thanks @Hunted)
+
+Version 1.553 - 13 may 2019
+- Fixed edit modes correctly being initialized/deinitialized when turning realtime CSG on/off when you have a selection (thanks @Hunted / @Cough-E!)
+- Fixed surface texture translation would jump after creating a brush when "lock texture to object" is set to off by default. (thanks @Hunted!)
+- Fixed memory leak where EditModeManager scriptableobjects would get removed properly (thanks @Hunted!)
+
+Version 1.552 - 4 may 2019
+- Fixed cylinder not working due to texture copying issue
+
+Version 1.551 - 2 may 2019
+- Fixed texture copying working correctly when model is not centered at 0,0,0 / texture locking is turned off / scaling is negative along one axis
+- Fixed texture rotating working correctly when model is not centered at 0,0,0 / texture locking is turned off / scaling is negative along one axis
+
+Version 1.550 - 23 april 2019
+- Fixed UnassignedReferenceException during build process when trying to optimize removed helper mesh (a mesh not used at runtime)
+- Added option, in CSG options panel, to set the default for "Lock Texture To Object" on surfaces.
+
+Version 1.549 - 15 april 2019
+- Improved deciding on selecting an additive or subtractive operation when extruding in or out of another surface (issue #159)
+
+Version 1.548 - 10 april 2019
+- Exposed mesh collider cooking options (available in 2017.3 and beyond) to the model so that Unity can (optionally) optimize the generated meshes to be used for colliders
+
+Version 1.547 - 5 april 2019
+- Made it possible to change material when material is invalid
+- Removed warning in 2019.1 with sceneview event being renamed in unity
+- Fixed issue with invisible helper brush surfaces (the items in the bottom right menu) not rendering in scene
+- "Update lightmap UVs" button is now enabled even when no surface is selected in surface mode
+- "Update lightmap UVs" button no longer causes surface helper window to get cut off at bottom
+- "Stitch Seams" is now exposed in model and will automatically be set on MeshRenderers. Note that this option only works with the progressive lightmapper.
+
+Version 1.546 - 7 march 2019
+- Drag & dropping a mesh in the scene will no longer place it under a model
+- Fixed mac build being a debug build
+
+Version 1.545 - 6 march 2019
+- Fixed Changing ray snapping behavior would not be undoable / would not auto save in prefab mode (issue #289)
+- Fixed that if top gameObject didn't contain a CSGBrush/CSGModel or CSGOperation, but a child contained a CSGBrush, drag & drop would fail (issue #288)
+	keep in mind that in order for placement of brushes to work properly, it still needs a CSG component on the top most GameObject, but at least now it won't fail
+- Fixed that a child gameObject of a CSG element would be removed on play (issue #286)
+- Fixed that a generated MeshRenderer or MeshCollider could get left behind sometimes when rebuilding the model
+- Added support for two sided shadows (request #290)
+- Added an option in preference window called "Snap Non-CSG Objects to the grid" that, when enabled, allows you to snap non CSG objects to the grid when in Place mode (issue #202)
+
+Version 1.544 - 6 nov 2018
+- Improved line rendering 
+- Grid no longer shows gridlines smaller than the current grid size
+- Update lightmap UV button now also visible in surface mode
+- Surface edit mode window now has scrollbar when it's too small
+- Surface edit mode window now has button to select all the surfaces of all brushes that are currently selected
+- Edit mode window now has option to automatically commit an extruded shape after extruding it from a polygon
+- Max sphere splits / Max cylinder sides can now be set in options preference menu
+
+Version 1.543 - 27 nov 2018
+- Fixed compilation error in 2019.1a10
+
+Version 1.542 - 27 nov 2018
+- Fixed FBX exporting failing when a material is missing on exported model
+- Fixed FBX exporting in different locales causing malformed fbx files
+
+Version 1.541 - 26 nov 2018
+- Fixed FBX export generating an error after export
+
+Version 1.540 - 5 nov 2018
+- Fixed default physics material not being applied to mesh colliders
+
+Version 1.539 - 10 oct 2018
+- Fixed grouping objects causing NullReferenceException (oops)
+
+Version 1.538 - 8 oct 2018
+- Fixed mesh being destroyed on build
+
+Version 1.537 - 2 oct 2018
+- Fixed grouping objects causing NullReferenceException
+
 Version 1.536 - 26 sept 2018
 - Fixed upgrading model causing error in "UnityEditor.UnwrapParam:SetDefaults"
-
 
 Version 1.535 - 21 sept 2018
 - Fixed duplicate on prefab-instance sometimes not working + error messages

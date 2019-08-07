@@ -132,7 +132,17 @@ namespace RealtimeCSG
 		
 		public void OnDisableTool()
 		{
-			isEnabled = false;
+            // Ensures that a commit is propertly finished when the toolmode is changed
+            if (CurrentGenerator.CanCommit)
+            {
+                var genBase = InternalCurrentGenerator as GeneratorBase;
+                if (genBase != null)
+                {
+                    genBase.EndCommit();
+                }
+            }
+
+            isEnabled = false;
 			Tools.hidden = false;
 			ResetTool();
 		}
@@ -336,10 +346,10 @@ namespace RealtimeCSG
 			return EditModeGenerateGUI.OnSceneGUI(windowRect, this);
 		}
 
-		public void GenerateFromPolygon(CSGBrush brush, CSGPlane plane, Vector3 direction, Vector3[] meshVertices, int[] indices, uint[] smoothingGroups, bool drag)
+		public void GenerateFromPolygon(CSGBrush brush, CSGPlane plane, Vector3 direction, Vector3[] meshVertices, int[] indices, uint[] smoothingGroups, bool drag, CSGOperationType forceDragSource, bool autoCommitExtrusion)
 		{
 			BuilderMode = ShapeMode.FreeDraw;
-			freedrawGenerator.GenerateFromPolygon(brush, plane, direction, meshVertices, indices, smoothingGroups, drag);
+			freedrawGenerator.GenerateFromPolygon(brush, plane, direction, meshVertices, indices, smoothingGroups, drag, forceDragSource, autoCommitExtrusion);
 		}
 	}
 }

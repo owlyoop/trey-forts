@@ -1,43 +1,124 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
+using Photon.Pun;
+using KinematicCharacterController;
+using KinematicCharacterController.Owly;
 
-public class PlayerInput : NetworkBehaviour
+public struct PlayerActionInputs
 {
-	public PlayerMove player;
+	public bool PrimaryFire; //default mouse1
+	public bool PrimaryFireUp;
+	public bool SecondaryFire; // default mouse2
+
+	public float MouseScroll;
+
+	public bool Interact; // default e
+	public bool InteractHeld;
+	public bool InteractUp;
+	public bool Reload; // default r
+	public bool Weapon1; // default 1
+	public bool Weapon2; // default 2
+	public bool Weapon3; // default 3
+	public bool Weapon4; // default 4
+	public bool Weapon5; // default 5
+
+	public bool PropSpawner; // default t
+	public bool PropMover; // default g
+
+	public bool Ability1; // default q
+	public bool Ability2; // default shift
+	public bool Ability3; //default e
+
+	public bool MeleeKick; // default v
+	public bool Jump; // default space
+	public bool Crouch; // default c
+
+	public bool OpenTeamSelectMenu; // default 0
+	public bool OpenClassSelectMenu; // default 9
+
+}
+
+public class PlayerInput : MonoBehaviourPunCallbacks
+{
+	//public PlayerMove player;
 	public PlayerStats playerStats;
 	public WeaponSlots playerWeapons;
 	public Camera cam;
 	public UIManager mainUI;
-
-	[SyncVar]
-	public int selectedPropMenuIndex;
-
-	[SyncVar]
-	public NetworkInstanceId holdingPropID;
+	
 
 	public GameObject holdingPropObj;
-
-	[SyncVar]
+	
 	public string debugID;
-
+	public PlayerActionInputs playerInputs;
 
 
 	private Vector3 lookat;
 
 	private void Update()
 	{
-		if (!isLocalPlayer)
+		if (!photonView.IsMine)
+		{
+			GetComponent<KinematicCharacterMotor>().enabled = false;
 			return;
+		}
+		HandlePlayerInput();
 		CheckForInput();
 		//GetLook();
 	}
 
+
+
 	private void Start()
 	{
-		
+		playerWeapons.DecactivateAllWeapons();
 	}
+
+	void HandlePlayerInput()
+	{
+
+		playerInputs.PrimaryFire = Input.GetMouseButtonDown(0);
+		playerInputs.PrimaryFireUp = Input.GetMouseButtonUp(0);
+		playerInputs.SecondaryFire = Input.GetMouseButtonDown(1);
+		playerInputs.MouseScroll = Input.GetAxis("Mouse ScrollWheel"); // > 0 up, < 0 down
+
+		playerInputs.Weapon1 = Input.GetKeyDown(KeyCode.Alpha1);
+		playerInputs.Weapon2 = Input.GetKeyDown(KeyCode.Alpha2);
+		playerInputs.Weapon3 = Input.GetKeyDown(KeyCode.Alpha3);
+		playerInputs.Weapon4 = Input.GetKeyDown(KeyCode.Alpha4);
+		playerInputs.Weapon5 = Input.GetKeyDown(KeyCode.Alpha5);
+
+		playerInputs.Ability1 = Input.GetKeyDown(KeyCode.Q);
+		playerInputs.Ability2 = Input.GetKeyDown(KeyCode.LeftShift);
+		playerInputs.Ability3 = Input.GetKeyDown(KeyCode.F);
+
+		playerInputs.MeleeKick = Input.GetKeyDown(KeyCode.V);
+		playerInputs.Jump = Input.GetKey(KeyCode.Space);
+		playerInputs.Crouch = Input.GetKey(KeyCode.C);
+
+		playerInputs.PropSpawner = Input.GetKey(KeyCode.T);
+		playerInputs.PropMover = Input.GetKey(KeyCode.G);
+
+		playerInputs.Interact = Input.GetKeyDown(KeyCode.E);
+		playerInputs.InteractHeld = Input.GetKey(KeyCode.E);
+		playerInputs.InteractUp = Input.GetKeyUp(KeyCode.E);
+		playerInputs.Reload = Input.GetKeyDown(KeyCode.R);
+	}
+
+    void SwitchWeapon(int ToIndex)
+    {
+        if (playerWeapons.propWepSlots[1].activeSelf)
+            playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+
+        if (playerWeapons.propWepSlots[0].activeSelf)
+            playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+        playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+        playerWeapons.SwitchActiveWeaponSlot(ToIndex);
+        CmdActiveWeaponIndex(ToIndex);
+        playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchToWeapon();
+        mainUI.ShowWepSlotUI();
+    }
 
 	void CheckForInput()
 	{
@@ -47,117 +128,156 @@ public class PlayerInput : NetworkBehaviour
 			wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex];
 		}
 		//var wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex];
-		if (Input.GetMouseButtonDown(0))
+		if (playerInputs.PrimaryFire)
 		{
 			if (!mainUI.hasUnlockedMouseUIEnabled)
 			{
-				if (wep != null && wep.activeSelf)
+				if (wep != null && wep.activeSelf && playerStats.isAlive)
 				{
-
-					if (wep != null && wep.GetComponent<ProjectileLauncher>() != null)
-					{
-						GetLook();
-						CmdPrimaryFireProjectile(lookat);
-						return;
-					}
-
-					if (wep != null && wep.GetComponent<PropSpawner>() != null && mainUI.propMenu.hasPropSelected)
-					{
-						var wepProp = wep.GetComponent<PropSpawner>();
-						wepProp.PrimaryFire();
-						RigidbodyConstraints constraints = RigidbodyConstraints.FreezeAll;
-						CmdSpawnFortwarsProp(wepProp.networkPropPosition, wepProp.networkPropRotation, constraints, selectedPropMenuIndex);
-						Debug.Log(wepProp.ToString());
-						return;
-					}
-
-					if (wep != null && wep.GetComponent<ObjectMover>() != null)
-					{
-						var objmov = wep.GetComponent<ObjectMover>();
-						CmdPrimaryFire();
-
-						
-
-						return;
-					}
+					wep.GetComponent<WeaponMotor>().PrimaryFire();
 
 					Debug.Log("primary fire");
-					CmdPrimaryFire();
 					
+				}
+
+				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				{
+					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().PrimaryFire();
+				}
+				if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+				{
+					playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().PrimaryFire();
 				}
 			}
 		}
 
-		if (Input.GetMouseButtonUp(0))
+
+		if (playerInputs.PrimaryFireUp)
 		{
 			
 			if (!mainUI.hasUnlockedMouseUIEnabled)
 			{
-				if (wep != null && wep.activeSelf)
+				if (wep != null && wep.activeSelf && playerStats.isAlive)
 				{
-					if (wep != null && wep.GetComponent<ObjectMover>() != null)
-					{
-						Debug.Log("mouse button up objmov not null");
-						bool useGrav = false;
-						RigidbodyConstraints constraints = RigidbodyConstraints.FreezeAll;
-						var id = wep.GetComponent<ObjectMover>().idOfObj;
-						CmdPrimaryFireUp(useGrav, constraints, id);
-					}
-
+					wep.GetComponent<WeaponMotor>().PrimaryFireButtonUp();
+				}
+				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				{
+					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().PrimaryFireButtonUp();
+				}
+				if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+				{
+					playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().PrimaryFireButtonUp();
 				}
 			}
 		}
 
-		if (Input.GetMouseButtonDown(1))
+
+		if (playerInputs.SecondaryFire)
 		{
-			if (!mainUI.hasUnlockedMouseUIEnabled)
+			if (!mainUI.hasUnlockedMouseUIEnabled && playerWeapons.weaponSlots.Count > 0)
 			{
-				if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].activeSelf)
+				if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].activeSelf && playerStats.isAlive)
 				{
 					playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().SecondaryFire();
 				}
+				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				{
+					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().SecondaryFire();
+				}
+				if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+				{
+					playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().SecondaryFire();
+				}
 			}
 		}
 
 
-		if (Input.GetKeyDown(KeyCode.Alpha1))
-		{
-			playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
-			playerWeapons.SwitchActiveWeaponSlot(0);
-			CmdActiveWeaponIndex(0);
-			playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchToWeapon();
-		}
 
-		if (Input.GetKeyDown(KeyCode.Alpha2))
-		{
-			playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
-			playerWeapons.SwitchActiveWeaponSlot(1);
-			CmdActiveWeaponIndex(1);
-			playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchToWeapon();
-		}
 
-		if (Input.GetKeyDown(KeyCode.Alpha3))
+		if (playerInputs.Weapon1)
 		{
-			playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
-			playerWeapons.SwitchActiveWeaponSlot(2);
-			CmdActiveWeaponIndex(2);
-			playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchToWeapon();
-		}
-
-		if (Input.GetKeyDown(KeyCode.C))
-		{
-			if (mainUI.propSpawnMenu.activeSelf)
+			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 0)
 			{
-				mainUI.PropSpawnMenuSetActive(false);
-
+                SwitchWeapon(0);
 			}
+
+		}
+
+
+		if (playerInputs.Weapon2)
+		{
+			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 1)
+			{
+                SwitchWeapon(1);
+			}
+
+		}
+
+
+		if (playerInputs.Weapon3)
+		{
+			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 2)
+			{
+                SwitchWeapon(2);
+			}
+		}
+
+
+		if (playerInputs.PropSpawner)
+		{
+			if (wep != null && playerStats.isAlive)
+			{
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+				playerWeapons.SwitchToPropSpawner();
+				playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchToWeapon();
+			}
+		}
+
+
+		if (playerInputs.PropMover)
+		{
+			if (wep != null && playerStats.isAlive)
+			{
+				playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+				playerWeapons.SwitchToPropMover();
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchToWeapon();
+			}
+		}
+
+
+		if (playerInputs.Ability1)
+		{
+			if (wep != null && playerStats.isAlive)
+			{
+				if (playerWeapons.propWepSlots[0].activeSelf)
+				{
+					if (mainUI.propSpawnMenu.activeSelf)
+					{
+						mainUI.PropSpawnMenuSetActive(false);
+					}
+					else
+					{
+						mainUI.PropSpawnMenuSetActive(true);
+					}
+				}
+			}
+		}
+
+		if (playerInputs.MeleeKick)
+		{
+			if (!playerStats.CharControl.Motor.GroundingStatus.FoundAnyGround && playerStats.CharControl.CurrentCharacterState != CharacterState.Divekick)
+			{
+                playerStats.CharControl.TransitionToState(CharacterState.Divekick);
+            }
 			else
 			{
-				mainUI.PropSpawnMenuSetActive(true);
+				
 			}
 		}
 
-		if (Input.GetKeyDown(KeyCode.Alpha0))
+
+		if (playerInputs.OpenTeamSelectMenu)
 		{
 			if (mainUI.teamSelectMenu.activeSelf)
 			{
@@ -169,235 +289,88 @@ public class PlayerInput : NetworkBehaviour
 			}
 		}
 
-		if (Input.GetKeyDown(KeyCode.Alpha9))
+		if (playerInputs.OpenClassSelectMenu)
 		{
-			if (mainUI.classSelectMenu.activeSelf)
+			if (playerStats.isAlive)
 			{
-				mainUI.ClassSelectMenuSetActive(false);
-			}
-			else
-			{
-				mainUI.ClassSelectMenuSetActive(true);
-			}
-		}
-
-		if (Input.GetAxis("Mouse ScrollWheel") > 0f)
-		{
-			if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].activeSelf)
-			{
-				//playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ScrollWheelUp();
-				CmdScrollUp();
-			}
-		}
-
-		if (Input.GetAxis("Mouse ScrollWheel") < 0f)
-		{
-			if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].activeSelf)
-			{
-				//playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ScrollWheelDown();
-				CmdScrollDown();
-			}
-		}
-
-		if (Input.GetKeyDown(KeyCode.R))
-		{
-			if (!mainUI.hasUnlockedMouseUIEnabled)
-			{
-				playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ReloadButton();
-			}
-		}
-
-		if (Input.GetKey(KeyCode.E))
-		{
-			if (!mainUI.hasUnlockedMouseUIEnabled)
-			{
-				if (wep != null && wep.GetComponent<ObjectMover>() != null)
+				if (mainUI.classSelectMenu.activeSelf)
 				{
-					cam.GetComponent<PlayerLook>().viewLocked = true;
-
-					var objmov = wep.GetComponent<ObjectMover>();
-
-					objmov.netRotY = Input.GetAxis("Mouse Y") * objmov.rotationSpeed * Mathf.Deg2Rad;
-					objmov.netRotX = Input.GetAxis("Mouse X") * objmov.rotationSpeed * Mathf.Deg2Rad;
-					//wep.GetComponent<ObjectMover>().UseButtonHolding();
-
-					CmdUseButtonHolding(objmov.netRotY, objmov.netRotX);
+					mainUI.ClassSelectMenuSetActive(false);
+				}
+				else
+				{
+					mainUI.ClassSelectMenuSetActive(true);
 				}
 			}
 		}
 
-		if (Input.GetKeyUp(KeyCode.E))
+		if (playerInputs.MouseScroll > 0f)
 		{
-			if (!mainUI.hasUnlockedMouseUIEnabled)
+			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
 			{
-				if (wep != null && wep.GetComponent<ObjectMover>() != null)
-				{
-					cam.GetComponent<PlayerLook>().viewLocked = false;
-					//wep.GetComponent<ObjectMover>().UseButtonUp();
-					CmdUseButtonUp(wep.GetComponent<ObjectMover>().idOfObj);
-				}
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().ScrollWheelUp();
+			}
 
+		}
+
+		if (playerInputs.MouseScroll < 0f)
+		{
+			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+			{
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().ScrollWheelDown();
+			}
+
+		}
+
+		if (playerInputs.Reload)
+		{
+			if (playerStats.isAlive)
+			{
+				if (!mainUI.hasUnlockedMouseUIEnabled)
+				{
+					playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ReloadButton();
+				}
+				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				{
+					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().ReloadButton();
+				}
+			}
+
+		}
+
+		if (playerInputs.Interact)
+		{
+		}
+
+		if (playerInputs.InteractHeld)
+		{
+			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.hasUnlockedMouseUIEnabled)
+			{
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseButtonHolding();
 			}
 		}
+
+		if (playerInputs.InteractUp)
+		{
+			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.hasUnlockedMouseUIEnabled)
+			{
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseButtonUp();
+			}
+		}
+
 	}
 
 	void GetLook()
 	{
-		if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>() != null)
+		if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>() != null && playerStats.isAlive)
 		{
 			lookat = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>().shotPoint;
 		}
 		
 	}
-
-
-
-	[Command]
-	public void CmdPrimaryFire()
-	{
-
-		var objmov = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ObjectMover>();
-
-		playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().PrimaryFire();
-
-
-		if (objmov != null && objmov.isHoldingObject && holdingPropObj != null)
-		{
-			holdingPropObj = NetworkServer.FindLocalObject(holdingPropID);
-			objmov.theObject = holdingPropObj.GetComponent<Rigidbody>();
-			objmov.theObject.GetComponent<Smooth.SmoothSync>().sendRate = 24f;
-		}
-
-		Debug.Log("primary fire cmd");
-	}
-
-	[Command]
-	public void CmdPrimaryFireProjectile(Vector3 look)
-	{
-		//playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].SetActive(true);
-		playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().PrimaryFire();
-
-		if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().networkObjToSpawn != null)
-		{
-			if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>() != null)
-			{
-				Debug.Log("obj nnot null");
-				look = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>().shotPoint;
-				playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>().networkObjToSpawn.transform.LookAt(look);
-				NetworkServer.Spawn(playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>().networkObjToSpawn);
-				return;
-			}
-
-			Debug.Log("what the");
-			NetworkServer.Spawn(playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().networkObjToSpawn);
-		}
-	}
-
-	[Command]
-	public void CmdSpawnFortwarsProp(Vector3 position, Quaternion rotation, RigidbodyConstraints constraints, int id)
-	{
-		var wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<PropSpawner>();
-		
-		Debug.Log("spawn pls");
-
-		var prop = Instantiate(mainUI.props[id].propPrefab, position, rotation);
-		prop.transform.position = position;
-		prop.transform.rotation = rotation;
-		prop.layer = 11;
-		prop.GetComponent<Collider>().enabled = true;
-		prop.GetComponent<Rigidbody>().useGravity = false;
-		prop.GetComponent<Rigidbody>().isKinematic = false;
-		prop.GetComponent<Rigidbody>().constraints = constraints;
-		prop.GetComponent<Smooth.SmoothSync>().sendRate = 1f;
-
-		playerStats.currentCurrency = playerStats.currentCurrency - mainUI.props[id].currencyCost;
-		playerStats.currencyAmount.text = playerStats.currentCurrency.ToString();
-
-		NetworkServer.Spawn(prop);
-
-		
-	}
-
-	[Command]
-	public void CmdPrimaryFireUp(bool useGravity, RigidbodyConstraints constraint, NetworkInstanceId id)
-	{
-		var wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ObjectMover>();
-		
-		if (wep != null)
-		{
-			wep.PrimaryFireButtonUp();
-			if (wep != null && wep.isHoldingObject && holdingPropObj != null)
-			{
-				holdingPropObj = NetworkServer.FindLocalObject(holdingPropID);
-				wep.theObject = holdingPropObj.GetComponent<Rigidbody>();
-				wep.theObject.GetComponent<Smooth.SmoothSync>().sendRate = 1f;
-			}
-		}
-	}
-
-	[Command]
-	public void CmdUseButtonHolding(float roty, float rotx)
-	{
-		var objmov = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ObjectMover>();
-
-		objmov.UseButtonHolding();
-
-		objmov.theObject.transform.Rotate(Vector3.up, -rotx, Space.World);
-		objmov.theObject.transform.Rotate(cam.transform.right, roty, Space.World);
-		objmov.theObject.GetComponent<Smooth.SmoothSync>().sendRate = 24f;
-		Debug.Log("cmd holding");
-
-	}
-
-	[Command]
-	public void CmdUseButtonUp(NetworkInstanceId id)
-	{
-		var wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>();
-
-		if (wep.GetComponent<ObjectMover>() != null)
-		{
-			holdingPropObj = NetworkServer.FindLocalObject(holdingPropID);
-			var theObject = holdingPropObj.GetComponent<Rigidbody>();
-			theObject.GetComponent<Smooth.SmoothSync>().sendRate = 1f;
-		}
-
-
-		wep.UseButtonUp();
-	}
-
-	[Command]
+	
 	public void CmdActiveWeaponIndex(int index)
 	{
-		for (int i = 0; i < playerWeapons.weaponSlots.Count; i++)
-		{
-			playerWeapons.weaponSlots[i].SetActive(false);
-		}
-		playerWeapons.weaponSlots[index].SetActive(true);
-		playerWeapons.activeWeaponIndex = index;
-		playerWeapons.ApplyWeaponStats(index);
+		playerWeapons.SwitchActiveWeaponSlot(index);
 	}
-
-	[Command]
-	public void CmdScrollUp()
-	{
-		var objmov = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ObjectMover>();
-
-		if (objmov != null)
-		{
-			objmov.ScrollWheelUp();
-		}
-	}
-
-	[Command]
-	public void CmdScrollDown()
-	{
-		var objmov = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ObjectMover>();
-
-
-		if (objmov != null)
-		{
-			objmov.ScrollWheelDown();
-		}
-	}
-
 }

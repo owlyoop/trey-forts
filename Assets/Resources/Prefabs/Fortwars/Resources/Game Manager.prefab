@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8064943032453915895
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8064943032453915881}
+  - component: {fileID: 8064943032453915880}
+  m_Layer: 0
+  m_Name: Game Manager
+  m_TagString: Game Manager
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8064943032453915881
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8064943032453915895}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -42.449825, y: 2.959889, z: 2.514245}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8064943032453915880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8064943032453915895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 659cfbaf94d84714e99676ea7e657863, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WaitingForPlayersLength: 30
+  isWaitingForPlayers: 0
+  BuildPhaseFreezeTime: 3
+  BuildPhaseTimeLength: 180
+  isInBuildPhase: 0
+  CombatPhaseTimeLength: 600
+  isInCombatPhase: 0
+  isInEndGamePhase: 0
+  respawnTime: 8
+  BlueTeamScore: 0
+  RedTeamScore: 0
+  classList:
+  - {fileID: 11400000, guid: e7d6435076dcab948aefcb6d66dbfde2, type: 2}
+  - {fileID: 11400000, guid: f0b01cf2af4ae2a408081917204136d8, type: 2}
+  - {fileID: 11400000, guid: 3196f5d406a3a464dafdf9b9663c30eb, type: 2}
+  buildPhaseProps:
+  - {fileID: 11400000, guid: 3f14489251357f44c9b0b4c891a84d50, type: 2}
+  - {fileID: 11400000, guid: 7d1ea53210274fb4685ee6105e66796a, type: 2}
+  - {fileID: 11400000, guid: ff78b6e1ca4129348900d08e06f8f9c3, type: 2}
+  - {fileID: 11400000, guid: 822946cfd60222c438bea39c3a880f04, type: 2}
+  - {fileID: 11400000, guid: ce335a6c306c49d4698eb3751ef9f8d5, type: 2}
+  - {fileID: 11400000, guid: 3e74a75e88b29d742a41b7834ae77126, type: 2}
+  - {fileID: 11400000, guid: 5ea589e81ad5c0448b7b792ab006550d, type: 2}
+  - {fileID: 11400000, guid: 803b69c934442b84cab418ef57460638, type: 2}
+  combatPhaseProps: []
+  BuildPhaseGeometry: {fileID: 0}
+  teamSpectatorSpawnPoints: []
+  teamOneSpawnPoints:
+  - {fileID: 0}
+  teamTwoSpawnPoints:
+  - {fileID: 0}
+  blueCaptureZone: {fileID: 0}
+  redCaptureZone: {fileID: 0}
+  blueFlag: {fileID: 0}
+  redFlag: {fileID: 0}

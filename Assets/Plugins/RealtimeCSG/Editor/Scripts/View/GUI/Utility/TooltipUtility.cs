@@ -14,13 +14,24 @@ namespace RealtimeCSG
 		
 		const float TooltipWaitTime = 0.125f;
 
+		
+		static readonly List<UnityEngine.Object> removeObjects = new List<UnityEngine.Object>();
 		public static void CleanCache()
 		{
-			var objects = currentStateCache.Keys.ToArray();
-			for (int i = 0; i < objects.Length; i++)
+			if (currentStateCache.Count == 0)
+				return;
+
+			removeObjects.Clear();
+			foreach(var item in currentStateCache.Keys)
 			{
-				if (!objects[i])
-					currentStateCache.Remove(objects[i]);
+				if (!item)
+					removeObjects.Add(item);
+			}
+
+			if (removeObjects.Count > 0)
+			{
+				for (int i = 0; i < removeObjects.Count; i++)
+					currentStateCache.Remove(removeObjects[i]);
 			}
 		}
 

@@ -43,8 +43,8 @@ namespace RealtimeCSG.Foundation
 		private static Bounds GetBrushBounds(Int32 brushNodeID)
 		{
 			var	aabb = new AABB();
-			if (GetBrushBounds(brushNodeID, ref aabb))
-				return new Bounds(aabb.Center, aabb.Size);
+            if (GetBrushBounds(brushNodeID, ref aabb))
+                return new Bounds(aabb.Center, aabb.Size);
 			return new Bounds();
 		}
 	}

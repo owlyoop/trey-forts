@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
+using Photon.Pun;
 
-public class WeaponMotor : NetworkBehaviour
+public class WeaponMotor : MonoBehaviourPunCallbacks
 {
 	
 	public GameObject networkObjToSpawn;

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54c7aff96e244f74e893d704a459f844, type: 3}
+  m_Name: Sawblade Gun
+  m_EditorClassIdentifier: 
+  weaponName: Sawblade Gun
+  weaponDescription: 
+  icon: {fileID: 21300000, guid: 849de3433a475874caeb4d1bb0731c00, type: 3}
+  weaponPrefab: {fileID: 4431541988174101878, guid: 4439c2c6fb2ef404787b6a696f6a312a,
+    type: 3}
+  baseDamage: 10
+  shotsPerSecond: 10
+  clipSize: 160
+  reloadTime: 3
+  maxAmmo: 48
+  damageType: 0
+  weaponComponents: []
+  projectileLife: 15
+  projectileSpeed: 12

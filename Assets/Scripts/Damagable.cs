@@ -4,7 +4,7 @@ using UnityEngine;
 
 public interface IDamagable
 {
-	void TakeDamage(int damageTaken, Damager.DamageTypes damageType);
+	void TakeDamage(int GiverPunID, int damageTaken, Damager.DamageTypes damageType);
 
 	void OnDeath();
 }

@@ -10,7 +10,7 @@ Shader "Hidden/CSG/internal/Grid"
 		_GridColor("Grid Color", Color) = (1.0, 1.0, 1.0, 0.5)
 		_CenterColor("Center Color", Color) = (1.0, 1.0, 1.0, 0.75)
 		_StartLevel("Start Zoom Level", Float) = 4
-		_LowestLevel("Lowest Level", Float) = -2
+//		_LowestLevel("Lowest Level", Float) = -2
 		_GridLineThickness("Grid Line Thickness", Float) = 1
 		_CenterLineThickness("Center Line Thickness", Float) = 2
 		_SubdivisionTransparency("Subdivision Transparency", Float) = 0.7
@@ -18,15 +18,26 @@ Shader "Hidden/CSG/internal/Grid"
 
 	SubShader
 	{
-		Tags{ "ForceSupported" = "True" "Queue" = "Overlay+5105" "IgnoreProjector" = "True" "RenderType" = "Transparent" "PreviewType" = "Plane" }
+		Tags
+		{ 
+			"ForceSupported" = "True" 
+			"Queue" = "Overlay+5105" 
+			"IgnoreProjector" = "True" 
+			"RenderType" = "Transparent" 
+			"PreviewType" = "Plane"
+			"DisableBatching" = "True"
+			"ForceNoShadowCasting" = "True"
+			"LightMode" = "Always"
+		}
 
 		Pass
 		{
-			Blend One OneMinusSrcAlpha
+			Blend One OneMinusSrcAlpha 
 			ColorMask RGB
 			Cull Off
 			Offset -1,-1
 			Lighting Off
+			SeparateSpecular Off
 			ZTest LEqual
 			ZWrite Off
 
@@ -45,7 +56,7 @@ Shader "Hidden/CSG/internal/Grid"
 				uniform fixed4	_GridColor;
 				uniform fixed4	_CenterColor;
 				uniform float	_StartLevel;
-				uniform float	_LowestLevel;
+//				uniform float	_LowestLevel;
 				uniform float	_SubdivisionTransparency;
 
 				struct vertexInput 
@@ -109,7 +120,7 @@ Shader "Hidden/CSG/internal/Grid"
 
 				fixed4 gridMultiSampler(float2 uv, half3 camDelta, float camDistance)
 				{
-					const half4 lowestLevel				= half4(0, 0, _LowestLevel, _LowestLevel);
+					const half4 lowestLevel				= half4(2, 2, 2, 2);//_LowestLevel, _LowestLevel);
 					const fixed4 transparency			= half4(1, 1, _SubdivisionTransparency, _SubdivisionTransparency);
 					const half4 subdivisions			= half4(1, 1, 1.0 / _GridSubdivisions.xy);
 					const half4 gridspacing				= _GridSpacing.xyxy;
@@ -219,7 +230,7 @@ Shader "Hidden/CSG/internal/Grid"
 
 					// fade out on grazing angles to hide line aliasing
 					float	angle = abs(dot(camDelta / camDistance, input.normal));
-					color.a	  *= angle * 2;
+					color.a	  *= angle;
 
 					// pre-multiply our rgb color by our alpha
 					color.rgb *= color.a;

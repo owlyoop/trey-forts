@@ -312,6 +312,7 @@ namespace RealtimeCSG
 							}
 							if (EditorGUI.EndChangeCheck())
 							{
+								Undo.RecordObjects(targetNodes, "Changed CSG operation of nodes");
 								for (int i = 0; i < targetNodes.Length; i++)
 								{
 									targetNodes[i].PrefabBehaviour = prefabBehavour;
@@ -330,6 +331,7 @@ namespace RealtimeCSG
 						}
 						if (EditorGUI.EndChangeCheck())
 						{
+							Undo.RecordObjects(targetNodes, "Changed CSG operation of nodes");
 							for (int i = 0; i < targetNodes.Length; i++)
 							{
 								targetNodes[i].PrefabDestinationAlignment = destinationAlignment;
@@ -347,6 +349,7 @@ namespace RealtimeCSG
 						}
 						if (EditorGUI.EndChangeCheck())
 						{
+							Undo.RecordObjects(targetNodes, "Changed CSG operation of nodes");
 							for (int i = 0; i < targetNodes.Length; i++)
 							{
 								targetNodes[i].PrefabSourceAlignment = sourceAlignment;

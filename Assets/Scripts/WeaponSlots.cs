@@ -1,28 +1,32 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
 
-public class WeaponSlots : NetworkBehaviour
+public class WeaponSlots : MonoBehaviour
 {
 
 	public PlayerStats player;
 	public List<GameObject> weaponSlots;
+	public List<GameObject> propWepSlots;
 	
 	public FortwarsPropData selectedProp;
-
-	public List<GameObject> playersProps;
-
-	[SyncVar]
+	
 	public int activeWeaponIndex;
 
 	private void Start()
 	{
-		
+		EventManager.onBuildPhaseEnd += EndOfBuildPhase;
+	}
+
+	private void OnDisable()
+	{
+		EventManager.onBuildPhaseEnd -= EndOfBuildPhase;
 	}
 
 	public void InitializeWeapons()
 	{
+
+		Debug.Log("init wep func");
 		if (player.playerClass.weaponList.Count > 0)
 		{
 			if (weaponSlots.Count > 0)
@@ -30,6 +34,7 @@ public class WeaponSlots : NetworkBehaviour
 				for (int i = 0; i < weaponSlots.Count; i++)
 				{
 					weaponSlots[i].SetActive(true);
+                    weaponSlots[i].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
 					Destroy(weaponSlots[i]);
 					
 				}
@@ -40,7 +45,6 @@ public class WeaponSlots : NetworkBehaviour
 			{
 				GameObject temp = Instantiate(player.playerClass.weaponList[i].weaponPrefab, transform);
 				weaponSlots.Add(temp);
-				//weaponSlots[i] = temp;
 				ApplyWeaponStats(i);
 				weaponSlots[i].SetActive(false);
 			}
@@ -51,10 +55,7 @@ public class WeaponSlots : NetworkBehaviour
 
 	public void SwitchActiveWeaponSlot(int index)
 	{
-		for (int i = 0; i < weaponSlots.Count; i++)
-		{
-			weaponSlots[i].SetActive(false);
-		}
+		DecactivateAllWeapons();
 
 		if (index < weaponSlots.Count)
 		{
@@ -65,6 +66,41 @@ public class WeaponSlots : NetworkBehaviour
 		activeWeaponIndex = index;
 	}
 
+	public void SwitchToPropSpawner()
+	{
+		DecactivateAllWeapons();
+		propWepSlots[0].SetActive(true);
+	}
+
+	public void SwitchToPropMover()
+	{
+		if (!player._gameManager.isInCombatPhase)
+		{
+			DecactivateAllWeapons();
+			propWepSlots[1].SetActive(true);
+		}
+	}
+
+	void EndOfBuildPhase()
+	{
+		if (propWepSlots[1].activeSelf)
+		{
+			SwitchActiveWeaponSlot(0);
+		}
+	}
+
+	public void DecactivateAllWeapons()
+	{
+		for (int i = 0; i < weaponSlots.Count; i++)
+		{
+			weaponSlots[i].SetActive(false);
+		}
+
+		for (int i = 0; i < propWepSlots.Count; i++)
+		{
+			propWepSlots[i].SetActive(false);
+		}
+	}
 	
 	public void ApplyWeaponStats(int index)
 	{
@@ -79,9 +115,9 @@ public class WeaponSlots : NetworkBehaviour
 	{
 		selectedProp = prop;
 
-		if (weaponSlots[activeWeaponIndex].GetComponent<PropSpawner>() != null)
+		if (propWepSlots[0] != null)
 		{
-			weaponSlots[activeWeaponIndex].GetComponent<PropSpawner>().SetSelectedProp();
+			propWepSlots[0].GetComponent<PropSpawner>().SetSelectedProp();
 		}
 	}
 }

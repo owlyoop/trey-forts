@@ -15,9 +15,15 @@ namespace RealtimeCSG.Helpers
 		internal static Color staticColor = new Color(.5f, .5f, .5f, 0f);
 		internal static float staticBlend = 0.6f;
 		
-		internal static int s_xzAxisMoveHandleHash = "xzAxisFreeMoveHandleHash".GetHashCode();
-		internal static int s_xyAxisMoveHandleHash = "xyAxisFreeMoveHandleHash".GetHashCode();
-		internal static int s_yzAxisMoveHandleHash = "yzAxisFreeMoveHandleHash".GetHashCode();
+        
+        internal static int s_xAxisMoveHandleHash	= "xAxisFreeMoveHandleHash".GetHashCode();
+        internal static int s_yAxisMoveHandleHash	= "yAxisFreeMoveHandleHash".GetHashCode();
+        internal static int s_zAxisMoveHandleHash	= "zAxisFreeMoveHandleHash".GetHashCode();
+        internal static int s_xzAxisMoveHandleHash	= "xzAxesFreeMoveHandleHash".GetHashCode();
+        internal static int s_xyAxisMoveHandleHash	= "xyAxesFreeMoveHandleHash".GetHashCode();
+        internal static int s_yzAxisMoveHandleHash	= "yzAxesFreeMoveHandleHash".GetHashCode();
+        internal static int s_centerMoveHandleHash  = "centerFreeMoveHandleHash".GetHashCode();
+
 		
 		internal static int s_ScaleSliderHash		= "ScaleSliderHash".GetHashCode();
 		internal static int s_ScaleValueHandleHash	= "ScaleValueHandleHash".GetHashCode();
@@ -292,59 +298,147 @@ namespace RealtimeCSG.Helpers
 
 		internal static bool disabled = false;
 
-		public static Vector3 PositionHandle(Vector3 position, Quaternion rotation, bool snapping, Vector3[] snapVertices = null, InitFunction initFunction = null, InitFunction shutdownFunction = null)
-		{			
-			var xAxisSlider		= GUIUtility.GetControlID (s_SliderHash, FocusType.Keyboard);
-			var yAxisSlider		= GUIUtility.GetControlID (s_SliderHash, FocusType.Keyboard);
-			var zAxisSlider		= GUIUtility.GetControlID (s_SliderHash, FocusType.Keyboard);
-			var xzPlaneSlider	= GUIUtility.GetControlID (s_xzAxisMoveHandleHash, FocusType.Keyboard);
-			var xyPlaneSlider	= GUIUtility.GetControlID (s_xyAxisMoveHandleHash, FocusType.Keyboard);
-			var yzPlaneSlider	= GUIUtility.GetControlID (s_yzAxisMoveHandleHash, FocusType.Keyboard);
-			
+        public static int FocusControl
+        {
+            get
+            {
+                if (!GUI.enabled || (Tools.viewTool != ViewTool.None && Tools.viewTool != ViewTool.Pan))
+                    return 0;
 
-			var size = HandleUtility.GetHandleSize(position);
-			var originalColor = Handles.color;
-			var isStatic = (!Tools.hidden && EditorApplication.isPlaying && ContainsStatic(Selection.gameObjects));
+                var hotControl = GUIUtility.hotControl;
+                if (hotControl == 0)
+                    return UnityEditor.HandleUtility.nearestControl;
 
-			var prevDisabled = CSGHandles.disabled;
+                return GUIUtility.keyboardControl;
+            }
+        }
 
-			CSGHandles.disabled = prevDisabled || RealtimeCSG.CSGSettings.LockAxisX;
-			{
-				Handles.color = isStatic ? Color.Lerp(Handles.xAxisColor, staticColor, staticBlend) : Handles.xAxisColor;
-				GUI.SetNextControlName("xAxis");
-				position = CSGSlider1D.Do(xAxisSlider, position, rotation * Vector3.right, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
-			}
+        public static Color ToActiveColorSpace(Color color)
+        {
+            return (QualitySettings.activeColorSpace == ColorSpace.Linear) ? color.linear : color;
+        }
 
-			CSGHandles.disabled = prevDisabled || RealtimeCSG.CSGSettings.LockAxisY;
-			{
-				Handles.color = isStatic ? Color.Lerp(Handles.yAxisColor, staticColor, staticBlend) : Handles.yAxisColor;
-				GUI.SetNextControlName("yAxis");
-				position = CSGSlider1D.Do(yAxisSlider, position, rotation * Vector3.up, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
-			}
-			
-			CSGHandles.disabled = prevDisabled || RealtimeCSG.CSGSettings.LockAxisZ;
-			{
-				Handles.color = isStatic ? Color.Lerp(Handles.zAxisColor, staticColor, staticBlend) : Handles.zAxisColor;
-				GUI.SetNextControlName("zAxis");
-				position = CSGSlider1D.Do(zAxisSlider, position, rotation * Vector3.forward, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
-			}
+        public static Color preselectionColor = new Color(201f / 255, 200f / 255, 144f / 255, 0.89f);
+        public static Color StateColor(Color color, bool isDisabled = false, bool isSelected = false, bool isPreSelected = false)
+        {
+            return ToActiveColorSpace((isDisabled || disabled) ? Color.Lerp(color, staticColor, staticBlend) :
+                                       (isSelected   ) ? Handles.selectedColor :
+                                       (isPreSelected) ? preselectionColor : color);
+        }
 
-			CSGHandles.disabled = prevDisabled || (RealtimeCSG.CSGSettings.LockAxisX || RealtimeCSG.CSGSettings.LockAxisZ);
-			if (!CSGHandles.disabled)
-				position = DoPlanarHandle(xzPlaneSlider, PrincipleAxis2.XZ, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+        public static Vector3 PositionHandle(Vector3 position, Quaternion rotation, bool snapping, Vector3[] snapVertices = null, InitFunction initFunction = null, InitFunction shutdownFunction = null)
+		{	
+            GUI.SetNextControlName("xAxis");   var xAxisSlider   = GUIUtility.GetControlID (s_xAxisMoveHandleHash, FocusType.Passive);
+            GUI.SetNextControlName("yAxis");   var yAxisSlider   = GUIUtility.GetControlID (s_yAxisMoveHandleHash, FocusType.Passive);
+            GUI.SetNextControlName("zAxis");   var zAxisSlider   = GUIUtility.GetControlID (s_zAxisMoveHandleHash, FocusType.Passive);
+            GUI.SetNextControlName("xzPlane"); var xzPlaneSlider = GUIUtility.GetControlID (s_xzAxisMoveHandleHash, FocusType.Passive);
+            GUI.SetNextControlName("xyPlane"); var xyPlaneSlider = GUIUtility.GetControlID (s_xyAxisMoveHandleHash, FocusType.Passive);
+            GUI.SetNextControlName("yzPlane"); var yzPlaneSlider = GUIUtility.GetControlID (s_yzAxisMoveHandleHash, FocusType.Passive);
+            
+            var isStatic		= (!Tools.hidden && EditorApplication.isPlaying && ContainsStatic(Selection.gameObjects));
+            var prevDisabled	= CSGHandles.disabled;
 
-			CSGHandles.disabled = prevDisabled || (RealtimeCSG.CSGSettings.LockAxisX || RealtimeCSG.CSGSettings.LockAxisY);
-			if (!CSGHandles.disabled)
-				position = DoPlanarHandle(xyPlaneSlider, PrincipleAxis2.XY, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+            var hotControl		= GUIUtility.hotControl;
 
-			CSGHandles.disabled = prevDisabled || (RealtimeCSG.CSGSettings.LockAxisY || RealtimeCSG.CSGSettings.LockAxisZ);
-			if (!CSGHandles.disabled)
-				position = DoPlanarHandle(yzPlaneSlider, PrincipleAxis2.YZ, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
-			
-			CSGHandles.disabled = prevDisabled;
-			Handles.color = originalColor;
+            var xAxisIsHot		= (xAxisSlider   == hotControl);
+            var yAxisIsHot		= (yAxisSlider   == hotControl);
+            var zAxisIsHot		= (zAxisSlider   == hotControl);
+            var xzAxisIsHot		= (xzPlaneSlider == hotControl);
+            var xyAxisIsHot		= (xyPlaneSlider == hotControl);
+            var yzAxisIsHot		= (yzPlaneSlider == hotControl);
 
-			return position;
+            var isControlHot	= xAxisIsHot || yAxisIsHot || zAxisIsHot || xzAxisIsHot || xyAxisIsHot || yzAxisIsHot;
+
+            var size		    = HandleUtility.GetHandleSize(position);
+            var originalColor	= Handles.color;
+
+            var lockedAxisX    = RealtimeCSG.CSGSettings.LockAxisX;
+            var lockedAxisY    = RealtimeCSG.CSGSettings.LockAxisY;
+            var lockedAxisZ    = RealtimeCSG.CSGSettings.LockAxisZ;
+
+            var lockedAxisXY   = lockedAxisX || lockedAxisY;
+            var lockedAxisXZ   = lockedAxisX || lockedAxisZ;
+            var lockedAxisYZ   = lockedAxisY || lockedAxisZ;
+
+
+            //,.,.., look at 2018.1 how the position handle works w/ colors
+
+            var xAxisDisabled	= isStatic || prevDisabled || lockedAxisX || (isControlHot && !xAxisIsHot && !xzAxisIsHot && !xyAxisIsHot);
+            var yAxisDisabled	= isStatic || prevDisabled || lockedAxisY || (isControlHot && !yAxisIsHot && !xyAxisIsHot && !yzAxisIsHot);
+            var zAxisDisabled	= isStatic || prevDisabled || lockedAxisZ || (isControlHot && !zAxisIsHot && !xzAxisIsHot && !yzAxisIsHot);
+            var xzPlaneDisabled	= isStatic || prevDisabled || lockedAxisXZ || (isControlHot && !xzAxisIsHot);
+            var xyPlaneDisabled	= isStatic || prevDisabled || lockedAxisXY || (isControlHot && !xyAxisIsHot);
+            var yzPlaneDisabled	= isStatic || prevDisabled || lockedAxisYZ || (isControlHot && !yzAxisIsHot);
+            
+            var currentFocusControl = FocusControl;
+
+            var xAxisIndirectlyFocused = (currentFocusControl == xyPlaneSlider || currentFocusControl == xzPlaneSlider);
+            var yAxisIndirectlyFocused = (currentFocusControl == xyPlaneSlider || currentFocusControl == yzPlaneSlider);
+            var zAxisIndirectlyFocused = (currentFocusControl == xzPlaneSlider || currentFocusControl == yzPlaneSlider);
+
+            var xAxisSelected	= xAxisIndirectlyFocused || (currentFocusControl == xAxisSlider);
+            var yAxisSelected	= yAxisIndirectlyFocused || (currentFocusControl == yAxisSlider);
+            var zAxisSelected	= zAxisIndirectlyFocused || (currentFocusControl == zAxisSlider);
+            var xzAxiSelected	= (currentFocusControl == xAxisSlider || currentFocusControl == zAxisSlider);
+            var xyAxiSelected	= (currentFocusControl == xAxisSlider || currentFocusControl == yAxisSlider);
+            var yzAxiSelected	= (currentFocusControl == yAxisSlider || currentFocusControl == zAxisSlider);
+
+            var xAxisColor		= CSGHandles.StateColor(Handles.xAxisColor, xAxisDisabled,   xAxisSelected);
+            var yAxisColor		= CSGHandles.StateColor(Handles.yAxisColor, yAxisDisabled,   yAxisSelected);
+            var zAxisColor		= CSGHandles.StateColor(Handles.zAxisColor, zAxisDisabled,   zAxisSelected);
+            var xzPlaneColor	= CSGHandles.StateColor(Handles.yAxisColor, xzPlaneDisabled, xzAxiSelected);
+            var xyPlaneColor	= CSGHandles.StateColor(Handles.zAxisColor, xyPlaneDisabled, xyAxiSelected);
+            var yzPlaneColor	= CSGHandles.StateColor(Handles.xAxisColor, yzPlaneDisabled, yzAxiSelected);
+
+
+            CSGHandles.disabled = xAxisDisabled;
+            {
+                Handles.color = xAxisColor;
+
+                position = CSGSlider1D.Do(xAxisSlider, position, rotation * Vector3.right, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
+            }
+
+            CSGHandles.disabled = yAxisDisabled;
+            { 
+                Handles.color = yAxisColor;
+
+                position = CSGSlider1D.Do(yAxisSlider, position, rotation * Vector3.up, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
+            }
+
+            CSGHandles.disabled = zAxisDisabled;
+            {
+                Handles.color = zAxisColor;
+
+                position = CSGSlider1D.Do(zAxisSlider, position, rotation * Vector3.forward, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
+            }
+
+
+            CSGHandles.disabled = xzPlaneDisabled;
+            if (!CSGHandles.disabled)
+            {
+                Handles.color = xzPlaneColor;
+                position = DoPlanarHandle(xzPlaneSlider, PrincipleAxis2.XZ, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+            }
+
+            CSGHandles.disabled = xyPlaneDisabled;
+            if (!CSGHandles.disabled)
+            {
+                Handles.color = xyPlaneColor;
+                position = DoPlanarHandle(xyPlaneSlider, PrincipleAxis2.XY, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+            }
+
+            CSGHandles.disabled = yzPlaneDisabled;
+            if (!CSGHandles.disabled)
+            {
+                Handles.color = yzPlaneColor;
+                position = DoPlanarHandle(yzPlaneSlider, PrincipleAxis2.YZ, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+            }
+
+
+            CSGHandles.disabled = prevDisabled;
+            Handles.color = originalColor;
+
+            return position;
 		}
 
 		public static float ScaleSlider(float scale, Vector3 position, Vector3 direction, Quaternion rotation, float size, bool snapping, float snap, CSGHandles.InitFunction initFunction, CSGHandles.InitFunction shutdownFunction)

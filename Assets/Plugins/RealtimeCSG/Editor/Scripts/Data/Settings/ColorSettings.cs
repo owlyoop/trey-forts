@@ -166,6 +166,7 @@ namespace RealtimeCSG
 		{
 			if (outlines2D == null)
 				Update();
+
 			var instanceID = Mathf.Abs(brush.GetInstanceID());
 			return outlines2D[instanceID % outlines2D.Length];
 		}
@@ -304,8 +305,8 @@ namespace RealtimeCSG
 		static Shader sceneViewShader;
 		public static Shader GetWireframeShader()
 		{
-			Update();
-
+			if (!sceneViewShader)
+				Update();
 			return sceneViewShader;
 		}
 
@@ -453,11 +454,7 @@ namespace RealtimeCSG
 			maxOutlines2D	= CopyValue(pointInnerStateColor[0], invertedColor2);
 
 			outlines2D = new Color[13];
-#if UNITY_5_4_OR_NEWER
 			UnityEngine.Random.InitState(0);
-#else
-			UnityEngine.Random.seed = 0;
-#endif
 			for (int i=0;i<outlines2D.Length;i++)
 			{
 				var color = new Color(

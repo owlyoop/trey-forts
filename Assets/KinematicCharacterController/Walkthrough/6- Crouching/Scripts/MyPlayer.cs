@@ -8,7 +8,7 @@ namespace KinematicCharacterController.Walkthrough.Crouching
 {
     public class MyPlayer : MonoBehaviour
     {
-        public OrbitCamera OrbitCamera;
+        public ExampleCharacterCamera OrbitCamera;
         public Transform CameraFollowPoint;
         public MyCharacterController Character;
         public float MouseSensitivity = 0.01f;
@@ -27,7 +27,8 @@ namespace KinematicCharacterController.Walkthrough.Crouching
             OrbitCamera.SetFollowTransform(CameraFollowPoint);
 
             // Ignore the character's collider(s) for camera obstruction checks
-            OrbitCamera.IgnoredColliders = Character.GetComponentsInChildren<Collider>();
+            OrbitCamera.IgnoredColliders.Clear();
+            OrbitCamera.IgnoredColliders.AddRange(Character.GetComponentsInChildren<Collider>());
         }
 
         private void Update()

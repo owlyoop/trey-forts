@@ -4,9 +4,9 @@ namespace RealtimeCSG.Foundation
     {
 	#if TEST_ENABLED
 	    public const string PluginVersion = "TEST";
-        public const string PrevPluginVersion = "1.536";
+        public const string PrevPluginVersion = "1.556";
 	#else
-        public const string PluginVersion = "1.536";
+        public const string PluginVersion = "1.556";
 	#endif
     }
 }

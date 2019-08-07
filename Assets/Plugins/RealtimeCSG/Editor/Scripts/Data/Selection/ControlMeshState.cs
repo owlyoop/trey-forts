@@ -451,12 +451,8 @@ namespace RealtimeCSG
 
 				var screenDist = Mathf.Sqrt((clipPointX * clipPointX) + (clipPointY * clipPointY));
 									//new Vector3(clipPointX, clipPointY, distance - Vector3.Dot(p0 + camRight, camForward)).magnitude;
-										
-#if UNITY_5_4_OR_NEWER
+						
 				sizes[p] = (kHandleSize / Mathf.Max(screenDist, kHandleMaxSize)) * EditorGUIUtility.pixelsPerPoint;
-#else
-				sizes[p] = (kHandleSize / Mathf.Max(screenDist, kHandleMaxSize));
-#endif
 			}
 		}
 		
@@ -679,6 +675,29 @@ namespace RealtimeCSG
 			}
 		}
 
+		public bool SelectAll()
+		{
+			var hadSelection = false;
+			for (var p = 0; p < Selection.Points.Length; p++)
+			{
+				hadSelection = hadSelection || (Selection.Points[p] & SelectState.Selected) != SelectState.Selected;
+				Selection.Points[p] |= SelectState.Selected;
+			}
+
+			for (var e = 0; e < Selection.Edges.Length; e++)
+			{
+				hadSelection = hadSelection || (Selection.Edges[e] & SelectState.Selected) != SelectState.Selected;
+				Selection.Edges[e] |= SelectState.Selected;
+			}
+
+			for (var p = 0; p < Selection.Polygons.Length; p++)
+			{
+				hadSelection = hadSelection || (Selection.Polygons[p] & SelectState.Selected) != SelectState.Selected;
+				Selection.Polygons[p] |= SelectState.Selected;
+			}
+			return hadSelection;
+		}
+
 		public bool DeSelectAll()
 		{
 			var hadSelection = false;
@@ -874,6 +893,17 @@ namespace RealtimeCSG
 			for (var t = 0; t < controlMeshStates.Length; t++)
 			{
 				hadSelection = controlMeshStates[t].DeSelectAll() || hadSelection;
+			}
+			return hadSelection;
+		}
+		
+
+		public static bool SelectAll(ControlMeshState[] controlMeshStates)
+		{
+			var hadSelection = false;
+			for (var t = 0; t < controlMeshStates.Length; t++)
+			{
+				hadSelection = controlMeshStates[t].SelectAll() || hadSelection;
 			}
 			return hadSelection;
 		}

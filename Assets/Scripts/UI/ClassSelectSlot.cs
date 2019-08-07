@@ -26,11 +26,11 @@ public class ClassSelectSlot : MonoBehaviour
 		menu.selectedClass = _weaponSet;
 		menu.classSelectButton.interactable = true;
 		//clear
-		if (_weaponSet.weaponList.Count > 0)
+		if (_weaponSet.weaponList.Count > 0 && menu.selectedClassWeapons.Count > 0)
 		{
-			for (int i = 0; i < _weaponSet.weaponList.Count; i++)
+			for (int i = 0; i < menu.selectedClassWeapons.Count; i++)
 			{
-				menu.selectedClassWeapons.Clear();
+				Destroy(menu.selectedClassWeapons[i]);
 			}
 		}
 

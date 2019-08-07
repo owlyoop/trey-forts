@@ -86,13 +86,8 @@ namespace RealtimeCSG.Helpers
 				case EventType.Repaint:
 				{
 					var originalColor = Handles.color;
-					if (id == GUIUtility.keyboardControl && GUI.enabled)
-						Handles.color = Handles.selectedColor; 
-					else
-					if (CSGHandles.disabled)
-						Handles.color = Color.Lerp(originalColor, Handles.secondaryColor, 0.75f);
-
-					if (capFunction != null)
+                    Handles.color = CSGHandles.StateColor(originalColor, CSGHandles.disabled, CSGHandles.FocusControl == id);
+                    if (capFunction != null)
 						capFunction(id, position, Quaternion.LookRotation(direction), size, EventType.Repaint);
 
 					Handles.color = originalColor;

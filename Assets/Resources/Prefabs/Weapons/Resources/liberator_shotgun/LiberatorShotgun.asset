@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f71755a93b22004eb98834c640dd52d, type: 3}
+  m_Name: LiberatorShotgun
+  m_EditorClassIdentifier: 
+  weaponName: Liberator
+  weaponDescription: shotgun
+  icon: {fileID: 0}
+  weaponPrefab: {fileID: 2854000010531467, guid: d5d8945b0bf9a8e4393be91e832e12ee,
+    type: 3}
+  baseDamage: 5
+  shotsPerSecond: 3
+  clipSize: 4
+  reloadTime: 1
+  maxAmmo: 32
+  damageType: 0
+  weaponComponents: []

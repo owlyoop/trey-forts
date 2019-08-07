@@ -142,7 +142,7 @@ namespace RealtimeCSG
 						TooltipUtility.SetToolTip(RadiusTooltip);
 
 					{
-						generator.SphereSplits		= IntSettingsSlider(generator.SphereSplits, 1, 9, SplitsContent, isSceneGUI);
+						generator.SphereSplits		= IntSettingsSlider(generator.SphereSplits, 1, RealtimeCSG.CSGSettings.MaxSphereSplits, SplitsContent, isSceneGUI);
 						TooltipUtility.SetToolTip(SplitsTooltip);
 					}
 					{

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Networking;
+using Photon.Pun;
 
 public class ProjectileLauncher : WeaponMotor
 {
@@ -10,17 +10,13 @@ public class ProjectileLauncher : WeaponMotor
 	public Transform gunEnd;
 
 	public float shotsPerSecond;
-	[SyncVar]
 	public float projectileSpeed;
-	[SyncVar]
 	public float projectileLife;
 	public int baseDamage;
 	public int clipSize;
 	public int maxAmmo;
-
-	[SyncVar]
+	
 	public int currentAmmoInClip;
-	[SyncVar]
 	public int currentAmmoReserves;
 	[System.NonSerialized]
 	public Damager.DamageTypes damageType;
@@ -32,9 +28,7 @@ public class ProjectileLauncher : WeaponMotor
 
 	public Vector3 rayOrigin;
 	public Vector3 shootDirection;
-	LineRenderer line;
-
-	[SyncVar]
+	
 	public Vector3 shotPoint;
 
 	public PlayerStats playersStats;
@@ -44,20 +38,18 @@ public class ProjectileLauncher : WeaponMotor
 	private void Start()
 	{
 		cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
-		line = GetComponent<LineRenderer>();
 		playersStats = GetComponentInParent<WeaponSlots>().player;
 		lastFireTime = 0f;
 		currentAmmoInClip = clipSize;
 		currentAmmoReserves = maxAmmo;
-		playersStats.ammoInClip.text = currentAmmoInClip.ToString();
-		playersStats.ammoAmount.text = currentAmmoReserves.ToString();
+		playersStats.OnChangeAmmoInClip(currentAmmoInClip);
+		playersStats.OnChangeAmmoReservesAmount(currentAmmoReserves);
 		isReloading = false;
 	}
 
 	private void OnEnable()
 	{
 		cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
-		line = GetComponent<LineRenderer>();
 	}
 
 	private void Update()
@@ -71,44 +63,48 @@ public class ProjectileLauncher : WeaponMotor
 		if (Time.time > lastFireTime + (1 / shotsPerSecond) && currentAmmoInClip > 0)
 		{
 			isReloading = false;
-			playersStats.radialReload.enabled = false;
+			playersStats.ui.radialReload.enabled = false;
 			RaycastHit shot;
 			Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
-			line.SetPosition(0, gunEnd.position);
 			shootDirection = cam.transform.forward;
 
-			int layermask = 1 << 9;
+			int layermask = 1 << 12;
 			layermask = ~layermask;
 
-			GameObject go = (GameObject)Instantiate(projectilePrefab);
-			Physics.IgnoreCollision(GetComponentInParent<CharacterController>(), go.GetComponent<Collider>());
-			go.transform.position = gunEnd.transform.position;
+			//GameObject go = PhotonNetwork.Instantiate("Missile", gunEnd.transform.position, gunEnd.rotation);
+			//GameObject go = (GameObject)Instantiate(projectilePrefab);
+			//Physics.IgnoreCollision(GetComponentInParent<Collider>(), go.GetComponent<Collider>());
+			//go.transform.position = gunEnd.transform.position;
+			
+			
 
 			if (Physics.Raycast(rayOrigin, shootDirection, out shot, 2000f, layermask))
 			{
 				shotPoint = shot.point;
-				line.SetPosition(1, shot.point);
-				go.transform.LookAt(shot.point);
 
 			}
 			else
 			{
 				shotPoint = rayOrigin + (shootDirection * 2000f);
-				line.SetPosition(1, rayOrigin + (shootDirection * 2000f));
-				go.transform.LookAt(rayOrigin + (shootDirection * 2000f));
 			}
+			//go.transform.LookAt(shotPoint);
 
-
-			go.GetComponent<Projectile>().speed = projectileSpeed;
-			go.GetComponent<Projectile>().life = projectileLife;
-			go.GetComponent<Projectile>().baseDamage = baseDamage;
-			go.GetComponent<Projectile>().damageType = damageType;
-
-			networkObjToSpawn = go;
+			//go.GetComponent<Projectile>().speed = projectileSpeed;
+			//go.GetComponent<Projectile>().life = projectileLife;
+			//go.GetComponent<Projectile>().baseDamage = baseDamage;
+			//go.GetComponent<Projectile>().damageType = damageType;
 
 			lastFireTime = Time.time;
 			currentAmmoInClip = currentAmmoInClip - 1;
-			playersStats.currentAmmoInClip = currentAmmoInClip;
+			playersStats.OnChangeAmmoInClip(currentAmmoInClip);
+
+
+			GetComponentInParent<WeaponSlots>().player.GetComponent<PhotonView>().RPC("FireProjectile", RpcTarget.AllViaServer,
+				GetComponentInParent<WeaponSlots>().player.GetComponent<PhotonView>().ViewID, projectilePrefab.name,
+				shotPoint, gunEnd.transform.position,
+				projectileSpeed, projectileLife, baseDamage, damageType);
+
+			
 
 		}
 		else
@@ -132,15 +128,15 @@ public class ProjectileLauncher : WeaponMotor
 	public override void UpdateUI()
 	{
 		playersStats = GetComponentInParent<WeaponSlots>().player;
-		playersStats.currentAmmoInClip = currentAmmoInClip;
-		playersStats.currentAmmoReserves = currentAmmoReserves;
+		playersStats.OnChangeAmmoInClip(currentAmmoInClip);
+		playersStats.OnChangeAmmoReservesAmount(currentAmmoReserves);
 	}
 
 	public override void ReloadButton()
 	{
 		if (currentAmmoReserves > 0 && currentAmmoInClip < clipSize)
 		{
-			playersStats.radialReload.enabled = true;
+			playersStats.ui.radialReload.enabled = true;
 			reloadStartTime = Time.time;
 			isReloading = true;
 		}
@@ -151,7 +147,7 @@ public class ProjectileLauncher : WeaponMotor
 		if (isReloading)
 		{
 			float reloadEndTime = reloadStartTime + reloadTime;
-			playersStats.radialReload.fillAmount = (Time.time - reloadStartTime) / (reloadEndTime - reloadStartTime);
+			playersStats.ui.radialReload.fillAmount = (Time.time - reloadStartTime) / (reloadEndTime - reloadStartTime);
 		}
 
 		if (isReloading && Time.time > reloadStartTime + reloadTime)
@@ -165,7 +161,7 @@ public class ProjectileLauncher : WeaponMotor
 			if (currentAmmoInClip == clipSize)
 			{
 				isReloading = false;
-				playersStats.radialReload.enabled = false;
+				playersStats.ui.radialReload.enabled = false;
 			}
 			else
 			{

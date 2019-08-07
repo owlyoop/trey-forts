@@ -105,17 +105,36 @@ namespace RealtimeCSG
 			return gameObject;
 		}
 
+        static Transform GetTransformForMenu(MenuCommand command)
+        {
+            Transform parent = null;
+            if (command != null &&
+                command.context != null)
+            {
+                var parentGameObject = command.context as GameObject;
+                if (parentGameObject)
+                    parent = parentGameObject.transform;
+            }
+            return parent;
+        }
 
 		[UnityEditor.MenuItem("GameObject/Realtime-CSG/Model", false, 30)]
-		public static CSGModel CreateModelInstanceInScene()
+		public static CSGModel CreateModelInstanceInScene(MenuCommand command)
 		{
-			var gameObject = new GameObject("Model");
-			gameObject.name = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(null, "Model");
+            return CreateModelInstanceInScene(GetTransformForMenu(command));
+		}
+        
+		public static CSGModel CreateModelInstanceInScene(Transform parent)
+		{
+            var gameObject = new GameObject("Model");
+            gameObject.name = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(null, "Model");
 			var model = InternalCSGModelManager.CreateCSGModel(gameObject);
 
 			UnityEditor.Selection.activeGameObject = gameObject;
 			SelectionUtility.LastUsedModel = model;
-			Undo.RegisterCreatedObjectUndo(gameObject, "Created model");
+            if (parent)
+                gameObject.transform.SetParent(parent, false);
+            Undo.RegisterCreatedObjectUndo(gameObject, "Created model");
 			InternalCSGModelManager.CheckForChanges();
 			return model;
 		}
@@ -147,15 +166,22 @@ namespace RealtimeCSG
 		}
 
 		[UnityEditor.MenuItem("GameObject/Realtime-CSG/Operation", false, 31)]
-		public static CSGOperation CreateOperationInstanceInScene()
-		{			
-			var lastUsedModelTransform = !SelectionUtility.LastUsedModel ? null : SelectionUtility.LastUsedModel.transform;
-			if (lastUsedModelTransform == null)
-				lastUsedModelTransform = CreateModelInstanceInScene().transform;
+		public static CSGOperation CreateOperationInstanceInScene(MenuCommand command)
+        {
+            var parent = GetTransformForMenu(command);
 
-			var name = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(lastUsedModelTransform, "Operation"); ;
+            var lastUsedModelTransform = !SelectionUtility.LastUsedModel ? null : SelectionUtility.LastUsedModel.transform;
+            if (lastUsedModelTransform == null && !parent)
+            {
+                lastUsedModelTransform = CreateModelInstanceInScene(parent).transform;
+                parent = lastUsedModelTransform;
+            } else
+            if (!parent)
+                parent = lastUsedModelTransform;
+
+			var name = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(parent, "Operation"); ;
 			var gameObject = new GameObject(name);
-			gameObject.transform.SetParent(lastUsedModelTransform, true);
+			gameObject.transform.SetParent(parent, true);
 			var operation = gameObject.AddComponent<CSGOperation>();
 
 			UnityEditor.Selection.activeGameObject = gameObject;
@@ -184,23 +210,30 @@ namespace RealtimeCSG
 		}
 
 		[UnityEditor.MenuItem("GameObject/Realtime-CSG/Brush", false, 31)]
-		public static CSGBrush CreateBrushInstanceInScene()
-		{
+		public static CSGBrush CreateBrushInstanceInScene(MenuCommand command)
+        {
 #if EVALUATION
 			if (NativeMethodBindings.BrushesAvailable() <= 0)
 			{
 				return null;
 			}
 #endif
-			var lastUsedModelTransform = !SelectionUtility.LastUsedModel ? null : SelectionUtility.LastUsedModel.transform;
-			if (lastUsedModelTransform == null)
-				lastUsedModelTransform = CreateModelInstanceInScene().transform;
+            var parent = GetTransformForMenu(command);
 
-			var name = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(lastUsedModelTransform, "Brush");
+            var lastUsedModelTransform = !SelectionUtility.LastUsedModel ? null : SelectionUtility.LastUsedModel.transform;
+            if (lastUsedModelTransform == null && !parent)
+            {
+                lastUsedModelTransform = CreateModelInstanceInScene(parent).transform;
+                parent = lastUsedModelTransform;
+            } else
+            if (!parent)
+                parent = lastUsedModelTransform;
+
+            var name = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(parent, "Brush");
 			var gameObject = new GameObject(name);
 			var brush = gameObject.AddComponent<CSGBrush>();
 
-			gameObject.transform.SetParent(lastUsedModelTransform, true);
+			gameObject.transform.SetParent(parent, true);
 			gameObject.transform.position = new Vector3(0.5f, 0.5f, 0.5f); // this aligns it's vertices to the grid
 			BrushFactory.CreateCubeControlMesh(out brush.ControlMesh, out brush.Shape, Vector3.one);
 

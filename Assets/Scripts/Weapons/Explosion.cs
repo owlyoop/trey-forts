@@ -1,6 +1,9 @@
-﻿using System.Collections;
+﻿using KinematicCharacterController.Owly;
+using KinematicCharacterController;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class Explosion : Damager
 {
@@ -21,38 +24,106 @@ public class Explosion : Damager
 
 	public bool damageThePlayer = true; // should the explosion damage the source/player?
 
+	public int OwnerPunID;
+	public PlayerStats player;
 
-	private void Start()
+    public List<PlayerStats> hitPlayers = new List<PlayerStats>();
+
+    private void Start()
 	{
 		explosionPos = transform.position;
 		Collider[] colliders = Physics.OverlapSphere(explosionPos, exRadius);
 
+
 		foreach (Collider col in colliders)
 		{
-			PlayerMove player = col.GetComponent<PlayerMove>();
+            // Character controller check to add explosion force
+			MyCharacterController player = col.GetComponent<MyCharacterController>();
 			if (player != null)
 			{
-				player.AddKnockback(explosionPos, force);
+				player.GetComponent<KinematicCharacterMotor>().ForceUnground();
+				playerCenter = player.GetComponent<KinematicCharacterMotor>().transform.position;
+
+				playerPos = playerCenter + new Vector3(0, 1f, 0);
+				wishDirection = transform.position - playerPos;
+				velocityToAdd = -wishDirection.normalized * force;
+
+				player.AddVelocity(velocityToAdd);
 			}
+
+            //Actual damage check. Idamagable.
 			IDamagable target = col.GetComponent<IDamagable>();
 			if (target != null)
 			{
-				var playerhp = col.GetComponent<PlayerStats>();
-				if (playerhp != null)
+                //Explosion can hit multiple hitboxes on a single player. We only want to damage the player once.
+                var playerHit = col.GetComponent<PlayerHitbox>();
+                if (playerHit != null)
+                {
+                    if (hitPlayers.Count == 0)
+                    {
+                        hitPlayers.Add(playerHit.player);
+                    }
+                    else
+                    {
+                        bool isHit = false;
+                        for (int i = 0; i < hitPlayers.Count; i++)
+                        {
+                            if (hitPlayers[i] == playerHit.player)
+                            {
+                                isHit = true;
+                            }
+                        }
+                        if (!isHit)
+                        {
+                            hitPlayers.Add(playerHit.player);
+                        }
+                    }
+                }
+
+                if (col.GetComponent<TrainingDummy>() != null)
+                {
+                    target.TakeDamage(OwnerPunID, baseDamage, damageType);
+                }
+			}
+
+            // Rigidbody test. ragdolls and physic props.
+			Rigidbody rb = col.GetComponent<Rigidbody>();
+			if (rb != null)
+			{
+				if (rb.GetComponent<CharacterJoint>() != null)
 				{
-					playerhp.TakeDamage(baseDamage + (playerhp.currentHealth / 10), DamageTypes.Physical);
+					rb.AddForce(GetVelocityToAdd(rb.gameObject, force * 48f));
 				}
-				//DamageTarget(target);
+				else
+				{
+					rb.AddForce(GetVelocityToAdd(rb.gameObject, force));
+				}
+				
 			}
 		}
 
+
+        foreach (PlayerStats uniquePlayers in hitPlayers)
+        {
+            uniquePlayers.TakeDamage(OwnerPunID, baseDamage, damageType);
+        }
 		Invoke("Kill", 1);
 	}
 
 	public override void DamageTarget(IDamagable target)
 	{
 		
-		target.TakeDamage(baseDamage, DamageTypes.Physical);
+		target.TakeDamage(OwnerPunID, baseDamage, DamageTypes.Physical);
+	}
+
+	Vector3 GetVelocityToAdd(GameObject go, float _force)
+	{
+		Vector3 VelocityToAdd;
+		Vector3 wishDirection;
+
+		wishDirection = transform.position - go.transform.position;
+		VelocityToAdd = -wishDirection.normalized * _force;
+		return VelocityToAdd;
 	}
 
 	void Kill()

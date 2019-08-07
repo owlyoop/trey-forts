@@ -284,9 +284,12 @@ namespace RealtimeCSG
 					var renderPipelineAsset = UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset;
 					if (renderPipelineAsset)
 					{
-#if UNITY_2017_2_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
+						_defaultMaterial = renderPipelineAsset.defaultMaterial;
+						if (!_defaultMaterial)
+#elif UNITY_2017_2_OR_NEWER
 						_defaultMaterial = renderPipelineAsset.GetDefaultMaterial();
-						if (!_defaultMaterial)						
+						if (!_defaultMaterial)
 #endif
 							_defaultMaterial = GetColorMaterial(Color.magenta);
 					} else
@@ -450,11 +453,7 @@ namespace RealtimeCSG
 			if (!_shadersInitialized) ShaderInit();
 			if (_pixelsPerPointId != -1)
 			{
-#if UNITY_5_4_OR_NEWER
 				genericLineMaterial.SetFloat(_pixelsPerPointId, EditorGUIUtility.pixelsPerPoint);
-#else
-				genericLineMaterial.SetFloat(_pixelsPerPointId, 1.0f);
-#endif
 			}
 			if (_lineThicknessMultiplierId != -1) genericLineMaterial.SetFloat(_lineThicknessMultiplierId, _lineThicknessMultiplier * EditorGUIUtility.pixelsPerPoint);
 			if (_lineDashMultiplierId      != -1) genericLineMaterial.SetFloat(_lineDashMultiplierId,      _lineDashMultiplier);

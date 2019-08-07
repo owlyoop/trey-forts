@@ -29,6 +29,7 @@ using UnityEngine;
 using System.Collections;
 using System.Text;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace UnityFBXExporter
 {
@@ -120,17 +121,17 @@ namespace UnityFBXExporter
 			tempObjectSb.Append("\t\t\tP: \"Lcl Translation\", \"Lcl Translation\", \"\", \"A+\",");
 
 			// Append the X Y Z coords to the system
-			tempObjectSb.AppendFormat("{0},{1},{2}", position.x * - 1, position.y, position.z);
+			tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2}", position.x * - 1, position.y, position.z);
 			tempObjectSb.AppendLine();
 
 			// Rotates the object correctly from Unity space
 			Vector3 localRotation = gameObj.transform.localEulerAngles;
-			tempObjectSb.AppendFormat("\t\t\tP: \"Lcl Rotation\", \"Lcl Rotation\", \"\", \"A+\",{0},{1},{2}", localRotation.x, localRotation.y * -1, -1 * localRotation.z);
+			tempObjectSb.AppendFormat(CultureInfo.InvariantCulture, "\t\t\tP: \"Lcl Rotation\", \"Lcl Rotation\", \"\", \"A+\",{0},{1},{2}", localRotation.x, localRotation.y * -1, -1 * localRotation.z);
 			tempObjectSb.AppendLine();
 
 			// Adds the local scale of this object
 		    Vector3 localScale = gameObj.transform.localScale;
-		    tempObjectSb.AppendFormat("\t\t\tP: \"Lcl Scaling\", \"Lcl Scaling\", \"\", \"A\",{0},{1},{2}", localScale.x, localScale.y, localScale.z);
+		    tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"\t\t\tP: \"Lcl Scaling\", \"Lcl Scaling\", \"\", \"A\",{0},{1},{2}", localScale.x, localScale.y, localScale.z);
 			tempObjectSb.AppendLine();
 
 			tempObjectSb.AppendLine("\t\t\tP: \"currentUVSet\", \"KString\", \"\", \"U\", \"map1\"");
@@ -162,7 +163,7 @@ namespace UnityFBXExporter
 						tempObjectSb.Append(",");
 
 					// Points in the vertices. We also reverse the x value because Unity has a reverse X coordinate
-					tempObjectSb.AppendFormat("{0},{1},{2}", vertices[i].x * - 1, vertices[i].y, vertices[i].z);
+					tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2}", vertices[i].x * - 1, vertices[i].y, vertices[i].z);
 				}
 
 				tempObjectSb.AppendLine();
@@ -182,7 +183,7 @@ namespace UnityFBXExporter
 						tempObjectSb.Append(",");
 
 					// To get the correct normals, must rewind the triangles since we flipped the x direction
-					tempObjectSb.AppendFormat("{0},{1},{2}", 
+					tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2}", 
 					                          triangles[i],
 					                          triangles[i + 2], 
 					                          (triangles[i + 1] * -1) - 1); // <= Tells the poly is ended
@@ -217,21 +218,21 @@ namespace UnityFBXExporter
 						// To get the correct normals, must rewind the normal triangles like the triangles above since x was flipped
 						Vector3 newNormal = normals[triangles[i]];
 
-						tempObjectSb.AppendFormat("{0},{1},{2},",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2},",
 												 newNormal.x * -1, // Switch normal as is tradition
 												 newNormal.y,
 												 newNormal.z);
 
 						newNormal = normals[triangles[i + 2]];
 
-						tempObjectSb.AppendFormat("{0},{1},{2},",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2},",
 												  newNormal.x * -1, // Switch normal as is tradition
 												  newNormal.y,
 												  newNormal.z);
 
 						newNormal = normals[triangles[i + 1]];
 
-						tempObjectSb.AppendFormat("{0},{1},{2}",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2}",
 												  newNormal.x * -1, // Switch normal as is tradition
 												  newNormal.y,
 												  newNormal.z);
@@ -244,7 +245,7 @@ namespace UnityFBXExporter
 				
 				
 				Vector4[] tangents = mesh.tangents;
-				if (tangents != null && tangents.Length == normals.Length)
+				if (tangents != null && tangents.Length == normals.Length && normals.Length != 0)
 				{
 					hasTangents = true;
 
@@ -267,21 +268,21 @@ namespace UnityFBXExporter
 						// To get the correct tangents, must rewind the tangent triangles like the triangles above since x was flipped
 						Vector3 newTangent = tangents[triangles[i]];
 
-						tempObjectSb.AppendFormat("{0},{1},{2},",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2},",
 												 newTangent.x * -1, // Switch tangent as is tradition
 												 newTangent.y,
 												 newTangent.z);
 
 						newTangent = tangents[triangles[i + 2]];
 
-						tempObjectSb.AppendFormat("{0},{1},{2},",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2},",
 												  newTangent.x * -1, // Switch tangent as is tradition
 												  newTangent.y,
 												  newTangent.z);
 
 						newTangent = tangents[triangles[i + 1]];
 
-						tempObjectSb.AppendFormat("{0},{1},{2}",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2}",
 												  newTangent.x * -1, // Switch tangent as is tradition
 												  newTangent.y,
 												  newTangent.z);
@@ -314,7 +315,7 @@ namespace UnityFBXExporter
 						Vector3 normal			= normals[triangles[i]];
 						Vector3 newBinormal		= Vector3.Cross(normal, (Vector3)packed_tangent) * packed_tangent.w;
 
-						tempObjectSb.AppendFormat("{0},{1},{2},",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2},",
 												 newBinormal.x * -1, // Switch binormal as is tradition
 												 newBinormal.y,
 												 newBinormal.z);
@@ -323,7 +324,7 @@ namespace UnityFBXExporter
 						normal			= normals[triangles[i + 2]];
 						newBinormal		= Vector3.Cross(normal, (Vector3)packed_tangent) * packed_tangent.w;
 					
-						tempObjectSb.AppendFormat("{0},{1},{2},",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2},",
 												  newBinormal.x * -1, // Switch binormal as is tradition
 												  newBinormal.y,
 												  newBinormal.z);
@@ -332,7 +333,7 @@ namespace UnityFBXExporter
 						normal			= normals[triangles[i + 1]];
 						newBinormal		= Vector3.Cross(normal, (Vector3)packed_tangent) * packed_tangent.w;
 
-						tempObjectSb.AppendFormat("{0},{1},{2}",
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2}",
 												  newBinormal.x * -1, // Switch binormal as is tradition
 												  newBinormal.y,
 												  newBinormal.z);
@@ -364,7 +365,7 @@ namespace UnityFBXExporter
 						if (i > 0)
 							tempObjectSb.Append(",");
 
-						tempObjectSb.AppendFormat("{0},{1}", uvs[i].x, uvs[i].y);
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1}", uvs[i].x, uvs[i].y);
 
 					}
 					tempObjectSb.AppendLine();
@@ -385,7 +386,7 @@ namespace UnityFBXExporter
 						int index2 = triangles[i + 2];
 						int index3 = triangles[i + 1];
 
-						tempObjectSb.AppendFormat("{0},{1},{2}", index1, index2, index3);
+						tempObjectSb.AppendFormat(CultureInfo.InvariantCulture,"{0},{1},{2}", index1, index2, index3);
 					}
 
 					tempObjectSb.AppendLine();
