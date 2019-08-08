@@ -6,7 +6,7 @@ public class MoneyPrinter : FortwarsProp
 {
 
     public int MoneyPerTick = 1;
-    public float TickDelay = 0.5f;
+    public float TickDelay = 0.75f;
     float timer = 0f;
     float nextActionTime = 0f;
 
@@ -16,7 +16,8 @@ public class MoneyPrinter : FortwarsProp
         if (Time.time > nextActionTime)
         {
             nextActionTime = Time.time + TickDelay;
-            player.OnChangeCurrencyAmount(player.currentCurrency + MoneyPerTick);
+            if (player != null)
+                player.OnChangeCurrencyAmount(player.currentCurrency + MoneyPerTick);
         }
     }
 

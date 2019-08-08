@@ -67,6 +67,9 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3e74a75e88b29d742a41b7834ae77126, type: 2}
   - {fileID: 11400000, guid: 5ea589e81ad5c0448b7b792ab006550d, type: 2}
   - {fileID: 11400000, guid: 803b69c934442b84cab418ef57460638, type: 2}
+  - {fileID: 11400000, guid: 28476dc9af98add46a0d696d3b687978, type: 2}
+  - {fileID: 11400000, guid: a3351e06aa1eda940956b35793843a60, type: 2}
+  - {fileID: 11400000, guid: 1bf6086aeb3efdb41958243be4480669, type: 2}
   combatPhaseProps: []
   BuildPhaseGeometry: {fileID: 0}
   teamSpectatorSpawnPoints: []

@@ -8,6 +8,8 @@ public class FloatingTextController : MonoBehaviour
 	public Canvas canvas;
 	private Camera cam;
 
+    public Transform moneyParent;
+
 	Vector3 offset;
 
 	private void Start()
@@ -21,7 +23,9 @@ public class FloatingTextController : MonoBehaviour
 	{
 		Transform location = _location;
 		FloatingText instance = Instantiate(popupTextPrefab);
-		instance.target = location;
+        instance.isMoney = false;
+        instance.SetText(text);
+        instance.target = location;
 		instance.cam = cam;
 
 		Vector3 worldPos = location.position;
@@ -29,10 +33,21 @@ public class FloatingTextController : MonoBehaviour
 
 		instance.transform.SetParent(canvas.transform, false);
 		instance.transform.position = screenPosition;
-		instance.SetText(text);
+		
 		Debug.Log("dmg num");
 	}
 
+    public void CreateMoneyText(string text, Transform _location)
+    {
+        Transform location = _location;
+        FloatingText instance = Instantiate(popupTextPrefab);
+        instance.isMoney = true;
+        instance.SetText(text);
+        instance.target = location;
+        instance.cam = cam;
+        instance.transform.SetParent(moneyParent, false);
+        
+    }
 
 
 }

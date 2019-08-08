@@ -168,7 +168,7 @@ MonoBehaviour:
   col: {fileID: 4607531589021709992}
   rend: {fileID: 845006126885847197}
   MoneyPerTick: 1
-  TickDelay: 0.5
+  TickDelay: 0.75
 --- !u!1 &6635492319240046543
 GameObject:
   m_ObjectHideFlags: 0

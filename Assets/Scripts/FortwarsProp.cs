@@ -45,7 +45,10 @@ public class FortwarsProp : MonoBehaviour, IDamagable
 	public void TakeDamage(int GiverPunID, int damageTaken, Damager.DamageTypes damageType)
 	{
 		currentHealth = currentHealth - damageTaken;
-		PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);
+        Debug.Log(GiverPunID);
+        Debug.Log(PhotonView.Find(GiverPunID));
+        PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);
+
 		if (currentHealth <= 0)
 		{
 			currentHealth = 0;

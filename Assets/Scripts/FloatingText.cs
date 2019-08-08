@@ -12,23 +12,33 @@ public class FloatingText : MonoBehaviour
 	public Camera cam;
 	Vector3 offset;
 
+
+    public bool isMoney = false;
+
 	private void Start()
 	{
-		AnimatorClipInfo[] clipInfo = anim.GetCurrentAnimatorClipInfo(0);
-		Destroy(gameObject, clipInfo[0].clip.length);
+        
+		Destroy(gameObject, 1f);
+        
 		offset = new Vector3(Random.Range(-10f, 10f), Random.Range(-10f, 10f), Random.Range(-10f, 10f));
-	}
+        
+    }
 
 
 	public void SetText(string text)
 	{
-		damageText.text = text;
-	}
+        anim.SetBool("IsMoney", isMoney);
+        damageText.text = text;
+        if (isMoney)
+        {
+            offset = Vector3.zero;
+        }
+    }
 
 
 	private void Update()
 	{
-		if (target != null)
+		if (target != null && !isMoney)
 		{
 			Vector3 worldPos = target.position + new Vector3(0, 1f, 0);
 			Vector3 screenPosition = cam.WorldToScreenPoint(worldPos);

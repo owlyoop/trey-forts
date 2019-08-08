@@ -366,9 +366,18 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
 	public void OnChangeCurrencyAmount(int newMoney)
 	{
+        int difference = newMoney - currentCurrency;
+        string diftext = difference.ToString();
 		currentCurrency = newMoney;
 		ui.currencyAmount.text = currentCurrency.ToString();
+        dmgText.CreateMoneyText(diftext, dmgText.moneyParent);
 	}
+
+    public void OnChangeCurrencyAmountNoUI(int newMoney)
+    {
+        currentCurrency = newMoney;
+        ui.currencyAmount.text = currentCurrency.ToString();
+    }
 	
 	void HideOwnPlayerModel(bool choice)
 	{

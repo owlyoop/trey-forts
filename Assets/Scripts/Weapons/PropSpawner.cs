@@ -129,8 +129,7 @@ public class PropSpawner : WeaponMotor
 				player.GetComponent<PhotonView>().RPC("SpawnFortwarsProp", RpcTarget.AllViaServer,
 					playersStats.GetComponent<PhotonView>().ViewID, prefabName, ghostProp.transform.position, ghostProp.transform.rotation);
 
-				playersStats.currentCurrency -= theProp.currencyCost;
-				playersStats.OnChangeCurrencyAmount(playersStats.currentCurrency);
+				playersStats.OnChangeCurrencyAmount(playersStats.currentCurrency - theProp.currencyCost);
 			}
 
 

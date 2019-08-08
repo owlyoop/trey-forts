@@ -18,5 +18,5 @@ MonoBehaviour:
   propPrefab: {fileID: 6416287097904642553, guid: 67822753d5ea75442a3835250f5d5b12,
     type: 3}
   maxHealth: 1000
-  currencyCost: 0
+  currencyCost: 20
   material: 2
