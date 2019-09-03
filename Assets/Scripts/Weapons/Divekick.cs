@@ -43,16 +43,15 @@ public class Divekick : Damager
     }
 
 
+    // divekick hitbox can only damage players once during its lifetime. make sure it doesnt duplicate damage
     private void OnTriggerEnter(Collider col)
     {
-        Debug.Log("trigger found");
         isValidDamageTarget = true;
         var target = col.GetComponent<IDamagable>();
         var playerHit = col.GetComponent<PlayerHitbox>();
         //Damagable found
         if (target != null && isDivekickActive)
         {
-            Debug.Log("col found");
             //Check if collider is a player's hitbox, we need to ignore our own
             if (playerHit != null)
             {
@@ -73,7 +72,6 @@ public class Divekick : Damager
             {
                 isValidDamageTarget = true;
                 _target = target;
-                Debug.Log("training dummy");
             }
 
             if (isValidDamageTarget && _target != null && iter == 0)

@@ -66,11 +66,6 @@ public class ObjectMover : WeaponMotor
 				theObject.isKinematic = false;
 				theObject.constraints = RigidbodyConstraints.None;
 				theObject.freezeRotation = false;
-				//idOfObj = shot.collider.GetComponent<FortwarsProp>().nid;
-				//cam.GetComponentInParent<PlayerInput>().holdingPropID = shot.collider.GetComponent<FortwarsProp>().nid;
-				//cam.GetComponentInParent<PlayerInput>().debugID = shot.collider.GetComponent<FortwarsProp>().nid.ToString();
-				//Debug.Log(idOfObj.ToString());
-				//debugID = idOfObj.ToString();
 			}
 		}
 		

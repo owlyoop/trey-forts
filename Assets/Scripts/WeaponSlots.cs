@@ -8,8 +8,12 @@ public class WeaponSlots : MonoBehaviour
 	public PlayerStats player;
 	public List<GameObject> weaponSlots;
 	public List<GameObject> propWepSlots;
+
+    public List<GameObject> abilitySlots;
 	
 	public FortwarsPropData selectedProp;
+
+    public Transform abilitySlotsTransform;
 	
 	public int activeWeaponIndex;
 
@@ -49,6 +53,23 @@ public class WeaponSlots : MonoBehaviour
 				weaponSlots[i].SetActive(false);
 			}
 			weaponSlots[0].SetActive(true);
+
+            if (abilitySlots.Count > 0)
+            {
+                for (int i = 0; i < abilitySlots.Count; i++)
+                {
+                    Destroy(abilitySlots[i]);
+
+                }
+                abilitySlots.Clear();
+            }
+
+            for (int i = 0; i < player.playerClass.abilityList.Count; i++)
+            {
+                GameObject temp = Instantiate(player.playerClass.abilityList[i], abilitySlotsTransform);
+                temp.GetComponent<AbilityMotor>().owner = player;
+                abilitySlots.Add(temp);
+            }
 		}
 
 	}
@@ -60,6 +81,7 @@ public class WeaponSlots : MonoBehaviour
 		if (index < weaponSlots.Count)
 		{
 			weaponSlots[index].SetActive(true);
+            weaponSlots[index].GetComponent<WeaponMotor>().OnSwitchToWeapon();
 			weaponSlots[index].GetComponent<WeaponMotor>().UpdateUI();
 		}
 
@@ -85,9 +107,15 @@ public class WeaponSlots : MonoBehaviour
 	{
 		if (propWepSlots[1].activeSelf)
 		{
-			SwitchActiveWeaponSlot(0);
+            propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+            SwitchActiveWeaponSlot(0);
 		}
-	}
+        if (propWepSlots[0].activeSelf)
+        {
+            propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+            SwitchActiveWeaponSlot(0);
+        }
+    }
 
 	public void DecactivateAllWeapons()
 	{
@@ -120,4 +148,14 @@ public class WeaponSlots : MonoBehaviour
 			propWepSlots[0].GetComponent<PropSpawner>().SetSelectedProp();
 		}
 	}
+
+    public void ActivateAbility(int index)
+    {
+        if (abilitySlots[index].GetComponent<AbilityMotor>().AbilityPressDisablesWeapon)
+        {
+            DecactivateAllWeapons();
+        }
+        Debug.Log("ability cast");
+        abilitySlots[index].GetComponent<AbilityMotor>().OnPressAbilityButton();
+    }
 }

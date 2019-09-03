@@ -33,9 +33,9 @@ public class Explosion : Damager
 	{
 		explosionPos = transform.position;
 		Collider[] colliders = Physics.OverlapSphere(explosionPos, exRadius);
+        List<PlayerStats> uniquePlayers = base.GetUniqueTargets(colliders);
 
-
-		foreach (Collider col in colliders)
+        foreach (Collider col in colliders)
 		{
             // Character controller check to add explosion force
 			MyCharacterController player = col.GetComponent<MyCharacterController>();
@@ -55,29 +55,12 @@ public class Explosion : Damager
 			IDamagable target = col.GetComponent<IDamagable>();
 			if (target != null)
 			{
-                //Explosion can hit multiple hitboxes on a single player. We only want to damage the player once.
-                var playerHit = col.GetComponent<PlayerHitbox>();
-                if (playerHit != null)
+                
+                var propHit = col.GetComponent<FortwarsProp>();
+
+                if (propHit != null)
                 {
-                    if (hitPlayers.Count == 0)
-                    {
-                        hitPlayers.Add(playerHit.player);
-                    }
-                    else
-                    {
-                        bool isHit = false;
-                        for (int i = 0; i < hitPlayers.Count; i++)
-                        {
-                            if (hitPlayers[i] == playerHit.player)
-                            {
-                                isHit = true;
-                            }
-                        }
-                        if (!isHit)
-                        {
-                            hitPlayers.Add(playerHit.player);
-                        }
-                    }
+                    propHit.TakeDamage(OwnerPunID, baseDamage, damageType);
                 }
 
                 if (col.GetComponent<TrainingDummy>() != null)
@@ -103,9 +86,9 @@ public class Explosion : Damager
 		}
 
 
-        foreach (PlayerStats uniquePlayers in hitPlayers)
+        foreach (PlayerStats targets in uniquePlayers)
         {
-            uniquePlayers.TakeDamage(OwnerPunID, baseDamage, damageType);
+            targets.TakeDamage(OwnerPunID, baseDamage, damageType);
         }
 		Invoke("Kill", 1);
 	}

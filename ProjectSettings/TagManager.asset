@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Game Manager
   - Damagable
+  - WorldGeo
   layers:
   - Default
   - TransparentFX
@@ -20,8 +21,8 @@ TagManager:
   - player
   - projectiles
   - player_hitbox
-  - 
-  - 
+  - capture_flag
+  - 1p_viewmodel
   - 
   - 
   - 

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4138370210653010}
   - component: {fileID: 33760584992293162}
   - component: {fileID: 23093136543089358}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Cylinder001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -87,7 +87,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4117046072420592}
   - component: {fileID: 114572429370688058}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: PropSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -149,7 +149,7 @@ GameObject:
   - component: {fileID: 4616633676343974}
   - component: {fileID: 33703170610150234}
   - component: {fileID: 23646667821731912}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Box001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -226,7 +226,7 @@ GameObject:
   - component: {fileID: 4727998976031492}
   - component: {fileID: 33001678703280078}
   - component: {fileID: 23054107958882538}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Object002
   m_TagString: Untagged
   m_Icon: {fileID: 0}

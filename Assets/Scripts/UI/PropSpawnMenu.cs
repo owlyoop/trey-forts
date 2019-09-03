@@ -43,20 +43,35 @@ public class PropSpawnMenu : MonoBehaviour
 
 	public void OnClickCreateButton()
 	{
+        bool isValid = false;
 		if (selectedProp != null && playersStats.currentCurrency > selectedProp.currencyCost)
 		{
-			hasPropSelected = true;
-			mainUI.player.playerWeapons.SetSelectedProp(selectedProp);
+            if (playersStats._gameManager.isInBuildPhase && selectedProp.canPlaceInBuildPhase)
+            {
+                isValid = true;
+            }
+            if (playersStats._gameManager.isInCombatPhase && selectedProp.canPlaceInCombatPhase)
+            {
+                isValid = true;
+            }
+
+            if (selectedProp.propPrefab.GetComponent<FortwarsProp>() is MoneyPrinter && playersStats.hasPlacedMoneyPrinter)
+                isValid = false;
+            if (isValid)
+            {
+                hasPropSelected = true;
+                mainUI.player.playerWeapons.SetSelectedProp(selectedProp);
+
+                Debug.Log("poopoo");
+
+                if (selectedProp.currencyCost > playersStats.currentCurrency)
+                {
+                    hasPropSelected = false;
+                    mainUI.player.playerWeapons.SetSelectedProp(null);
+                }
+                mainUI.PropSpawnMenuSetActive(false);
+            }
 			
-			Debug.Log("poopoo");
-
-			if (selectedProp.currencyCost > playersStats.currentCurrency)
-			{
-				hasPropSelected = false;
-				mainUI.player.playerWeapons.SetSelectedProp(null);
-			}
-			mainUI.PropSpawnMenuSetActive(false);
-
 		}
 	}
 

@@ -49,6 +49,7 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 	public MyCharacterController CharControl;
     public GameObject ragdollPrebaf;
     public Divekick divekickHitbox;
+    public Camera cam;
 
     [Header("Hitbox References")]
     public PlayerHitbox headHitbox;
@@ -64,8 +65,11 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
     public PlayerHitbox rightForearmHitbox;
     public List<PlayerHitbox> hitboxCollection = new List<PlayerHitbox>();
 
+    [Header("Props")]
     public List<GameObject> PropsOwnedByPlayer;
+    public bool hasPlacedMoneyPrinter = false;
 
+    [Header("Body")]
 	public SkinnedMeshRenderer bodyToColor;
 	public SkinnedMeshRenderer jointsToColor;
 	public Material bodyMaterialBlue;
@@ -104,7 +108,6 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 			return;
 		}
 
-		Debug.Log(_gameManager.ToString());
 		Physics.IgnoreLayerCollision(10, 12);
         Physics.IgnoreLayerCollision(10, 9);
 

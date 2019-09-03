@@ -13,11 +13,13 @@ MonoBehaviour:
   m_Name: TestClass
   m_EditorClassIdentifier: 
   isElite: 0
+  eliteMoneyCost: 0
   maxHealth: 666
-  moveSpeedMultiplier: 100
-  jumpHeightMultiplier: 100
+  moveSpeedPercentAdd: 0
+  jumpHeightPercentAdd: 0
   weaponList:
   - {fileID: 11400000, guid: 573e374d206bb204d8363fcb3bec802b, type: 2}
+  abilityList: []
   PassiveEffects: []
   className: TestClass
   icon: {fileID: 0}

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4360841280330894}
   - component: {fileID: 33663008051280844}
   - component: {fileID: 23299111914451616}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: w_rocketl
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4061076240319424}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: gunEnd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -118,7 +118,7 @@ GameObject:
   - component: {fileID: 4325209433643154}
   - component: {fileID: 33722040662692680}
   - component: {fileID: 23692059695162604}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: w_rocketl01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -197,7 +197,7 @@ GameObject:
   - component: {fileID: 120049004531385274}
   - component: {fileID: 114008723351210858}
   - component: {fileID: 114080542764441066}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: q3rocket
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -354,7 +354,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1989580033591802}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 372142912, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Script: {fileID: 11500000, guid: f8258ea15b8f74c4889ce485d21cbbb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_SceneId:
@@ -387,7 +387,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1989580033591802}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -1768714887, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
+  m_Script: {fileID: 11500000, guid: 13d6c522af31447398568cc65334232b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_TransformSyncMode: 1

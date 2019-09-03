@@ -19,4 +19,6 @@ MonoBehaviour:
     type: 3}
   maxHealth: 900
   currencyCost: 20
+  canPlaceInBuildPhase: 1
+  canPlaceInCombatPhase: 0
   material: 1

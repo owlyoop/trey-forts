@@ -19,10 +19,15 @@ public class ClassSelectMenu : MonoBehaviour
 	public List<GameObject> classListUISlots = new List<GameObject>();
 	public List<WeaponSet> classListDataAll = new List<WeaponSet>();
 
-	public GameObject classButtonPrefab;
+    public List<WeaponSet> eliteClassListDataAll = new List<WeaponSet>();
+    public List<GameObject> eliteClassListUISlots = new List<GameObject>();
+
+    public GameObject classButtonPrefab;
+    public GameObject eliteClassButtonPrefab;
 	public GameObject weaponUIPrefab;
 
 	public GameObject classGrid;
+    public GameObject eliteClassGrid;
 	public GameObject wepGrid;
 
 	public int QueuedTeam;
@@ -36,14 +41,30 @@ public class ClassSelectMenu : MonoBehaviour
 		for (int i = 0; i < classListDataAll.Count; i++)
 		{
 			GameObject slot = Instantiate(classButtonPrefab, classGrid.transform);
-			slot.GetComponent<ClassSelectSlot>()._weaponSet = classListDataAll[i];
+            ClassSelectSlot slotcomp = slot.GetComponent<ClassSelectSlot>();
+            slotcomp._weaponSet = classListDataAll[i];
+			slotcomp.icon.sprite = classListDataAll[i].icon;
+			slotcomp.buttonText.text = classListDataAll[i].className;
 
-			slot.GetComponent<ClassSelectSlot>().icon.sprite = classListDataAll[i].icon;
-			slot.GetComponent<ClassSelectSlot>().buttonText.text = classListDataAll[i].className;
 			classListUISlots.Add(slot);
 		}
 
-	}
+        for (int i = 0; i < eliteClassListDataAll.Count; i++)
+        {
+            GameObject slot = Instantiate(eliteClassButtonPrefab, eliteClassGrid.transform);
+            ClassSelectSlot slotcomp = slot.GetComponent<ClassSelectSlot>();
+            slotcomp._weaponSet = eliteClassListDataAll[i];
+            slotcomp.dollarSign.enabled = true;
+            slotcomp.cost.enabled = true;
+            slotcomp.cost.text = eliteClassListDataAll[i].eliteMoneyCost.ToString();
+            slotcomp.icon.sprite = eliteClassListDataAll[i].icon;
+            slotcomp.buttonText.text = eliteClassListDataAll[i].className;
+
+            eliteClassListUISlots.Add(slot);
+        }
+
+
+    }
 
 	public void OnClickSelectButton()
 	{

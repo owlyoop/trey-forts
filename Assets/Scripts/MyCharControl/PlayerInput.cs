@@ -4,6 +4,7 @@ using UnityEngine;
 using Photon.Pun;
 using KinematicCharacterController;
 using KinematicCharacterController.Owly;
+using Photon.Pun.Demo.PunBasics;
 
 public struct PlayerActionInputs
 {
@@ -37,6 +38,8 @@ public struct PlayerActionInputs
 	public bool OpenTeamSelectMenu; // default 0
 	public bool OpenClassSelectMenu; // default 9
 
+    
+
 }
 
 public class PlayerInput : MonoBehaviourPunCallbacks
@@ -56,7 +59,8 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 
 	private Vector3 lookat;
 
-	private void Update()
+
+    private void Update()
 	{
 		if (!photonView.IsMine)
 		{
@@ -104,10 +108,14 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		playerInputs.InteractHeld = Input.GetKey(KeyCode.E);
 		playerInputs.InteractUp = Input.GetKeyUp(KeyCode.E);
 		playerInputs.Reload = Input.GetKeyDown(KeyCode.R);
-	}
+
+        playerInputs.OpenTeamSelectMenu = Input.GetKeyDown(KeyCode.Alpha9);
+        playerInputs.OpenClassSelectMenu = Input.GetKeyDown(KeyCode.Alpha0);
+    }
 
     void SwitchWeapon(int ToIndex)
     {
+        mainUI.PropSpawnMenuSetActive(false);
         if (playerWeapons.propWepSlots[1].activeSelf)
             playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
 
@@ -261,6 +269,11 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 						mainUI.PropSpawnMenuSetActive(true);
 					}
 				}
+                else
+                {
+                    playerWeapons.ActivateAbility(0);
+                }
+                
 			}
 		}
 
@@ -303,6 +316,11 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 				}
 			}
 		}
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            //PhotonNetwork.Instantiate("Character", new Vector3(0f, 2f, 0f), Quaternion.identity, 0);
+        }
 
 		if (playerInputs.MouseScroll > 0f)
 		{

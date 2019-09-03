@@ -20,6 +20,7 @@ public class PlayerHitbox : MonoBehaviour, IDamagable
         col = GetComponent<Collider>();
     }
 
+    //Should only call takedamage from the hitbox with things that will only damage 1 thing. ex. Explosions, i dont want to use this because it would deal damage for every single hitbox.
     public void TakeDamage(int GiverPunID, int damageTaken, Damager.DamageTypes damageType)
     {
         player.TakeDamage(GiverPunID, damageTaken, damageType);

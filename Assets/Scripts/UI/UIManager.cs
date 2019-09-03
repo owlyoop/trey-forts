@@ -303,6 +303,7 @@ public class UIManager : MonoBehaviourPunCallbacks
 				respawnText[i].enabled = true;
 			}
 			respawnTimer.enabled = true;
+            PropSpawnMenuSetActive(false);
 		}
 
 		if (choice == false)

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3521000038289261750}
   - component: {fileID: 7020567722183433382}
-  m_Layer: 9
+  m_Layer: 14
   m_Name: sawblade gun
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -71,7 +71,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2144528943895771468}
-  m_Layer: 9
+  m_Layer: 14
   m_Name: gunEnd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -99,6 +99,22 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 3521000038289261750}
     m_Modifications:
+    - target: {fileID: 100000, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}
+      propertyPath: m_Name
+      value: q3rocket
+      objectReference: {fileID: 0}
+    - target: {fileID: 100000, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 100004, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}
+      propertyPath: m_Layer
+      value: 14
+      objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.028490067
@@ -154,10 +170,6 @@ PrefabInstance:
     - target: {fileID: 400000, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}
       propertyPath: m_LocalScale.z
       value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 100000, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}
-      propertyPath: m_Name
-      value: q3rocket
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8d54174b2d88bce41bf3273508caa0b3, type: 3}

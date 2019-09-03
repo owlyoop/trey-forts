@@ -16,6 +16,10 @@ public class FortwarsPropData : ScriptableObject
 	public float maxHealth;
 	public int currencyCost;
 
+    public bool canPlaceInBuildPhase;
+    public bool canPlaceInCombatPhase;
+
+
 	public MaterialType material;
 
 	public enum MaterialType { Wood, Concrete, Metal}

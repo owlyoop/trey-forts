@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -14,7 +15,9 @@ MonoBehaviour:
   PropName: 2x4 Wall
   PropDescription: big
   icon: {fileID: 0}
-  propPrefab: {fileID: 1340514730572222, guid: c5de0ca332dccd0419745b11ad15ba37, type: 2}
+  propPrefab: {fileID: 1340514730572222, guid: c5de0ca332dccd0419745b11ad15ba37, type: 3}
   maxHealth: 1000
   currencyCost: 20
+  canPlaceInBuildPhase: 1
+  canPlaceInCombatPhase: 0
   material: 0

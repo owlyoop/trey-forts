@@ -114,6 +114,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6182344815874285893}
   - component: {fileID: 3452850628894825625}
+  - component: {fileID: 5103651152276033631}
   m_Layer: 0
   m_Name: Money Printer
   m_TagString: Untagged
@@ -169,6 +170,22 @@ MonoBehaviour:
   rend: {fileID: 845006126885847197}
   MoneyPerTick: 1
   TickDelay: 0.75
+--- !u!54 &5103651152276033631
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6182344815874285915}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 126
+  m_CollisionDetection: 0
 --- !u!1 &6635492319240046543
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4204248508657688}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: gunEnd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -41,7 +41,7 @@ GameObject:
   - component: {fileID: 4299942964491558}
   - component: {fileID: 114777908496402358}
   - component: {fileID: 120036710141451682}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: ObjectMover
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -79,6 +79,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   networkObjToSpawn: {fileID: 0}
+  cam: {fileID: 0}
   gunEnd: {fileID: 4204248508657688}
   isHoldingObject: 0
   isRotatingObject: 0
@@ -193,7 +194,7 @@ GameObject:
   - component: {fileID: 4160798146534642}
   - component: {fileID: 33378393488066230}
   - component: {fileID: 23159364025169192}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Cylinder001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -270,7 +271,7 @@ GameObject:
   - component: {fileID: 4471075313342640}
   - component: {fileID: 33475583680114204}
   - component: {fileID: 23988190599612816}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Object002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -347,7 +348,7 @@ GameObject:
   - component: {fileID: 4327967219406314}
   - component: {fileID: 33316182650177568}
   - component: {fileID: 23968825301326078}
-  m_Layer: 0
+  m_Layer: 14
   m_Name: Box001
   m_TagString: Untagged
   m_Icon: {fileID: 0}

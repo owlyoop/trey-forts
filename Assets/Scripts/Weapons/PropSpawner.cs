@@ -124,17 +124,27 @@ public class PropSpawner : WeaponMotor
 			string prefabName = playersStats.wepSlots.selectedProp.propPrefab.name;
 			Debug.Log(prefabName);
 
+            bool validprop = true;
 			if (playersStats.currentCurrency - theProp.currencyCost > 0)
 			{
-				player.GetComponent<PhotonView>().RPC("SpawnFortwarsProp", RpcTarget.AllViaServer,
-					playersStats.GetComponent<PhotonView>().ViewID, prefabName, ghostProp.transform.position, ghostProp.transform.rotation);
+                if (theProp is MoneyPrinter && playersStats.hasPlacedMoneyPrinter == true)
+                {
+                    validprop = false;
+                }
 
-				playersStats.OnChangeCurrencyAmount(playersStats.currentCurrency - theProp.currencyCost);
+                if (validprop)
+                {
+                    player.GetComponent<PhotonView>().RPC("SpawnFortwarsProp", RpcTarget.AllViaServer,
+                        playersStats.GetComponent<PhotonView>().ViewID, prefabName, ghostProp.transform.position, ghostProp.transform.rotation);
+
+                    playersStats.OnChangeCurrencyAmount(playersStats.currentCurrency - theProp.currencyCost);
+                }
+                if (theProp is MoneyPrinter)
+                {
+                    playersStats.hasPlacedMoneyPrinter = true;
+                }
+
 			}
-
-
-
-			
 		}
 	}
 

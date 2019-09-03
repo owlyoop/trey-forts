@@ -7,6 +7,7 @@ using UnityEngine;
 public class WeaponSet : ScriptableObject
 {
 	public bool isElite;
+    public int eliteMoneyCost;
 
 	public int maxHealth;
     public float moveSpeedPercentAdd = 0f;
@@ -14,7 +15,11 @@ public class WeaponSet : ScriptableObject
 
 	public List<Weapon> weaponList;
 
+    public List<GameObject> abilityList;
+
 	public List<StatusEffect> PassiveEffects;
+
+
 
 	public string className;
 	public Sprite icon;

@@ -18,4 +18,6 @@ MonoBehaviour:
   propPrefab: {fileID: 0}
   maxHealth: 1000
   currencyCost: 30
+  canPlaceInBuildPhase: 1
+  canPlaceInCombatPhase: 0
   material: 0
