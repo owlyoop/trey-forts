@@ -12,9 +12,10 @@ public class PuckOrb : AbilityMotor
 
     public GameObject OrbPrefab;
 
-    
+    float _cooldownTime = 0f;
 
     public bool orbIsActive = false;
+    public bool isOnCooldown = false;
 
     public GameObject activeOrb;
 
@@ -23,31 +24,49 @@ public class PuckOrb : AbilityMotor
 
     private void Start()
     {
-
+        Cooldown = baseAbility.Cooldown;
+        isOnCooldown = false;
     }
 
-    public override void OnPressAbilityButton()
+    private void Update()
     {
-        if (!orbIsActive)
+        if (isOnCooldown)
         {
-            GameObject orb = Instantiate(OrbPrefab);
-            orb.transform.position = this.transform.position;
-            OrbProjectile orbObject = orb.GetComponent<OrbProjectile>();
-            orbObject.moveDirection = owner.cam.transform.forward;
-            activeOrb = orb;
-            orbObject.ownersMotor = this.gameObject.GetComponent<PuckOrb>();
-            orbObject.owner = base.owner;
-            
-        }
-        else
-        {
-            if (activeOrb != null)
+            if (Time.time > _cooldownTime + Cooldown)
             {
-                owner.CharControl.Motor.SetPosition(activeOrb.transform.position);
-                activeOrb.GetComponent<OrbProjectile>().CancelInvoke();
-                activeOrb.GetComponent<OrbProjectile>().Kill();
+                isOnCooldown = false;
+                OnCooldownEnd();
             }
         }
+    }
+    public override void OnPressAbilityButton()
+    {
+        if (!isOnCooldown)
+        {
+            if (!orbIsActive)
+            {
+                GameObject orb = Instantiate(OrbPrefab);
+                orb.transform.position = this.transform.position;
+                OrbProjectile orbObject = orb.GetComponent<OrbProjectile>();
+                orbObject.moveDirection = owner.cam.transform.forward;
+                activeOrb = orb;
+                orbObject.ownersMotor = this.gameObject.GetComponent<PuckOrb>();
+                orbObject.owner = base.owner;
+
+            }
+            else
+            {
+                if (activeOrb != null)
+                {
+                    owner.CharControl.Motor.SetPosition(activeOrb.transform.position);
+                    activeOrb.GetComponent<OrbProjectile>().CancelInvoke();
+                    activeOrb.GetComponent<OrbProjectile>().Kill();
+                    StartCooldown();
+                    isOnCooldown = true;
+                }
+            }
+        }
+        
         
     }
 
@@ -64,5 +83,12 @@ public class PuckOrb : AbilityMotor
     public override void OnCooldownEnd()
     {
 
+    }
+
+    public void StartCooldown()
+    {
+        OnCooldownStart();
+        _cooldownTime = Time.time;
+        owner.ui.currentAbilitySlots.GetComponent<CurrentAbilitiesUI>().StartAbilityCooldown(baseAbility.AbilityName);
     }
 }

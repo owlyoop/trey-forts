@@ -581,8 +581,6 @@ namespace RealtimeCSG
             var modelTransform		= brush.ChildData.ModelTransform;
             var modelTransformation	= modelTransform.localToWorldMatrix;
             
-            var toggleSnapping		= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-
             if (firstMove)
             {
                 UpdateSelection(allowSubstraction: false);
@@ -616,7 +614,7 @@ namespace RealtimeCSG
 
 
             // snap texture coordinates in world/local space
-            new_world_position = GridUtility.FixPosition(new_world_position, modelTransform, old_world_position, toggleSnapping);
+            new_world_position = GridUtility.FixPosition(new_world_position, modelTransform, old_world_position);
 
             using (new UndoGroup(selectedSurfaces, "Translating surface"))
             {
@@ -646,8 +644,6 @@ namespace RealtimeCSG
             var modelTransform		= brush.ChildData.ModelTransform;
             var modelTransformation	= modelTransform.localToWorldMatrix;
             
-            var toggleSnapping		= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-
             if (firstMove)
             {
                 UpdateSelection(allowSubstraction: false);
@@ -665,7 +661,7 @@ namespace RealtimeCSG
             if (selectedSurfaces.Length == 0 ||
                 !SceneQueryUtility.FindSurfaceIntersection(brush, modelTransformation, hoverOnSurfaceIndex, Event.current.mousePosition, 
                                                             out surfaceIntersection) ||
-                !rotationCircle.UpdateRadius(backupTexGen, surfaceIntersection.worldIntersection, toggleSnapping))
+                !rotationCircle.UpdateRadius(backupTexGen, surfaceIntersection.worldIntersection))
                 return true;
                 
             using (new UndoGroup(selectedSurfaces, "Rotating surface"))

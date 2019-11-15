@@ -324,41 +324,46 @@ namespace RealtimeCSG
 		public static Vector3 SnapPointToGrid(Vector3 point, CSGPlane plane, ref List<Vector3> snappingEdges, out CSGBrush snappedOnBrush, CSGBrush[] ignoreBrushes, bool ignoreAllBrushes = false)
 		{
 			snappedOnBrush = null;
-			var toggleSnapping	= SelectionUtility.IsSnappingToggled;
-			var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
+            // Note: relative snapping wouldn't make sense here since it's a single point that's being snapped and there is no relative movement
+			var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
 			 
 			var snappedPoint = point;
-			if (doSnapping)
-			{
-				snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(MathConstants.zeroVector3, snappedPoint);
-				snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
+            switch(activeSnappingMode)
+            {
+                case SnapMode.RelativeSnapping: // TODO: fixme
+                case SnapMode.GridSnapping:
+			    {
+				    snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(MathConstants.zeroVector3, snappedPoint);
+				    snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
 
-				// snap twice to get rid of some tiny movements caused by the projection in depth	
-				snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(MathConstants.zeroVector3, snappedPoint);
-				snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
-			} else
-			{
-				snappedPoint = GeometryUtility.ProjectPointOnPlane(plane, snappedPoint);
-			}
+				    // snap twice to get rid of some tiny movements caused by the projection in depth	
+				    snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(MathConstants.zeroVector3, snappedPoint);
+				    snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
 
-			if (doSnapping && !ignoreAllBrushes)
-			{
-				return GridUtility.SnapToWorld(plane, point, snappedPoint, ref snappingEdges, out snappedOnBrush, ignoreBrushes);
-			}
-			
-			return snappedPoint;
+                    if (!ignoreAllBrushes)
+                        return GridUtility.SnapToWorld(plane, point, snappedPoint, ref snappingEdges, out snappedOnBrush, ignoreBrushes);
+
+                    return snappedPoint;
+                }
+                default:
+                case SnapMode.None:
+			    {
+				    snappedPoint = GeometryUtility.ProjectPointOnPlane(plane, snappedPoint);
+                    return snappedPoint;
+                }
+            }
 		}
 
 		public static Vector3 SnapPointToRay(Vector3 point, Ray ray, ref List<Vector3> snappingEdges, out CSGBrush snappedOnBrush)
 		{
 			snappedOnBrush = null;
-			var toggleSnapping	= SelectionUtility.IsSnappingToggled;
-			var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
 			
 			var snappedPoint = point;
 			
 			snappingEdges = null;
-			if (doSnapping)
+            // Note: relative snapping wouldn't make sense here since it's a single point that's being snapped and there is no relative movement
+            var doGridSnapping	= RealtimeCSG.CSGSettings.ActiveSnappingMode != SnapMode.None;
+			if (doGridSnapping)
 			{
 				var delta = RealtimeCSG.CSGGrid.ForceSnapDeltaToRay(ray, MathConstants.zeroVector3, snappedPoint);
 				snappedPoint = snappedPoint + delta;

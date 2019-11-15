@@ -35,6 +35,8 @@ public class ProjectileLauncher : WeaponMotor
 	private float reloadStartTime;
 	private bool isReloading;
 
+    public LayerMask layermask;
+
 	private void Start()
 	{
 		cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
@@ -63,13 +65,11 @@ public class ProjectileLauncher : WeaponMotor
 		if (Time.time > lastFireTime + (1 / shotsPerSecond) && currentAmmoInClip > 0)
 		{
 			isReloading = false;
-			playersStats.ui.radialReload.enabled = false;
-			RaycastHit shot;
+            playersStats.ui.radialReload.StopReload();
+            RaycastHit shot;
 			Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 			shootDirection = cam.transform.forward;
 
-			int layermask = 1 << 12;
-			layermask = ~layermask;
 
 			//GameObject go = PhotonNetwork.Instantiate("Missile", gunEnd.transform.position, gunEnd.rotation);
 			//GameObject go = (GameObject)Instantiate(projectilePrefab);
@@ -103,13 +103,10 @@ public class ProjectileLauncher : WeaponMotor
 				GetComponentInParent<WeaponSlots>().player.GetComponent<PhotonView>().ViewID, projectilePrefab.name,
 				shotPoint, gunEnd.transform.position,
 				projectileSpeed, projectileLife, baseDamage, damageType);
-
-			
-
 		}
 		else
 		{
-			networkObjToSpawn = null;
+
 		}
 	}
 
@@ -136,20 +133,14 @@ public class ProjectileLauncher : WeaponMotor
 	{
 		if (currentAmmoReserves > 0 && currentAmmoInClip < clipSize)
 		{
-			playersStats.ui.radialReload.enabled = true;
-			reloadStartTime = Time.time;
-			isReloading = true;
+            isReloading = true;
+            reloadStartTime = Time.time;
+            playersStats.ui.radialReload.StartReload(reloadTime);
 		}
 	}
 
 	public void ReloadTimerUpdate()
 	{
-		if (isReloading)
-		{
-			float reloadEndTime = reloadStartTime + reloadTime;
-			playersStats.ui.radialReload.fillAmount = (Time.time - reloadStartTime) / (reloadEndTime - reloadStartTime);
-		}
-
 		if (isReloading && Time.time > reloadStartTime + reloadTime)
 		{
 			currentAmmoInClip = currentAmmoInClip + 1;
@@ -160,8 +151,8 @@ public class ProjectileLauncher : WeaponMotor
 
 			if (currentAmmoInClip == clipSize)
 			{
-				isReloading = false;
-				playersStats.ui.radialReload.enabled = false;
+                isReloading = false;
+                playersStats.ui.radialReload.StopReload();
 			}
 			else
 			{

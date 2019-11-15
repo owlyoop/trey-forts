@@ -62,7 +62,7 @@ namespace RealtimeCSG.Foundation
 					"EVALUATION " +
 #endif
 					string.Format("v {0}{1}{2}",
-						Versioning.PluginVersion,
+						Versioning.PluginVersion.Replace('_','.'),
 						HasBeenCompiledInDebugMode() ? " (C++ DEBUG)" : string.Empty,
 #if EVALUATION && DEBUG
 						" (C# DEBUG)"

@@ -115,8 +115,8 @@ namespace RealtimeCSG
 		public static readonly KeyEvent DoubleGridSizeKey				= new KeyEvent(KeyCode.RightBracket);
 		[KeyDescription("Grid/Toggle grid rendering")]
 		public static readonly KeyEvent ToggleShowGridKey				= new KeyEvent(KeyCode.G, EventModifiers.Shift);
-		[KeyDescription("Grid/Toggle grid snapping")]
-		public static readonly KeyEvent ToggleSnappingKey				= new KeyEvent(KeyCode.T, EventModifiers.Shift);
+		[KeyDescription("Grid/Toggle snapping")]
+		public static readonly KeyEvent ToggleSnappingKey			    = new KeyEvent(KeyCode.T, EventModifiers.Shift);
 
 		[KeyDescription("Action/Cancel or Deselect")]
 		public static readonly KeyEvent CancelActionKey					= new KeyEvent(KeyCode.Escape);

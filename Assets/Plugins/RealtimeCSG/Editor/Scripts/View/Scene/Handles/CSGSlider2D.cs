@@ -10,12 +10,12 @@ namespace RealtimeCSG.Helpers
 		private static Vector3[] s_SnapVertices;
 		private static Vector2 s_StartPlaneOffset;
 		
-		public static Vector3 Do(int id, Vector3 handlePos, Vector3 offset, Vector3 handleDir, Vector3 slideDir1, Vector3 slideDir2, float handleSize, CSGHandles.CapFunction capFunction, bool snapping, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, CSGHandles.InitFunction shutdownFunction)
+		public static Vector3 Do(int id, Vector3 handlePos, Vector3 offset, Vector3 handleDir, Vector3 slideDir1, Vector3 slideDir2, float handleSize, CSGHandles.CapFunction capFunction, SnapMode snapMode, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, CSGHandles.InitFunction shutdownFunction)
 		{
 			bool orgGuiChanged = GUI.changed;
 			GUI.changed = false;
 
-			var delta = CalcDeltaAlongDirections(id, handlePos, offset, handleDir, slideDir1, slideDir2, handleSize, capFunction, snapping, snapVertices, initFunction, shutdownFunction);
+			var delta = CalcDeltaAlongDirections(id, handlePos, offset, handleDir, slideDir1, slideDir2, handleSize, capFunction, snapMode, snapVertices, initFunction, shutdownFunction);
 			if (GUI.changed)
 			{
 				handlePos = s_StartPosition + slideDir1 * delta.x + slideDir2 * delta.y;
@@ -28,17 +28,32 @@ namespace RealtimeCSG.Helpers
 						s_SnapVertices = new Vector3[] { s_StartPosition };
 				}
 
-				if (snapping)
-					handlePos = RealtimeCSG.CSGGrid.SnapDeltaToGrid(handlePos - s_StartPosition, s_SnapVertices, snapToGridPlane: false, snapToSelf: true) + s_StartPosition;
-				else
-					handlePos = RealtimeCSG.CSGGrid.HandleLockedAxi(handlePos - s_StartPosition) + s_StartPosition;
+                switch (snapMode)
+                {
+                    case SnapMode.GridSnapping:
+                    {
+                        handlePos = RealtimeCSG.CSGGrid.SnapDeltaToGrid(handlePos - s_StartPosition, s_SnapVertices, snapToGridPlane: false, snapToSelf: true) + s_StartPosition;
+                        break;
+                    }
+                    case SnapMode.RelativeSnapping:
+                    {
+                        handlePos = RealtimeCSG.CSGGrid.SnapDeltaRelative(handlePos - s_StartPosition, snapToGridPlane: false) + s_StartPosition;
+                        break;
+                    }
+                    default:
+                    case SnapMode.None:
+                    {
+                        handlePos = RealtimeCSG.CSGGrid.HandleLockedAxi(handlePos - s_StartPosition) + s_StartPosition;
+                        break;
+                    }
+                }
 			}
 
 			GUI.changed |= orgGuiChanged;
 			return handlePos;
 		}
 		
-		private static Vector2 CalcDeltaAlongDirections(int id, Vector3 handlePos, Vector3 offset, Vector3 handleDir, Vector3 slideDir1, Vector3 slideDir2, float handleSize, CSGHandles.CapFunction capFunction, bool snapping, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, CSGHandles.InitFunction shutdownFunction)
+		private static Vector2 CalcDeltaAlongDirections(int id, Vector3 handlePos, Vector3 offset, Vector3 handleDir, Vector3 slideDir1, Vector3 slideDir2, float handleSize, CSGHandles.CapFunction capFunction, SnapMode snapMode, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, CSGHandles.InitFunction shutdownFunction)
 		{
 			var position = handlePos + offset;
 			var rotation = Quaternion.LookRotation(handleDir, slideDir1);

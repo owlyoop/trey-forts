@@ -782,8 +782,13 @@ namespace InternalRealtimeCSG
         public static bool UsesLightmapUVs(CSGModel model)
         {
             var staticFlags = GameObjectUtility.GetStaticEditorFlags(model.gameObject);
-            if ((staticFlags & StaticEditorFlags.LightmapStatic) != StaticEditorFlags.LightmapStatic)
+#if UNITY_2019_2_OR_NEWER 
+            if ((staticFlags & StaticEditorFlags.ContributeGI) != StaticEditorFlags.ContributeGI)
                 return false;
+#else
+            if ((staticFlags & StaticEditorFlags.LightmapStatic) != StaticEditorFlags.LightmapStatic)
+                return false;            
+#endif
             return true;
         }
 
@@ -957,12 +962,17 @@ namespace InternalRealtimeCSG
 				renderSurfaceType != RenderSurfaceType.ShadowOnly)
 				newStaticFlags = (StaticEditorFlags)0;
 
-			// This fixes a bug in 2018.3 where it tries to generate lightmaps for ShadowOnly surfaces ..
-			// .. but then rage quits because it doesn't have any normals
+            // This fixes a bug in 2018.3 where it tries to generate lightmaps for ShadowOnly surfaces ..
+            // .. but then rage quits because it doesn't have any normals
+#if UNITY_2019_2_OR_NEWER 
 			if (renderSurfaceType == RenderSurfaceType.ShadowOnly)
-				newStaticFlags = newStaticFlags & ~(StaticEditorFlags.LightmapStatic | StaticEditorFlags.ReflectionProbeStatic);
+				newStaticFlags = newStaticFlags & ~(StaticEditorFlags.ContributeGI | StaticEditorFlags.ReflectionProbeStatic);
+#else
+            if (renderSurfaceType == RenderSurfaceType.ShadowOnly)
+                newStaticFlags = newStaticFlags & ~(StaticEditorFlags.LightmapStatic | StaticEditorFlags.ReflectionProbeStatic);            
+#endif
 
-			return newStaticFlags;
+            return newStaticFlags;
 		}
 
 		static string MaterialToString(Material mat)	
@@ -1309,7 +1319,7 @@ namespace InternalRealtimeCSG
 						}
 
 #if UNITY_2017_2_OR_NEWER
-						var stitchLightmapSeamsProperty = meshRendererComponentSO.FindProperty("m_StitchLightmapSeams");
+                        var stitchLightmapSeamsProperty = meshRendererComponentSO.FindProperty("m_StitchLightmapSeams");
 						var stitchLightmapSeams			= owner.StitchLightmapSeams;
 						if (stitchLightmapSeamsProperty != null && // Note that some alpha/beta versions of 2017.2 had a different name
 							stitchLightmapSeamsProperty.boolValue != stitchLightmapSeams)
@@ -1323,9 +1333,19 @@ namespace InternalRealtimeCSG
 							meshRendererComponentSO.ApplyModifiedProperties();
 					}
 				}
-				//*/
+                //*/
 
-				if (meshRendererComponent &&
+#if UNITY_2019_2_OR_NEWER
+                var receiveGI = owner.ReceiveGI;
+                if (meshRendererComponent &&
+                    meshRendererComponent.receiveGI != receiveGI)
+                {
+                    meshRendererComponent.receiveGI = receiveGI;
+                    instance.Dirty = true;
+                }
+#endif
+
+                if (meshRendererComponent &&
 					meshRendererComponent.sharedMaterial != requiredMaterial)
 				{
 					meshRendererComponent.sharedMaterial = requiredMaterial;
@@ -1388,14 +1408,14 @@ namespace InternalRealtimeCSG
 					instance.Dirty = true;
 				}
 
-                #if UNITY_2017_3_OR_NEWER
+#if UNITY_2017_3_OR_NEWER
 				var cookingOptions = owner.MeshColliderCookingOptions;
 				if (meshColliderComponent.cookingOptions != cookingOptions)
 				{
 					meshColliderComponent.cookingOptions = cookingOptions;
 					instance.Dirty = true;
 				}
-                #endif
+#endif
 
 				if (instance.RenderSurfaceType == RenderSurfaceType.Trigger ||
 					owner.IsTrigger)
@@ -1537,8 +1557,11 @@ namespace InternalRealtimeCSG
 			if (!gameObject)
 				return;
 			var layer = gameObject.layer;
-			foreach (var transform in gameObject.GetComponentsInChildren<Transform>(true)) 
-				transform.gameObject.layer = layer;
+            foreach (var transform in gameObject.GetComponentsInChildren<Transform>(true))
+            {
+                if (transform.GetComponent<CSGNode>())
+                    transform.gameObject.layer = layer;
+            }
 		}
 
 		public static void UpdateGeneratedMeshesVisibility(CSGModel model)

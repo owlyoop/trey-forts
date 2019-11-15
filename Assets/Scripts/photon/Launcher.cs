@@ -151,7 +151,7 @@ namespace Com.owlyoop.fortwars
 
 				// #Critical
 				// Load the Room Level.
-				PhotonNetwork.LoadLevel("mainphoton");
+				PhotonNetwork.LoadLevel("dum");
 
 				Debug.Log(PhotonNetwork.MasterClient.NickName);
 

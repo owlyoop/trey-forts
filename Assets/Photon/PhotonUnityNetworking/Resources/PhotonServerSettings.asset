@@ -20,25 +20,22 @@ MonoBehaviour:
     UseNameServer: 1
     FixedRegion: 
     Server: 
-    Port: 7777
+    Port: 0
     Protocol: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
   StartInOfflineMode: 0
-  PunLogging: 2
+  PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
   RpcList:
   - DestroySpaceship
   - Fire
-  - RespawnSpaceship
-  - RPCFireRocket
   - FireProjectile
-  - CreateExplosion
+  - RespawnSpaceship
+  - RpcTakeDamage
   - SpawnExplosion
   - SpawnFortwarsProp
   - UpdateFortwarsPropTransform
-  - rpcTakeDamage
-  - RpcTakeDamage
   DisableAutoOpenWizard: 1
-  ShowSettings: 1
+  ShowSettings: 0

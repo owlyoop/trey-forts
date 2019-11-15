@@ -65,6 +65,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -101,7 +102,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1319694273951826}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.017, y: 0.047, z: 1.11}
+  m_LocalPosition: {x: 0.016999999, y: 0.047, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4918833981380368}
@@ -172,6 +173,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -233,7 +235,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 093f83ab642df0843a4a7ed4e49c97a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkObjToSpawn: {fileID: 0}
+  WeaponSwitchAwayTime: 0
+  WeaponSwitchToTime: 0
   projectilePrefab: {fileID: 1182533768651048, guid: 551da3741c9108d45b612c1bfa4b2ba6,
     type: 3}
   gunEnd: {fileID: 4061076240319424}
@@ -250,6 +253,9 @@ MonoBehaviour:
   shootDirection: {x: 0, y: 0, z: 0}
   shotPoint: {x: 0, y: 0, z: 0}
   playersStats: {fileID: 0}
+  layermask:
+    serializedVersion: 2
+    m_Bits: 168961
 --- !u!120 &120049004531385274
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -275,6 +281,7 @@ LineRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0

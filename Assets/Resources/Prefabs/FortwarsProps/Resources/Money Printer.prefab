@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 636336064700102905}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_left
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -39,7 +39,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8467794581051311245}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_top
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -70,7 +70,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1914659692259497349}
   - component: {fileID: 4607531589021709992}
-  m_Layer: 0
+  - component: {fileID: 5672586928874465691}
+  m_Layer: 17
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -104,6 +105,19 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.31, y: 0.615, z: 0.54}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5672586928874465691
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5602058585759476229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e44b5a6b67ebead46bc02bde555783fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PropRigidbody: {fileID: 5103651152276033631}
 --- !u!1 &6182344815874285915
 GameObject:
   m_ObjectHideFlags: 0
@@ -115,7 +129,7 @@ GameObject:
   - component: {fileID: 6182344815874285893}
   - component: {fileID: 3452850628894825625}
   - component: {fileID: 5103651152276033631}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Money Printer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -164,9 +178,14 @@ MonoBehaviour:
   snapPositionLeft: {fileID: 636336064700102905}
   snapPositionRight: {fileID: 7826260959926876848}
   snapPositionTop: {fileID: 8467794581051311245}
+  snapPositionFront: {fileID: 703647055592435734}
+  snapPositionBack: {fileID: 8467794581051311245}
   defaultMat: {fileID: 2100000, guid: 617bac2ed5949ba4b955874ba5ff99e9, type: 2}
   placementModeMat: {fileID: 2100000, guid: 07a467bc599441f4b9e72f271721edf9, type: 2}
-  col: {fileID: 4607531589021709992}
+  CanRotateX: 1
+  CanRotateY: 1
+  cols:
+  - {fileID: 4607531589021709992}
   rend: {fileID: 845006126885847197}
   MoneyPerTick: 1
   TickDelay: 0.75
@@ -183,7 +202,7 @@ Rigidbody:
   m_AngularDrag: 0.05
   m_UseGravity: 0
   m_IsKinematic: 1
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 126
   m_CollisionDetection: 0
 --- !u!1 &6635492319240046543
@@ -195,7 +214,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7826260959926876848}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_right
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -225,7 +244,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 703647055592435734}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_bottom
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -257,6 +276,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: fortwars_atm
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: f9d5c17dffda619418c9c0196567f6db,
+        type: 3}
+      propertyPath: m_Layer
+      value: 17
+      objectReference: {fileID: 0}
+    - target: {fileID: 2534866581884222612, guid: f9d5c17dffda619418c9c0196567f6db,
+        type: 3}
+      propertyPath: m_Layer
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: -2416733968201007103, guid: f9d5c17dffda619418c9c0196567f6db,
         type: 3}

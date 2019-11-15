@@ -35,6 +35,8 @@ public class SawbladeMissile : Projectile
 	bool isDamaging = false;
 	bool isStuck = false;
 
+    public LayerMask layermask;
+
 	Vector3 startPos;
 	
 
@@ -97,7 +99,7 @@ public class SawbladeMissile : Projectile
 	{
 		if (player.photonView.IsMine)
 		{
-			if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.layer != 9 && col.gameObject.GetComponent<PlayerStats>() != player && col.gameObject.layer != 12)
+			if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.GetComponent<PlayerStats>() != player && layermask == (layermask | (1 << col.gameObject.layer)))
 			{
 				if (numBounces <= maxBounces && col.GetComponent<IDamagable>() != null)
 				{
@@ -114,7 +116,7 @@ public class SawbladeMissile : Projectile
 	{
 		if (player.photonView.IsMine)
 		{
-			if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.layer != 9 && col.gameObject.GetComponent<PlayerStats>() != player && col.gameObject.layer != 11)
+			if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.GetComponent<PlayerStats>() != player && layermask == (layermask | (1 << col.gameObject.layer)))
 			{
 				if (numBounces <= maxBounces)
 				{

@@ -678,17 +678,58 @@ namespace RealtimeCSG
 			return worldDeltaMovement;
 		}
 
+        
+		public static Vector3 SnapDeltaRelative(Vector3 worldDeltaMovement, bool snapToGridPlane = true)
+        {
+            UpdateGridOrientation();
+			if (gridOrientation == null)
+				return worldDeltaMovement; 
+
+			var worldPlane	= gridOrientation.gridWorkPlane;
+			var scaleVector = gridOrientation.gridSnapScale;
+			var snapVector	= gridOrientation.gridSnapVector;
+			
+			var gridLocalDeltaMovement	= VectorToGridSpace(worldDeltaMovement);
+			var gridLocalPlane			= PlaneToGridSpace(worldPlane);
+
+			if (snapToGridPlane)
+			{
+				scaleVector.x *= (Mathf.Abs(gridLocalPlane.a) >= 1 - MathConstants.EqualityEpsilon) ? 0 : 1;
+				scaleVector.y *= (Mathf.Abs(gridLocalPlane.b) >= 1 - MathConstants.EqualityEpsilon) ? 0 : 1;
+				scaleVector.z *= (Mathf.Abs(gridLocalPlane.c) >= 1 - MathConstants.EqualityEpsilon) ? 0 : 1;
+			}
+			var snappedDeltaMovement	= gridLocalDeltaMovement;
+
+            if (snapToGridPlane)
+                snappedDeltaMovement = GeometryUtility.ProjectPointOnPlane(gridLocalPlane, snappedDeltaMovement);
+            snappedDeltaMovement = GridUtility.CleanPosition(snappedDeltaMovement);
+
+            snappedDeltaMovement = SnapRoundPosition(snappedDeltaMovement, snapVector);
+
+            if (snapToGridPlane)
+                snappedDeltaMovement = GeometryUtility.ProjectPointOnPlane(gridLocalPlane, snappedDeltaMovement);
+            snappedDeltaMovement = GridUtility.CleanPosition(snappedDeltaMovement);
+
+
+            snappedDeltaMovement.x *= scaleVector.x;
+            snappedDeltaMovement.y *= scaleVector.y;
+            snappedDeltaMovement.z *= scaleVector.z;
+
+            worldDeltaMovement = VectorFromGridSpace(snappedDeltaMovement);
+			return worldDeltaMovement;
+		}
+
 		public static Vector3 ForceSnapToRay(Ray worldRay, Vector3 worldPoint)
 		{
-			return worldPoint + SnapDeltaToRay(worldRay, MathConstants.zeroVector3, new Vector3[] { worldPoint });
+			return worldPoint + SnapDeltaToRayGrid(worldRay, MathConstants.zeroVector3, new Vector3[] { worldPoint });
 		}
 		
 		public static Vector3 ForceSnapDeltaToRay(Ray worldRay, Vector3 worldDeltaMovement, Vector3 worldPoint)
 		{
-			return SnapDeltaToRay(worldRay, worldDeltaMovement, new Vector3[] { worldPoint });
+			return SnapDeltaToRayGrid(worldRay, worldDeltaMovement, new Vector3[] { worldPoint });
 		}
 		
-		public static Vector3 SnapDeltaToRay(Ray worldRay, Vector3 worldDeltaMovement, Vector3[] worldPoints, bool snapToSelf = false)
+		public static Vector3 SnapDeltaToRayGrid(Ray worldRay, Vector3 worldDeltaMovement, Vector3[] worldPoints, bool snapToSelf = false)
 		{
 			UpdateGridOrientation();
 			if (gridOrientation == null || worldPoints == null || worldPoints.Length == 0)
@@ -753,6 +794,30 @@ namespace RealtimeCSG
 				if (Mathf.Abs(snapDelta.y) > Mathf.Abs(localDeltaMovement.y)) snappedDeltaMovement.y = 0;
 				if (Mathf.Abs(snapDelta.z) > Mathf.Abs(localDeltaMovement.z)) snappedDeltaMovement.z = 0;
 			}
+			
+			worldDeltaMovement = VectorFromGridSpace(snappedDeltaMovement);
+			return worldDeltaMovement;
+		}
+		
+		public static Vector3 SnapDeltaToRayRelative(Ray worldRay, Vector3 worldDeltaMovement)
+		{
+			UpdateGridOrientation();
+			if (gridOrientation == null)
+				return worldDeltaMovement;
+			
+			var snapVector	= gridOrientation.gridSnapVector;
+			
+			var localDeltaMovement		= VectorToGridSpace(worldDeltaMovement);
+            var magnitude               = localDeltaMovement.magnitude;
+            if (magnitude == 0)
+                return worldDeltaMovement;
+
+            var direction               = localDeltaMovement.normalized;
+
+            var snapY = (double)snapVector.y;
+            magnitude = (float)(Math.Round(magnitude / snapY) * snapY);
+
+            var snappedDeltaMovement = direction * magnitude;
 			
 			worldDeltaMovement = VectorFromGridSpace(snappedDeltaMovement);
 			return worldDeltaMovement;

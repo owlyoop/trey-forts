@@ -46,7 +46,7 @@ namespace RealtimeCSG
 			Clear();
 		}
 
-		public bool UpdateRadius(TexGen surfaceTexGen, Vector3 currentSurfacePoint, bool toggleSnapping)
+		public bool UpdateRadius(TexGen surfaceTexGen, Vector3 currentSurfacePoint)
 		{
 			var handleSize		= CSG_HandleUtility.GetHandleSize(this.RotateCenterPoint);				
 			var vectorToCenter	= currentSurfacePoint - this.RotateCenterPoint;
@@ -73,8 +73,7 @@ namespace RealtimeCSG
 			}
 							
 			// snap texture coordinates in world/local space
-			this.RotateCurrentSnappedAngle	= GridUtility.SnappedAngle(this.RotateOriginalAngle + rotateCurrentAngle, 
-															toggleSnapping) - this.RotateOriginalAngle;
+			this.RotateCurrentSnappedAngle	= GridUtility.SnappedAngle(this.RotateOriginalAngle + rotateCurrentAngle) - this.RotateOriginalAngle;
 
 			return this.HaveRotateStartAngle;
 		}

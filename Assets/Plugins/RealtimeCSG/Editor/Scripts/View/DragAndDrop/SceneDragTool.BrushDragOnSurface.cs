@@ -296,9 +296,9 @@ namespace RealtimeCSG
 
 				RealtimeCSG.CSGGrid.SetForcedGrid(intersection.worldPlane);
 
-				var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-				var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-				if (doSnapping)
+                // Since we're snapping points to grid and do not have a relative distance, relative snapping makes no sense
+				var doGridSnapping	= RealtimeCSG.CSGSettings.ActiveSnappingMode != SnapMode.None;
+				if (doGridSnapping)
 				{
 					var localPoints = new Vector3[8];
 					var localPlane	= intersection.worldPlane;
@@ -307,7 +307,7 @@ namespace RealtimeCSG
 
 					hoverPosition += RealtimeCSG.CSGGrid.SnapDeltaToGrid(MathConstants.zeroVector3, localPoints);
 				}
-                hoverPosition = GeometryUtility.ProjectPointOnPlane(intersection.worldPlane, hoverPosition);// + (normal * 0.01f);
+                hoverPosition   = GeometryUtility.ProjectPointOnPlane(intersection.worldPlane, hoverPosition);// + (normal * 0.01f);
 
 				EnableVisualObjects();
 				return true;

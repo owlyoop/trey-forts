@@ -15,7 +15,8 @@ MonoBehaviour:
   PropName: 2x2x2 Platform 2
   PropDescription: 2 walls
   icon: {fileID: 0}
-  propPrefab: {fileID: 0}
+  propPrefab: {fileID: 936039338510397200, guid: 931fedab3d40ba2459b322fdbe6354cc,
+    type: 3}
   maxHealth: 1000
   currencyCost: 30
   canPlaceInBuildPhase: 1

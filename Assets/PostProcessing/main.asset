@@ -56,10 +56,10 @@ MonoBehaviour:
     value: 1
   intensity:
     overrideState: 1
-    value: 3.8
-  threshold:
-    overrideState: 0
     value: 1
+  threshold:
+    overrideState: 1
+    value: 0.85
   softKnee:
     overrideState: 0
     value: 0.5
@@ -68,10 +68,10 @@ MonoBehaviour:
     value: 65472
   diffusion:
     overrideState: 0
-    value: 7
+    value: 4
   anamorphicRatio:
     overrideState: 0
-    value: 0
+    value: 0.5
   color:
     overrideState: 0
     value: {r: 1, g: 1, b: 1, a: 1}
@@ -108,11 +108,11 @@ MonoBehaviour:
     overrideState: 1
     value: 1
   color:
-    overrideState: 0
+    overrideState: 1
     value: {r: 0, g: 0, b: 0, a: 1}
   ambientOnly:
     overrideState: 0
-    value: 1
+    value: 0
   noiseFilterTolerance:
     overrideState: 0
     value: 0
@@ -132,5 +132,5 @@ MonoBehaviour:
     overrideState: 1
     value: 0.25
   quality:
-    overrideState: 0
-    value: 2
+    overrideState: 1
+    value: 3

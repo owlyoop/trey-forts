@@ -54,6 +54,11 @@ public class WeaponSlots : MonoBehaviour
 			}
 			weaponSlots[0].SetActive(true);
 
+            propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+            propWepSlots[0].SetActive(false);
+            propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+            propWepSlots[1].SetActive(false);
+
             if (abilitySlots.Count > 0)
             {
                 for (int i = 0; i < abilitySlots.Count; i++)
@@ -66,7 +71,7 @@ public class WeaponSlots : MonoBehaviour
 
             for (int i = 0; i < player.playerClass.abilityList.Count; i++)
             {
-                GameObject temp = Instantiate(player.playerClass.abilityList[i], abilitySlotsTransform);
+                GameObject temp = Instantiate(player.playerClass.abilityList[i].AbilityPrefab, abilitySlotsTransform);
                 temp.GetComponent<AbilityMotor>().owner = player;
                 abilitySlots.Add(temp);
             }

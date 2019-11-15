@@ -1950,30 +1950,25 @@ namespace RealtimeCSG
 			if (!active)
 				return center;
 			
-			var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-			var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-			return RealtimeCSG.Helpers.CSGHandles.PositionHandle(center, rotation, doSnapping);
+			var activeSnappingMode	= RealtimeCSG.CSGSettings.ActiveSnappingMode;
+			return RealtimeCSG.Helpers.CSGHandles.PositionHandle(center, rotation, activeSnappingMode);
 		}
 
 		public static Vector3 HandlePosition(Vector3 center, Quaternion rotation, Vector3[] snapVertices = null, RealtimeCSG.Helpers.CSGHandles.InitFunction initFunction = null, RealtimeCSG.Helpers.CSGHandles.InitFunction shutdownFunction = null)
 		{
-			var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-			var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-			return RealtimeCSG.Helpers.CSGHandles.PositionHandle(center, rotation, doSnapping, snapVertices, initFunction, shutdownFunction);
+			var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+			return RealtimeCSG.Helpers.CSGHandles.PositionHandle(center, rotation, activeSnappingMode, snapVertices, initFunction, shutdownFunction);
 		}
 
 		public static Vector3 HandleScale(Vector3 scale, Vector3 center, Quaternion rotation, RealtimeCSG.Helpers.CSGHandles.InitFunction initFunction = null, RealtimeCSG.Helpers.CSGHandles.InitFunction shutdownFunction = null)
 		{
-			var toggleSnapping = (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-			var doSnapping = RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
+			var doSnapping = RealtimeCSG.CSGSettings.ScaleSnapping;
 			return RealtimeCSG.Helpers.CSGHandles.ScaleHandle(scale, center, rotation, doSnapping, initFunction, shutdownFunction);
 		}
 
 		public static Quaternion HandleRotation(Vector3 center, Quaternion rotation, RealtimeCSG.Helpers.CSGHandles.InitFunction initFunction = null, RealtimeCSG.Helpers.CSGHandles.InitFunction shutdownFunction = null)
 		{
-			var toggleSnapping = (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-			var doSnapping = RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-
+			var doSnapping = RealtimeCSG.CSGSettings.RotationSnapping;
 			return RealtimeCSG.Helpers.CSGHandles.DoRotationHandle(rotation, center, doSnapping, initFunction, shutdownFunction);
 		}
 

@@ -43,9 +43,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fa1a16cf58fb404587d6ea169863be5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Cooldown: 10
+  baseAbility: {fileID: 11400000, guid: e4f847c80751f9b4b8d8d5fe869b00e2, type: 2}
+  Cooldown: 12
   CastStartupTime: 0
   CastRecoveryTime: 0
+  AbilityPressDisablesWeapon: 0
+  icon: {fileID: 21300000, guid: 8f27c4d435c7a2a47b65656a891f51db, type: 3}
+  owner: {fileID: 0}
   AbilitySlot: 0
   OrbLifetime: 4
   OrbSpeed: 16
@@ -53,5 +57,6 @@ MonoBehaviour:
   OrbAoeRadius: 1
   OrbPrefab: {fileID: 3442610088392007190, guid: bb5274d5c8cfc9243a42ba76fead9f7c,
     type: 3}
-  owner: {fileID: 0}
+  orbIsActive: 0
+  isOnCooldown: 0
   activeOrb: {fileID: 0}

@@ -11,7 +11,9 @@ GameObject:
   - component: {fileID: 4148838462362780458}
   - component: {fileID: 585479245369215752}
   - component: {fileID: 5565039567809822548}
-  m_Layer: 0
+  - component: {fileID: 7946036077233252409}
+  - component: {fileID: 6973767098708769510}
+  m_Layer: 17
   m_Name: 2Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -50,7 +52,7 @@ Rigidbody:
   m_AngularDrag: 0.05
   m_UseGravity: 0
   m_IsKinematic: 1
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!114 &5565039567809822548
@@ -75,10 +77,43 @@ MonoBehaviour:
   snapPositionLeft: {fileID: 2652356039214831707}
   snapPositionRight: {fileID: 3889689042004670252}
   snapPositionTop: {fileID: 3228600459803483493}
+  snapPositionFront: {fileID: 8056567009396394166}
+  snapPositionBack: {fileID: 3228600459803483493}
   defaultMat: {fileID: 2100000, guid: e1e526b1257110946865549b7ce9773f, type: 2}
   placementModeMat: {fileID: 2100000, guid: 07a467bc599441f4b9e72f271721edf9, type: 2}
-  col: {fileID: 15338439800612351}
+  buildTimeMat: {fileID: 2100000, guid: d95cc7fa09eb0ed419967bb5f9e91ffa, type: 2}
+  CanRotateX: 0
+  CanRotateY: 0
+  cols:
+  - {fileID: 7946036077233252409}
   rend: {fileID: 2852171392445278955}
+--- !u!64 &7946036077233252409
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1137435164449337657}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Convex: 1
+  m_CookingOptions: 14
+  m_Mesh: {fileID: -7107439914091358301, guid: f8c13490a9bc1df40af9c617da78ece2, type: 3}
+--- !u!114 &6973767098708769510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1137435164449337657}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e44b5a6b67ebead46bc02bde555783fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PropRigidbody: {fileID: 585479245369215752}
 --- !u!1 &1380317604734843188
 GameObject:
   m_ObjectHideFlags: 0
@@ -88,7 +123,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2652356039214831707}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_left
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -118,7 +153,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8056567009396394166}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_bottom
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -150,8 +185,7 @@ GameObject:
   - component: {fileID: 1824317570657355698}
   - component: {fileID: 6226008489279022105}
   - component: {fileID: 2852171392445278955}
-  - component: {fileID: 15338439800612351}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Wall Mesh (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -205,11 +239,12 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
   m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
+  m_SelectedEditorRenderState: 2
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
@@ -217,20 +252,6 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!64 &15338439800612351
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5654002193067566588}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Convex: 1
-  m_CookingOptions: 14
-  m_Mesh: {fileID: -7107439914091358301, guid: f8c13490a9bc1df40af9c617da78ece2, type: 3}
 --- !u!1 &5973918009571480952
 GameObject:
   m_ObjectHideFlags: 0
@@ -240,7 +261,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3228600459803483493}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_top
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -270,7 +291,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3889689042004670252}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap_right
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}

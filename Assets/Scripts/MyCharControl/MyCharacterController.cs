@@ -104,6 +104,8 @@ namespace KinematicCharacterController.Owly
 		public float currentSpeed;
 		public float dot;
 
+        public LayerMask collidableLayers;
+
 		private void Start()
 		{
 			if (!photonView.IsMine)
@@ -111,6 +113,8 @@ namespace KinematicCharacterController.Owly
 			// Handle initial state
 			TransitionToState(CharacterState.Default);
 			cam = GetComponent<PlayerInput>().cam;
+
+            Motor.CollidableLayers = collidableLayers;
 		}
 
 		private void Update()
@@ -446,7 +450,7 @@ namespace KinematicCharacterController.Owly
 									friction = 18f;
 								}
 								else friction = currentVelocity.magnitude;
-								currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp((-StableMovementSharpness / (BhopFrictionReduction - friction)) * deltaTime));
+								//currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp((-StableMovementSharpness / (BhopFrictionReduction - friction)) * deltaTime));
 							}
 							else
 							{
@@ -473,11 +477,12 @@ namespace KinematicCharacterController.Owly
 								wishDir = new Vector3(horiz, 0, forward);
 								wishDir = transform.TransformDirection(wishDir);
 
-								float wishSpeed = wishDir.magnitude;
+                                
+                                float wishSpeed = wishDir.magnitude;
 								wishSpeed *= MaxStableMoveSpeed;
 								wishDir.Normalize();
 
-								wishSpeed *= 0.12f;
+								//wishSpeed *= 0.12f;
 
 								//cpm
 								float wishSpeed2 = wishSpeed;
@@ -505,9 +510,6 @@ namespace KinematicCharacterController.Owly
 									currentVelocity = AirControl(wishDir, wishSpeed2, currentVelocity);
 								}
 
-								//targetMovementVelocity = wishDir;
-
-								//targetMovementVelocity = wishDir * MaxAirMoveSpeed * (currentVelocity.magnitude / MaxAirMoveSpeed);
 								// Prevent climbing on un-stable slopes with air movement
 								if (Motor.GroundingStatus.FoundAnyGround)
 								{
@@ -517,7 +519,6 @@ namespace KinematicCharacterController.Owly
 
 								Vector3 velocityDiff = Vector3.ProjectOnPlane(targetMovementVelocity - currentVelocity, Gravity);
 								
-								//currentVelocity += _moveInputVector * AirAccelerationSpeed * deltaTime;
 							}
 
 							// Gravity

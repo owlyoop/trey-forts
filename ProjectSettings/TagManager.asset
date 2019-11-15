@@ -18,14 +18,14 @@ TagManager:
   - 
   - PostProcessing
   - ragdoll
-  - player
+  - playerController
   - projectiles
   - player_hitbox
   - capture_flag
   - 1p_viewmodel
-  - 
-  - 
-  - 
+  - ObjectMover
+  - SceneViewOnly
+  - FortwarsProps
   - 
   - 
   - 

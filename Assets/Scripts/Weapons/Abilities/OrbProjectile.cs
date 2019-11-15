@@ -19,7 +19,7 @@ public class OrbProjectile : MonoBehaviour
 
     public Vector3 moveDirection;
 
-    public LayerMask ignorelayers;
+    public LayerMask unignoredlayers;
 
 
     private void Start()
@@ -34,7 +34,7 @@ public class OrbProjectile : MonoBehaviour
         transform.position += moveDirection * speed * Time.deltaTime;
 
         RaycastHit hit;
-        if (Physics.Raycast(this.transform.position - (moveDirection.normalized * 0.5f), moveDirection, out hit, 1f, ignorelayers))
+        if (Physics.Raycast(this.transform.position - (moveDirection.normalized * 0.5f), moveDirection, out hit, 1f, unignoredlayers))
         {
             moveDirection = Vector3.Reflect(moveDirection, hit.normal);
         }
@@ -46,6 +46,8 @@ public class OrbProjectile : MonoBehaviour
 
     public void Kill()
     {
+        ownersMotor.StartCooldown();
+        
         ownersMotor.orbIsActive = false;
         Destroy(this.gameObject);
     }

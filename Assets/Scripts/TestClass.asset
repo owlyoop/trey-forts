@@ -15,8 +15,8 @@ MonoBehaviour:
   isElite: 0
   eliteMoneyCost: 0
   maxHealth: 666
-  moveSpeedPercentAdd: 0
-  jumpHeightPercentAdd: 0
+  moveSpeedPercentAdd: 2
+  jumpHeightPercentAdd: 2
   weaponList:
   - {fileID: 11400000, guid: 573e374d206bb204d8363fcb3bec802b, type: 2}
   abilityList: []

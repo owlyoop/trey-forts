@@ -6,7 +6,7 @@ public class Damager : MonoBehaviour
 {
 
 	public enum DamageTypes { Physical, Fire, Frost }
-    List<IDamagable> damagedTargets = new List<IDamagable>();
+    public List<IDamagable> damagedTargets = new List<IDamagable>();
 
 	public virtual void DamageTarget(IDamagable target)
 	{
@@ -35,7 +35,7 @@ public class Damager : MonoBehaviour
     }
 
     //Make sure we dont damage player multiple times for every playerhitbox. Used for triggers that last more than 1 frame. damages on contact
-    public void DamageUniqueTargetsOnTriggerEnter(Collider col, int giverPunID, int damage, DamageTypes damageType, bool damageSelf)
+    public PlayerStats DamageUniqueTargetsOnTriggerEnter(Collider col, int giverPunID, int damage, DamageTypes damageType, bool damageSelf)
     {
         var target = col.GetComponent<IDamagable>();
         if (target != null)
@@ -72,12 +72,16 @@ public class Damager : MonoBehaviour
                     }
                 }
             }
-            if (!isHit)
+            if (!isHit && target is PlayerStats)
             {
                 damagedTargets.Add(target);
                 DamageTarget(target, giverPunID, damage, damageType, damageSelf);
+                return target as PlayerStats;
             }
+            else return null;
+
         }
+        else return null;
     }
 
     // Gets unique damage targets all at once.

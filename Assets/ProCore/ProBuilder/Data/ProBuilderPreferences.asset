@@ -35,9 +35,12 @@ MonoBehaviour:
   - pbDefaultEntity
   - pbDefaultCollider
   - pbShadowCastingMode
+  - pbExtrudeMethod
   m_Float_keys:
   - pbEditorScroll.x
   - pbEditorScroll.y
+  - pbExtrudeDistance
+  - pbBevelAmount
   m_String_keys:
   - pb_UVTemplate_lineColor
   - pb_UVTemplate_backgroundColor
@@ -45,10 +48,12 @@ MonoBehaviour:
   m_Material_keys:
   - pbDefaultMaterial
   m_Bool_values: 01010101010100010101000000
-  m_Int_values: 0200000001000000000200000100000001000000000000000200000002000000
+  m_Int_values: 020000000100000000020000010000000100000000000000020000000200000001000000
   m_Float_values:
   - 0
   - 0
+  - 1
+  - 1
   m_String_values:
   - RGBA(0.000, 1.000, 0.000, 1.000)
   - RGBA(0.000, 0.000, 0.000, 1.000)

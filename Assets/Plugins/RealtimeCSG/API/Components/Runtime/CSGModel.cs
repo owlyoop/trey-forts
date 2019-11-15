@@ -46,8 +46,11 @@ namespace RealtimeCSG.Components
 	public sealed class CSGModel : CSGNode
 	{
 		public const float CurrentVersion = 1.1f;
-		/// <value>The version number of this instance of a <see cref="CSGModel" /></value>
-		[HideInInspector] public float Version = CurrentVersion;
+
+        public static ModelSettingsFlags DefaultSettings = ((ModelSettingsFlags)UnityEngine.Rendering.ShadowCastingMode.On) | ModelSettingsFlags.PreserveUVs;
+
+        /// <value>The version number of this instance of a <see cref="CSGModel" /></value>
+        [HideInInspector] public float Version = CurrentVersion;
 
 		public bool	IsRenderable			{ get { return (Settings & ModelSettingsFlags.DoNotRender) == (ModelSettingsFlags)0; } }
 		public bool	IsTwoSidedShadows		{ get { return (Settings & ModelSettingsFlags.TwoSidedShadows) != (ModelSettingsFlags)0; } }
@@ -89,10 +92,13 @@ namespace RealtimeCSG.Components
 
 		#region Settings
 
-		[EnumAsFlags] public ModelSettingsFlags				Settings		= ((ModelSettingsFlags)UnityEngine.Rendering.ShadowCastingMode.On) | ModelSettingsFlags.PreserveUVs;
+		[EnumAsFlags] public ModelSettingsFlags				Settings		= DefaultSettings;
 		[EnumAsFlags] public Foundation.VertexChannelFlags	VertexChannels	= Foundation.VertexChannelFlags.All;
-        
-        #if UNITY_2017_3_OR_NEWER
+#if UNITY_2019_2_OR_NEWER
+        [EnumAsFlags] public ReceiveGI                      ReceiveGI       = ReceiveGI.LightProbes;
+#endif
+
+#if UNITY_2017_3_OR_NEWER
         [EnumAsFlags] public MeshColliderCookingOptions MeshColliderCookingOptions = MeshColliderCookingOptions.CookForFasterSimulation |
                                                                                      MeshColliderCookingOptions.EnableMeshCleaning |
                                                                                      MeshColliderCookingOptions.WeldColocatedVertices;
@@ -162,7 +168,7 @@ namespace RealtimeCSG.Components
 		#endregion
 
 #if UNITY_EDITOR
-		public void EnsureInitialized()				{ CSGSceneManagerRedirector.Interface.EnsureInitialized(this); }
+		public void EnsureInitialized()				{ CSGSceneManagerRedirector.Interface.EnsureInitialized(this); Debug.Log(DefaultSettings); }
 #endif
 	}
 }

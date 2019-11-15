@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace RealtimeCSG
 {
-	internal class CSGKeysPreferenceWindow 
+    internal class CSGKeysPreferenceWindow 
 	{
 		internal class LocalStyles
 		{
@@ -19,7 +19,7 @@ namespace RealtimeCSG
 			public GUIStyle sectionElement = "PreferencesSection";
 			public GUIStyle evenRow = "CN EntryBackEven";
 			public GUIStyle oddRow = "CN EntryBackOdd";
-			public GUIStyle selected = "ServerUpdateChangesetOn";
+			//public GUIStyle selected = "ServerUpdateChangesetOn";
 			public GUIStyle keysElement = "PreferencesKeysElement";
 			public GUIStyle warningIcon = "CN EntryWarn";
 			public GUIStyle sectionHeader = new GUIStyle(EditorStyles.largeLabel);
@@ -54,7 +54,7 @@ namespace RealtimeCSG
 //		static bool foundSelectedKey = false;
 		static LocalStyles constants = null;
 
-		class KeyPref
+		public class KeyPref
 		{
 			public string name;
 			public KeyEvent keyEvent;
@@ -63,7 +63,7 @@ namespace RealtimeCSG
 		static KeyPref[]			keyArray	= null; 
 		static KeyCodeWithModifier	newKey		= new KeyCodeWithModifier();
 
-		static KeyPref[] GetKeys()
+		public static KeyPref[] GetKeys()
 		{
 			var prefs = new List<KeyPref>();
 			var type = typeof(Keys);
@@ -352,8 +352,10 @@ namespace RealtimeCSG
 			}
 		}
 
-		[PreferenceItem("CSG Keys")]
-		static void PreferenceWindow()
+#if !UNITY_2018_4_OR_NEWER
+        [PreferenceItem("CSG Keys")]
+#endif
+        public static void PreferenceWindow()
 		{
 			if (constants == null)
 			{
@@ -372,10 +374,10 @@ namespace RealtimeCSG
 			bool foundSelectedKey = false;
 
 
-			var width = Mathf.Max(170f, EditorGUIUtility.currentViewWidth - 600);  
+			var width = Mathf.Min(Mathf.Max(170f, EditorGUIUtility.currentViewWidth - 600), 400);  
 
 			GUILayout.BeginHorizontal();
-			GUILayout.BeginVertical(GUILayout.Width(width));
+			GUILayout.BeginVertical(GUILayout.MaxWidth(width));
 			GUILayout.Label("Actions", constants.settingsBoxTitle, GUILayout.ExpandWidth(true));
 			Rect selectedRect = default(Rect);
 			keyNamesScrollPos = GUILayout.BeginScrollView(keyNamesScrollPos);//, constants.settingsBox);

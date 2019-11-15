@@ -65,6 +65,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -123,7 +124,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae85ac339a8d5434989309943f2c37f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkObjToSpawn: {fileID: 0}
+  WeaponSwitchAwayTime: 0
+  WeaponSwitchToTime: 0
   player: {fileID: 0}
   playersStats: {fileID: 0}
   playerUI: {fileID: 0}
@@ -137,7 +139,7 @@ MonoBehaviour:
   gameManager: {fileID: 0}
   allowedLayers:
     serializedVersion: 2
-    m_Bits: 275
+    m_Bits: 131347
 --- !u!1 &1312067009951888
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,6 +205,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
@@ -280,6 +283,7 @@ MeshRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0

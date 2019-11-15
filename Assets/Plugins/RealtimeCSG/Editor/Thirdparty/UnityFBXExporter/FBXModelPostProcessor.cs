@@ -13,7 +13,10 @@ namespace UnityFBXExporter
 #if UNITY_EDITOR
 	internal class FBXModelPostProcessor : AssetPostprocessor
 	{
-		public static bool modify           = false;
+        public override uint GetVersion() { return 1; }
+
+
+        public static bool modify           = false;
 		public static bool hasMaterials     = false;
 		public static bool copyMaterials    = false;
 		public static bool hasNormals       = false;
@@ -37,10 +40,14 @@ namespace UnityFBXExporter
 
 			modelImporter.generateSecondaryUV = true;
 			modelImporter.addCollider = false;
-			modelImporter.importMaterials = hasMaterials;
+#if UNITY_2019_3_OR_NEWER
+            modelImporter.materialImportMode = ModelImporterMaterialImportMode.LegacyImport;
+#else
+            modelImporter.importMaterials = hasMaterials;
+#endif
 			if (hasMaterials && !copyMaterials)
 				modelImporter.materialSearch = ModelImporterMaterialSearch.Everywhere;
 		}
 	}
 #endif
-}
+ }

@@ -6,9 +6,18 @@ using UnityEngine;
 using InternalRealtimeCSG;
 using UnityEngine.Serialization;
 using RealtimeCSG.Legacy;
+using RealtimeCSG.Components;
 
 namespace RealtimeCSG
 {
+    [Serializable]
+    public enum SnapMode
+    {
+        GridSnapping,
+        RelativeSnapping,
+        None
+    }
+
     [Serializable]
     public enum ToolEditMode
     {
@@ -39,20 +48,20 @@ namespace RealtimeCSG
         RemoveNegative,
         Split
     };
-     
+
     public static class CSGSettings
     {
-        public static bool ShowVisibleSurfaces			{ get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowVisibleSurfaces) != 0; } }
-        public static bool ShowHiddenSurfaces			{ get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowHiddenSurfaces) != 0; } }
-        public static bool ShowCulledSurfaces			{ get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowCulledSurfaces) != 0; } }
-        public static bool ShowColliderSurfaces			{ get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowColliderSurfaces) != 0; } }
-        public static bool ShowTriggerSurfaces			{ get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowTriggerSurfaces) != 0; } }
-        public static bool ShowCastShadowsSurfaces		{ get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowCastShadowsSurfaces) != 0; } }
-        public static bool ShowReceiveShadowsSurfaces	{ get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowReceiveShadowsSurfaces) != 0; } }
-                
+        public static bool ShowVisibleSurfaces { get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowVisibleSurfaces) != 0; } }
+        public static bool ShowHiddenSurfaces { get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowHiddenSurfaces) != 0; } }
+        public static bool ShowCulledSurfaces { get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowCulledSurfaces) != 0; } }
+        public static bool ShowColliderSurfaces { get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowColliderSurfaces) != 0; } }
+        public static bool ShowTriggerSurfaces { get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowTriggerSurfaces) != 0; } }
+        public static bool ShowCastShadowsSurfaces { get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowCastShadowsSurfaces) != 0; } }
+        public static bool ShowReceiveShadowsSurfaces { get { return (VisibleHelperSurfaces & HelperSurfaceFlags.ShowReceiveShadowsSurfaces) != 0; } }
 
-        internal static HashSet<string>					wireframeSceneviews = new HashSet<string>();
-        internal static Dictionary<SceneView, bool>		sceneViewShown		= new Dictionary<SceneView, bool>();
+
+        internal static HashSet<string> wireframeSceneviews = new HashSet<string>();
+        internal static Dictionary<SceneView, bool> sceneViewShown = new Dictionary<SceneView, bool>();
 
 
         internal static bool Assume2DView(SceneView sceneview)
@@ -68,7 +77,7 @@ namespace RealtimeCSG
             bool isShown;
             if (sceneViewShown.TryGetValue(sceneView, out isShown))
                 return isShown;
-            
+
             var name = sceneView.name;
             if (name != null) name = name.Trim();
             if (string.IsNullOrEmpty(name))
@@ -104,7 +113,7 @@ namespace RealtimeCSG
             {
                 sceneView.name = GetUniqueSceneviewName(GetKnownSceneviewNames());
             }
-            
+
             if (show)
             {
                 if (!wireframeSceneviews.Contains(sceneView.name))
@@ -120,24 +129,71 @@ namespace RealtimeCSG
                     wireframeSceneviews.Remove(sceneView.name);
                 }
             }
-            
+
             sceneViewShown[sceneView] = show;
         }
 
         static List<SceneView> SortedSceneViews()
         {
-            var list = from item in SceneView.sceneViews.Cast<SceneView>() orderby item.position.y,item.position.x select item;
+            var list = from item in SceneView.sceneViews.Cast<SceneView>() orderby item.position.y, item.position.x select item;
             return list.ToList();
         }
 
-        public const HelperSurfaceFlags DefaultHelperSurfaceFlags =	 HelperSurfaceFlags.ShowVisibleSurfaces;
+        public const HelperSurfaceFlags DefaultHelperSurfaceFlags = HelperSurfaceFlags.ShowVisibleSurfaces;
 
-        static public ToolEditMode			EditMode				= ToolEditMode.Generate;
+        static public ToolEditMode EditMode = ToolEditMode.Generate;
+
+        public static SnapMode ActiveSnappingMode
+        {
+            get
+            {
+                if (SelectionUtility.IsSnappingToggled)
+                {
+                    if (SnapMode != SnapMode.None)
+                        return SnapMode.None;
+                    return SnapMode.GridSnapping;
+                }
+                return SnapMode;
+            }
+        }
+
+        public static bool ScaleSnapping
+        {
+            get
+            {
+                return ActiveSnappingMode != SnapMode.None;
+            }
+        }        
+
+        public static bool RotationSnapping
+        {
+            get
+            {
+                return ActiveSnappingMode != SnapMode.None;
+            }
+        }
+
+        public static bool GridSnapping
+        {
+            get
+            {
+                return ActiveSnappingMode == SnapMode.GridSnapping;
+            }
+        }
+
+        public static bool RelativeSnapping
+        {
+            get
+            {
+                return ActiveSnappingMode == SnapMode.RelativeSnapping;
+            }
+        }
+
 
         static public bool					LockAxisX				= false;
         static public bool					LockAxisY				= false;
         static public bool					LockAxisZ				= false;
-        static public bool					SnapToGrid				= true;
+        static public SnapMode              SnapMode				= SnapMode.GridSnapping;
         static public bool					UniformGrid				= true;
         static public bool					GridVisible				= true;
         static public HelperSurfaceFlags    VisibleHelperSurfaces	= DefaultHelperSurfaceFlags;
@@ -189,7 +245,21 @@ namespace RealtimeCSG
         static public bool					HiddenSurfacesNotSelectable		= true;
 //		static public bool					HiddenSurfacesOrthoSelectable	= true;
 
-        static public bool                  ShowTooltips					= true; 
+        static public bool                  ShowTooltips					= true;
+        static public bool                  DefaultPreserveUVs
+        {
+            get
+            {
+                return (CSGModel.DefaultSettings & ModelSettingsFlags.PreserveUVs) == ModelSettingsFlags.PreserveUVs;
+            }
+            set
+            {
+                if (value)
+                    CSGModel.DefaultSettings |= ModelSettingsFlags.PreserveUVs;
+                else
+                    CSGModel.DefaultSettings &= ~ModelSettingsFlags.PreserveUVs;
+            }
+        }
         static public bool                  SnapNonCSGObjects				= true; 
 
         static public Vector3				DefaultMoveOffset		= Vector3.zero;
@@ -498,8 +568,8 @@ namespace RealtimeCSG
             ShapeBuildMode		= GetEnum("ShapeBuildMode", ShapeMode.Box);
             DefaultTexGenFlags  = GetEnum("DefaultTexGenFlags", defaultTextGenFlagsState);
 
-            GridVisible			= EditorPrefs.GetBool("ShowGrid", true);			
-            SnapToGrid			= EditorPrefs.GetBool("ForceSnapToGrid",    true);
+            GridVisible			= EditorPrefs.GetBool("ShowGrid", true);
+            SnapMode            = (SnapMode)EditorPrefs.GetInt("SnapMode", (int)(EditorPrefs.GetBool("ForceSnapToGrid", true) ? SnapMode.GridSnapping : SnapMode.None));
             
             VisibleHelperSurfaces = GetEnum("HelperSurfaces", DefaultHelperSurfaceFlags);
             
@@ -521,6 +591,7 @@ namespace RealtimeCSG
             HiddenSurfacesNotSelectable		= EditorPrefs.GetBool("HiddenSurfacesNotSelectable", true);
 //			HiddenSurfacesOrthoSelectable	= EditorPrefs.GetBool("HiddenSurfacesOrthoSelectable", true);
             ShowTooltips					= EditorPrefs.GetBool("ShowTooltips", true);
+            DefaultPreserveUVs              = EditorPrefs.GetBool("DefaultPreserveUVs", (CSGModel.DefaultSettings & ModelSettingsFlags.PreserveUVs) == ModelSettingsFlags.PreserveUVs);
             SnapNonCSGObjects				= EditorPrefs.GetBool("SnapNonCSGObjects", true);
 
             AutoCommitExtrusion			= EditorPrefs.GetBool("AutoCommitExtrusion", false);
@@ -605,13 +676,13 @@ namespace RealtimeCSG
 //			EditorPrefs.SetBool("HiddenSurfacesOrthoSelectable", RealtimeCSG.CSGSettings.HiddenSurfacesOrthoSelectable);
 
             EditorPrefs.SetBool("ShowTooltips",				RealtimeCSG.CSGSettings.ShowTooltips);
+            EditorPrefs.SetBool("DefaultPreserveUVs",       (CSGModel.DefaultSettings & ModelSettingsFlags.PreserveUVs) == ModelSettingsFlags.PreserveUVs);
             EditorPrefs.SetBool("SnapNonCSGObjects",		RealtimeCSG.CSGSettings.SnapNonCSGObjects);
 
             EditorPrefs.SetBool("AutoCommitExtrusion",		RealtimeCSG.CSGSettings.AutoCommitExtrusion);
-            
-            EditorPrefs.SetBool	("ForceSnapToGrid",			RealtimeCSG.CSGSettings.SnapToGrid);	
 
-            
+            EditorPrefs.SetInt  ("SnapMode",                (int)RealtimeCSG.CSGSettings.SnapMode);
+
             EditorPrefs.SetInt	("MaxSphereSplits",			Mathf.Max(3, MaxSphereSplits));
             
             EditorPrefs.SetInt	("CircleSides",				Mathf.Max(3, CircleSides));

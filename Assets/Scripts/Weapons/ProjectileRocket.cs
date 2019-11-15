@@ -5,47 +5,59 @@ using UnityEngine;
 
 public class ProjectileRocket : Projectile
 {
-	
-
-	public Explosion explosion;
 
 
-	private void Start()
-	{
-		Physics.IgnoreCollision(this.GetComponent<Collider>(), player.GetComponent<Collider>());
-		Invoke("Kill", life);
-	}
+    public Explosion explosion;
 
-	void Kill()
-	{
-		Destroy(gameObject);
-	}
+    public LayerMask layermask;
 
-	private void FixedUpdate()
-	{
-		transform.position += transform.forward * speed * Time.fixedDeltaTime;
-	}
+    Rigidbody rb;
 
-	private void OnTriggerEnter(Collider col)
-	{
-		if (player.photonView.IsMine)
-		{
-			if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.GetComponent<PlayerStats>() != player)
-			{
-                bool isValid = true;
-                if (col.GetComponent<PlayerHitbox>() != null && col.GetComponent<PlayerHitbox>().player == player)
+
+    private void Start()
+    {
+        rb = this.GetComponent<Rigidbody>();
+        Physics.IgnoreCollision(this.GetComponent<Collider>(), player.GetComponent<Collider>());
+        Invoke("Kill", life);
+        rb.AddForce(transform.forward * speed, ForceMode.VelocityChange);
+    }
+
+    void Kill()
+    {
+        Destroy(gameObject);
+    }
+
+    private void Update()
+    {
+        
+    }
+
+    private void OnTriggerEnter(Collider col)
+    {
+
+    }
+
+    private void OnCollisionEnter(Collision col)
+    {
+        if (player.photonView.IsMine)
+        {
+            if (layermask == (layermask | (1 << col.gameObject.layer)))
+            {
+                if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.GetComponent<PlayerStats>() != player)
                 {
-                    isValid = false;
-                }
+                    bool isValid = true;
+                    if (col.gameObject.GetComponent<PlayerHitbox>() != null && col.gameObject.GetComponent<PlayerHitbox>().player == player)
+                    {
+                        isValid = false;
+                    }
 
-                if (isValid)
-                {
-                    player.GetComponent<PhotonView>().RPC("SpawnExplosion", RpcTarget.AllViaServer, OwnerPunID, transform.position, baseDamage, damageType);
-                    Kill();
+                    if (isValid)
+                    {
+                        player.GetComponent<PhotonView>().RPC("SpawnExplosion", RpcTarget.AllViaServer, OwnerPunID, transform.position, baseDamage, damageType);
+                        Kill();
+                    }
                 }
-			}
-		}
-	}
-	
-
+            }
+        }
+    }
 }

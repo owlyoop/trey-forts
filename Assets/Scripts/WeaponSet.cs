@@ -15,7 +15,7 @@ public class WeaponSet : ScriptableObject
 
 	public List<Weapon> weaponList;
 
-    public List<GameObject> abilityList;
+    public List<AbilityData> abilityList;
 
 	public List<StatusEffect> PassiveEffects;
 

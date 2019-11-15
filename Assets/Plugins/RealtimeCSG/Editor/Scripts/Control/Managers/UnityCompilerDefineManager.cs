@@ -36,7 +36,7 @@ namespace RealtimeCSG
 #else
 			string	v						= RealtimeCSG.Foundation.Versioning.PluginVersion;
 #endif
-			int		index					= v.IndexOf('.');
+			int		index					= v.IndexOfAny(new char[] { '_', '.' });
 			string	release_version_part	= v.Remove(index);
 			string	lower_part				= v.Substring(index + 1);
 			string	major_version_part		= lower_part.Remove(1);

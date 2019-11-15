@@ -10,11 +10,14 @@ namespace RealtimeCSG
 {
 	internal sealed partial class SceneViewBottomBarGUI
 	{
-		static ToolTip showGridTooltip		= new ToolTip("Show the grid", "Click this to toggle between showing the grid or hiding it.\nWhen hidden you can still snap against it.", Keys.ToggleShowGridKey);
-		static ToolTip snapToGridTooltip	= new ToolTip("Toggle snapping", "Click this if you want to turn snapping your movements on or off.", Keys.ToggleSnappingKey);
-		static ToolTip showWireframeTooltip	= new ToolTip("Toggle wireframe", "Click this to switch between showing the\nwireframe of your scene or the regular view.");
-		static ToolTip rebuildTooltip		= new ToolTip("Rebuild your CSG meshes", "Click this to rebuild your CSG meshes\nin case something didn't go quite right.");
-		static ToolTip helperSurfacesTooltip = new ToolTip("Helper surfaces", "Select what kind of helper surfaces you want to display in this sceneview.");
+		static ToolTip showGridTooltip		    = new ToolTip("Show the grid", "Click this to toggle between showing the grid or hiding it.\nWhen hidden you can still snap against it.", Keys.ToggleShowGridKey);
+//		static ToolTip snapToGridTooltip	    = new ToolTip("Grid snapping", "Click this if you want to turn grid snapping on or off.", Keys.ToggleSnappingKey);
+		static ToolTip gridSnapModeTooltip	    = new ToolTip("Grid Snapping mode", "Select grid to snap to the grid, relative snapping to snap along a distance from your starting position, or no snapping.", Keys.ToggleSnappingKey);
+        static ToolTip relativeSnapModeTooltip  = new ToolTip("Relative Snapping mode", "Select grid to snap to the grid, relative snapping to snap along a distance from your starting position, or no snapping.", Keys.ToggleSnappingKey);
+        static ToolTip noSnappingModeTooltip    = new ToolTip("No Snapping mode", "Select grid to snap to the grid, relative snapping to snap along a distance from your starting position, or no snapping.", Keys.ToggleSnappingKey);
+        static ToolTip showWireframeTooltip	    = new ToolTip("Toggle wireframe", "Click this to switch between showing the\nwireframe of your scene or the regular view.");
+		static ToolTip rebuildTooltip		    = new ToolTip("Rebuild your CSG meshes", "Click this to rebuild your CSG meshes\nin case something didn't go quite right.");
+		static ToolTip helperSurfacesTooltip    = new ToolTip("Helper surfaces", "Select what kind of helper surfaces you want to display in this sceneview.");
 
 		static GUIContent xLabel			= new GUIContent("X");
 		static GUIContent yLabel			= new GUIContent("Y");

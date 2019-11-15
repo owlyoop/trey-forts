@@ -124,7 +124,7 @@ namespace RealtimeCSG
 			return position;
 		}
 
-		static public Vector3 FixPosition(Vector3 currentPosition, Matrix4x4 worldToLocalMatrix, Matrix4x4 localToWorldMatrix, Vector3 previousPosition, bool toggleSnapToGrid = false, bool ignoreAxisLocking = false)
+		static public Vector3 FixPosition(Vector3 currentPosition, Matrix4x4 worldToLocalMatrix, Matrix4x4 localToWorldMatrix, Vector3 previousPosition, bool ignoreAxisLocking = false)
 		{
 			if (currentPosition == previousPosition)
 				return currentPosition;
@@ -142,7 +142,8 @@ namespace RealtimeCSG
 					if (RealtimeCSG.CSGSettings.LockAxisZ) currentPosition.z = previousPosition.z;
 				}
 
-				if (RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapToGrid)
+                var doGridSnapping = RealtimeCSG.CSGSettings.GridSnapping;
+                if (doGridSnapping)
 				{
 					if (Mathf.Abs(currentPosition.x - previousPosition.x) < MathConstants.EqualityEpsilon) currentPosition.x = previousPosition.x;
 					if (Mathf.Abs(currentPosition.y - previousPosition.y) < MathConstants.EqualityEpsilon) currentPosition.y = previousPosition.y;
@@ -163,7 +164,7 @@ namespace RealtimeCSG
 					if (RealtimeCSG.CSGSettings.LockAxisZ) currentPosition.z = previousPosition.z;
 				}
 
-				if (RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapToGrid)
+                if (RealtimeCSG.CSGSettings.GridSnapping)
 				{
 					if (currentPosition.x != previousPosition.x) currentPosition.x = Mathf.Round(currentPosition.x / RealtimeCSG.CSGSettings.SnapVector.x) * RealtimeCSG.CSGSettings.SnapVector.x;
 					if (currentPosition.y != previousPosition.y) currentPosition.y = Mathf.Round(currentPosition.y / RealtimeCSG.CSGSettings.SnapVector.y) * RealtimeCSG.CSGSettings.SnapVector.y;
@@ -175,16 +176,17 @@ namespace RealtimeCSG
 			return currentPosition;
 		}
 
-		static public Vector3 FixPosition(Vector3 currentPosition, Transform spaceTransform, Vector3 previousPosition, bool toggleSnapToGrid = false, bool ignoreAxisLocking = false)
+		static public Vector3 FixPosition(Vector3 currentPosition, Transform spaceTransform, Vector3 previousPosition, bool ignoreAxisLocking = false)
 		{
 			if (spaceTransform == null)
-				return FixPosition(currentPosition, MathConstants.identityMatrix, MathConstants.identityMatrix, previousPosition, toggleSnapToGrid, ignoreAxisLocking);
-			return FixPosition(currentPosition, spaceTransform.worldToLocalMatrix, spaceTransform.localToWorldMatrix, previousPosition, toggleSnapToGrid, ignoreAxisLocking);
+				return FixPosition(currentPosition, MathConstants.identityMatrix, MathConstants.identityMatrix, previousPosition, ignoreAxisLocking);
+			return FixPosition(currentPosition, spaceTransform.worldToLocalMatrix, spaceTransform.localToWorldMatrix, previousPosition, ignoreAxisLocking);
 		}
 
-		static public float SnappedAngle(float currentAngle, bool toggleSnapToGrid = false)
+		static public float SnappedAngle(float currentAngle)
 		{
-			if (RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapToGrid)
+            var doRotationSnapping = RealtimeCSG.CSGSettings.RotationSnapping;
+            if (doRotationSnapping)
 				currentAngle = Mathf.RoundToInt(currentAngle / RealtimeCSG.CSGSettings.SnapRotation) * RealtimeCSG.CSGSettings.SnapRotation;
 			return currentAngle;
 		}
@@ -209,8 +211,14 @@ namespace RealtimeCSG
 
 		public static void ToggleSnapToGrid()
 		{
-			RealtimeCSG.CSGSettings.SnapToGrid = !RealtimeCSG.CSGSettings.SnapToGrid;
-			EditorPrefs.SetBool("ForceSnapToGrid", RealtimeCSG.CSGSettings.SnapToGrid);
+            switch (RealtimeCSG.CSGSettings.SnapMode)
+            {
+                case SnapMode.GridSnapping:     RealtimeCSG.CSGSettings.SnapMode = SnapMode.RelativeSnapping; break;
+                case SnapMode.RelativeSnapping: RealtimeCSG.CSGSettings.SnapMode = SnapMode.None; break;
+                default:
+                case SnapMode.None:             RealtimeCSG.CSGSettings.SnapMode = SnapMode.GridSnapping; break;
+            }
+			EditorPrefs.SetInt("SnapMode", (int)RealtimeCSG.CSGSettings.SnapMode);
 		}
 
 

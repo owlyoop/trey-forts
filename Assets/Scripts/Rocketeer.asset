@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Rocketeer
   m_EditorClassIdentifier: 
   isElite: 0
+  eliteMoneyCost: 0
   maxHealth: 200
   moveSpeedPercentAdd: 0
   jumpHeightPercentAdd: 0
@@ -21,7 +22,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 314c9e3079787ca4ab1b3427005a87e4, type: 2}
   - {fileID: 11400000, guid: 573e374d206bb204d8363fcb3bec802b, type: 2}
   abilityList:
-  - {fileID: 3413704574070052647, guid: 100f620e5002fb54cb84b8b473874173, type: 3}
+  - {fileID: 11400000, guid: e4f847c80751f9b4b8d8d5fe869b00e2, type: 2}
   PassiveEffects: []
   className: Rocketeer
   icon: {fileID: 21300000, guid: 743f19924e583fb46b7d5074a30537eb, type: 3}

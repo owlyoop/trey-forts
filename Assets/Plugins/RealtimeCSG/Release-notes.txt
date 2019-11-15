@@ -1,3 +1,15 @@
+Version 1.558 - 2 Sept 2019
+- Workaround for Unity font bug in Unity 2019.3
+- Realtime CSG preferences are now in Project Settings menu in Unity 2018.4 and beyond, removes warnings about preferencewindow being deprecated
+- GameObjects under a model no longer have their layers set to default at build time
+- Added option to set default for Preserve Uvs from within preference/project setting window
+- Added option to set to receive GI from lightmaps or lightprobes on model in Unity 2019.2 and beyond
+- Added option to snap to a relative distance instead of the grid. (there are some places where this is not implemented yet, this will be fixed in the future)
+
+
+Version 1.557 - 12 Aug 2019
+- Workaround so Realtime CSG works in Unity 2019.2 because of Unity bug where Unity can't handle native dlls with periods in their name
+
 Version 1.556 - 15 jun 2019
 - Fixed UV generation being damaged by Unity's own MeshUtility.Optimize method (thanks @hippocoder for letting me know about UV issues)
 - Fixed not being able to select non-CSG mesh when a CSG object was behind it (thanks @GloomyGhoul)
@@ -8,7 +20,6 @@ Version 1.556 - 15 jun 2019
 - Fixed loads of other small things (thanks @Hunted)
 - Removed 'created infinite brush' debug message that should've been removed before, apologies! (thanks @Hunted)
 - Creating a Model/Brush/Operation in the hierarchy using the context menu now places the gameobjects underneath the clicked item (thanks for the suggestion @GloomyGhoul)
-
 
 Version 1.555 - 04 jun 2019
 - Fixed issue where rotation tool would not be visible in Place mode when no CSG objects are selected (thanks @GloomyGhoul)

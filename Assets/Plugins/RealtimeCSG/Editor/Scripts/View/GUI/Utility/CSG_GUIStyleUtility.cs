@@ -33,9 +33,13 @@ namespace RealtimeCSG
 		public GUIContent gridIcon;
 		public GUIContent gridIconOn;
 
-		public GUIContent snappingIcon;
-		public GUIContent snappingIconOn;
-		public GUIStyle   messageStyle;
+		public GUIContent gridSnapIcon;
+		public GUIContent gridSnapIconOn;
+        public GUIContent relSnapIcon;
+        public GUIContent relSnapIconOn;
+        public GUIContent noSnapIcon;
+        public GUIContent noSnapIconOn;
+        public GUIStyle   messageStyle;
 		public GUIStyle   messageWarningStyle;
 
 		public Color lockedBackgroundColor;
@@ -275,20 +279,28 @@ namespace RealtimeCSG
 		//const string snappingTooltip	= "Turn automatic snap to grid on/off | Shift-T";
 		//const string snappingOnTooltip	= "Turn automatic snap to grid on/off | Shift-T";
 
-		static GUIContent proRebuildIcon = IconContent("icon_pro_rebuild");
-		static GUIContent proGridIcon = IconContent("icon_pro_grid");
-		static GUIContent proGridIconOn = IconContent("icon_pro_grid_on");
-		static GUIContent proSnappingIcon = IconContent("icon_pro_snapping");
-		static GUIContent proSnappingIconOn = IconContent("icon_pro_snapping_on");
+		static GUIContent proRebuildIcon        = IconContent("icon_pro_rebuild");
+		static GUIContent proGridIcon           = IconContent("icon_pro_grid");
+		static GUIContent proGridIconOn         = IconContent("icon_pro_grid_on");
+		static GUIContent proGridSnapIcon       = IconContent("icon_pro_gridsnap");
+		static GUIContent proGridSnapIconOn     = IconContent("icon_pro_gridsnap_on");
+        static GUIContent proRelSnapIcon        = IconContent("icon_pro_relsnap");
+        static GUIContent proRelSnapIconOn      = IconContent("icon_pro_relsnap_on");
+        static GUIContent proNoSnapIcon         = IconContent("icon_pro_nosnap");
+        static GUIContent proNoSnapIconOn       = IconContent("icon_pro_nosnap_on");
 
-		static GUIContent personalRebuildIcon = IconContent("icon_pers_rebuild");
-		static GUIContent personalGridIcon = IconContent("icon_pers_grid");
-		static GUIContent personalGridIconOn = IconContent("icon_pers_grid_on");
-		static GUIContent personalSnappingIcon = IconContent("icon_pers_snapping");
-		static GUIContent personalSnappingIconOn = IconContent("icon_pers_snapping_on");
+        static GUIContent personalRebuildIcon    = IconContent("icon_pers_rebuild");
+		static GUIContent personalGridIcon       = IconContent("icon_pers_grid");
+		static GUIContent personalGridIconOn     = IconContent("icon_pers_grid_on");
+		static GUIContent personalGridSnapIcon   = IconContent("icon_pers_gridsnap");
+		static GUIContent personalGridSnapIconOn = IconContent("icon_pers_gridsnap_on");
+        static GUIContent personalRelSnapIcon    = IconContent("icon_pers_relsnap");
+        static GUIContent personalRelSnapIconOn  = IconContent("icon_pers_relsnap_on");
+        static GUIContent personalNoSnapIcon     = IconContent("icon_pers_nosnap");
+        static GUIContent personalNoSnapIconOn   = IconContent("icon_pers_nosnap_on");
 
 
-		static CSG_Skin Pro = new CSG_Skin();
+        static CSG_Skin Pro = new CSG_Skin();
 		static CSG_Skin Personal = new CSG_Skin();
 
 		public static CSG_Skin Skin
@@ -412,10 +424,10 @@ namespace RealtimeCSG
 
 
 
-			versionLabelStyle = new GUIStyle(GetStyle("Label"));
+			versionLabelStyle = new GUIStyle(EditorStyles.label);
 			versionLabelStyle.alignment = TextAnchor.MiddleRight;
-			versionLabelStyle.fontSize = versionLabelStyle.font.fontSize - 1;
-			var original_color = versionLabelStyle.normal.textColor;
+			//versionLabelStyle.fontSize = versionLabelStyle.font.fontSize - 1; 
+			var original_color = versionLabelStyle.normal.textColor; 
 			original_color.a = 0.4f;
 			versionLabelStyle.normal.textColor = original_color;
 
@@ -527,31 +539,39 @@ namespace RealtimeCSG
 				personal_skin.operationNamesOn[i].text = operationText[i];
 			}
 
-			pro_skin.rebuildIcon = proRebuildIcon;
-			pro_skin.gridIcon = proGridIcon;
-			pro_skin.gridIconOn = proGridIconOn;
-			pro_skin.snappingIcon = proSnappingIcon;
-			pro_skin.snappingIconOn = proSnappingIconOn;
+			pro_skin.rebuildIcon    = proRebuildIcon;
+			pro_skin.gridIcon       = proGridIcon;
+			pro_skin.gridIconOn     = proGridIconOn;
+			pro_skin.gridSnapIcon   = proGridSnapIcon;
+			pro_skin.gridSnapIconOn = proGridSnapIconOn;
+			pro_skin.relSnapIcon    = proRelSnapIcon;
+			pro_skin.relSnapIconOn  = proRelSnapIconOn;
+            pro_skin.noSnapIcon     = proNoSnapIcon;
+            pro_skin.noSnapIconOn   = proNoSnapIconOn;
 
-			//pro_skin.rebuildIcon.tooltip	= rebuildTooltip;
-			//pro_skin.gridIcon.tooltip		= gridTooltip;
-			//pro_skin.gridIconOn.tooltip		= gridOnTooltip;
-			//pro_skin.snappingIcon.tooltip	= snappingTooltip;
-			//pro_skin.snappingIconOn.tooltip	= snappingOnTooltip;
+            //pro_skin.rebuildIcon.tooltip	= rebuildTooltip;
+            //pro_skin.gridIcon.tooltip		= gridTooltip;
+            //pro_skin.gridIconOn.tooltip		= gridOnTooltip;
+            //pro_skin.snappingIcon.tooltip	= snappingTooltip;
+            //pro_skin.snappingIconOn.tooltip	= snappingOnTooltip;
 
-			personal_skin.rebuildIcon = personalRebuildIcon;
-			personal_skin.gridIcon = personalGridIcon;
-			personal_skin.gridIconOn = personalGridIconOn;
-			personal_skin.snappingIcon = personalSnappingIcon;
-			personal_skin.snappingIconOn = personalSnappingIconOn;
+            personal_skin.rebuildIcon    = personalRebuildIcon;
+			personal_skin.gridIcon       = personalGridIcon;
+			personal_skin.gridIconOn     = personalGridIconOn;
+			personal_skin.gridSnapIcon   = personalGridSnapIcon;
+			personal_skin.gridSnapIconOn = personalGridSnapIconOn;
+            personal_skin.relSnapIcon    = personalRelSnapIcon;
+            personal_skin.relSnapIconOn  = personalRelSnapIconOn;
+            personal_skin.noSnapIcon     = personalNoSnapIcon;
+            personal_skin.noSnapIconOn   = personalNoSnapIconOn;
 
-			//personal_skin.rebuildIcon.tooltip		= rebuildTooltip;
-			//personal_skin.gridIcon.tooltip			= gridTooltip;
-			//personal_skin.gridIconOn.tooltip		= gridOnTooltip;
-			//personal_skin.snappingIcon.tooltip		= snappingTooltip;
-			//personal_skin.snappingIconOn.tooltip	= snappingOnTooltip;
+            //personal_skin.rebuildIcon.tooltip		= rebuildTooltip;
+            //personal_skin.gridIcon.tooltip			= gridTooltip;
+            //personal_skin.gridIconOn.tooltip		= gridOnTooltip;
+            //personal_skin.snappingIcon.tooltip		= snappingTooltip;
+            //personal_skin.snappingIconOn.tooltip	= snappingOnTooltip;
 
-			var skin2 = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
+            var skin2 = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
 			personal_skin.messageStyle = new GUIStyle(skin2.textArea);
 			personal_skin.messageWarningStyle = new GUIStyle(personal_skin.messageStyle);
 
@@ -612,6 +632,7 @@ namespace RealtimeCSG
 			var path = "Assets/Plugins/RealtimeCSG/Editor/Resources/Icons/" + name + ".png";
 #endif
 			var image = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            Debug.Assert(image, "Could not find image at " + path);
 			return new GUIContent(image);
 		}
 

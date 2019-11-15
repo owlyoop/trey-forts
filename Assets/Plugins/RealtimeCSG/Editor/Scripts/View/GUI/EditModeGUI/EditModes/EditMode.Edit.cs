@@ -1665,8 +1665,7 @@ namespace RealtimeCSG
 			if (!found)
 				return;
 
-			var toggleSnapping = SelectionUtility.IsSnappingToggled;
-			var doSnapping = RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
+			var activeSnapMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
 			Vector3 projectedPoint;
 			switch (chamferMode)
 			{
@@ -1678,22 +1677,50 @@ namespace RealtimeCSG
 				{
 					projectedPoint = chamferVertex;
 
-					if (doSnapping)
-					{
-						chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.SnapDeltaToGrid(intersection - projectedPoint, new Vector3[] { intersection });//, snapToSelf: true);
-					} else
-						chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.HandleLockedAxi(intersection - projectedPoint);
+                    switch (activeSnapMode)
+                    {
+                        case SnapMode.GridSnapping:
+                        {
+                            chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.SnapDeltaToGrid(intersection - projectedPoint, new Vector3[] { intersection });//, snapToSelf: true);
+                            break;
+                        }
+                        case SnapMode.RelativeSnapping:
+                        {
+                            chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.SnapDeltaRelative(intersection - projectedPoint);
+                            break;
+                        }
+                        default:
+                        case SnapMode.None:
+                        {
+                            chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.HandleLockedAxi(intersection - projectedPoint);
+                            break;
+                        }
+                    }
 					break;
 				}
 				case ChamferMode.Edge:
 				{
 					projectedPoint = GeometryUtility.ProjectPointOnInfiniteLine(intersection, chamferEdgePoints[0], chamferDirection);
 
-					if (doSnapping)
-					{
-						chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.SnapDeltaToGrid(intersection - projectedPoint, new Vector3[] { intersection });//, snapToSelf: true);
-					} else
-						chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.HandleLockedAxi(intersection - projectedPoint);
+                    switch (activeSnapMode)
+                    {
+                        case SnapMode.GridSnapping:
+                        {
+                            chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.SnapDeltaToGrid(intersection - projectedPoint, new Vector3[] { intersection });//, snapToSelf: true);
+                            break;
+                        }
+                        case SnapMode.RelativeSnapping:
+                        {
+                            chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.SnapDeltaRelative(intersection - projectedPoint);
+                            break;
+                        }
+                        default:
+                        case SnapMode.None:
+                        {
+                            chamferIntersectionPoint = intersection + RealtimeCSG.CSGGrid.HandleLockedAxi(intersection - projectedPoint);
+                            break;
+                        }
+                    }
 
 					projectedPoint = GeometryUtility.ProjectPointOnInfiniteLine(chamferIntersectionPoint, chamferEdgePoints[0], chamferDirection);
 					break;
@@ -2766,17 +2793,29 @@ namespace RealtimeCSG
 										}
 						
 										// try to snap selected points against non-selected points
-										var doSnapping = CSGSettings.SnapToGrid ^ SelectionUtility.IsSnappingToggled;
-										if (doSnapping)
-										{
-											var worldPoints = _brushSelection.GetSelectedWorldPoints(useBackupPoints: true);
-											//for (int i = 0; i < worldPoints.Length; i++)
-											//	worldPoints[i] = GeometryUtility.ProjectPointOnPlane(movePlane, worldPoints[i]);// - center));
-											_worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToGrid(_worldDeltaMovement, worldPoints, snapToSelf: true);
-										} else
-										{
-											_worldDeltaMovement = RealtimeCSG.CSGGrid.HandleLockedAxi(_worldDeltaMovement);
-										}
+										var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+                                        switch (activeSnappingMode)
+                                        {
+                                            case SnapMode.GridSnapping:
+                                            {
+                                                var worldPoints = _brushSelection.GetSelectedWorldPoints(useBackupPoints: true);
+                                                //for (int i = 0; i < worldPoints.Length; i++)
+                                                //	worldPoints[i] = GeometryUtility.ProjectPointOnPlane(movePlane, worldPoints[i]);// - center));
+                                                _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToGrid(_worldDeltaMovement, worldPoints, snapToSelf: true);
+                                                break;
+                                            }
+                                            case SnapMode.RelativeSnapping:
+                                            {
+                                                _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaRelative(_worldDeltaMovement);
+                                                break;
+                                            }
+                                            default:
+                                            case SnapMode.None:
+                                            {
+                                                _worldDeltaMovement = RealtimeCSG.CSGGrid.HandleLockedAxi(_worldDeltaMovement);
+                                                break;
+                                            }
+                                        }
 
 										DoMoveControlPoints(_worldDeltaMovement);
 										CenterPositionHandle();
@@ -2882,8 +2921,7 @@ namespace RealtimeCSG
 											var newMousePos = _rotatePlane.RayIntersection(ray);
 
 											_rotateCurrentAngle = GeometryUtility.SignedAngle(_rotateCenter - _rotateStart, _rotateCenter - newMousePos, _rotateNormal);
-											_rotateCurrentSnappedAngle = GridUtility.SnappedAngle(_rotateCurrentAngle - _rotateStartAngle,
-																									SelectionUtility.IsSnappingToggled) + _rotateStartAngle;
+											_rotateCurrentSnappedAngle = GridUtility.SnappedAngle(_rotateCurrentAngle - _rotateStartAngle) + _rotateStartAngle;
 												
 											DoRotateBrushes(_rotateCenter, _rotateNormal, _rotateCurrentSnappedAngle - _rotateStartAngle);
 											CSG_EditorGUIUtility.UpdateSceneViews();
@@ -2978,17 +3016,29 @@ namespace RealtimeCSG
 										}
 			
 										// try to snap selected points against non-selected points
-										var doSnapping = CSGSettings.SnapToGrid ^ SelectionUtility.IsSnappingToggled;
-										if (doSnapping)
-										{
-											var worldPoints = _handleWorldPoints;
-											//for (int i = 0; i < worldPoints.Length; i++)
-											//	worldPoints[i] = GeometryUtility.ProjectPointOnPlane(movePlane, worldPoints[i]);// - center));
-											_worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToGrid(_worldDeltaMovement, worldPoints, snapToSelf: true);
-										} else
-										{
-											_worldDeltaMovement = RealtimeCSG.CSGGrid.HandleLockedAxi(_worldDeltaMovement);
-										}
+										var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+                                        switch (activeSnappingMode)
+                                        {
+                                            case SnapMode.GridSnapping:
+                                            {
+                                                var worldPoints = _handleWorldPoints;
+                                                //for (int i = 0; i < worldPoints.Length; i++)
+                                                //	worldPoints[i] = GeometryUtility.ProjectPointOnPlane(movePlane, worldPoints[i]);// - center));
+                                                _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToGrid(_worldDeltaMovement, worldPoints, snapToSelf: true);
+                                                break;
+                                            }
+                                            case SnapMode.RelativeSnapping:
+                                            {
+                                                _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaRelative(_worldDeltaMovement);
+                                                break;
+                                            }
+                                            default:
+                                            case SnapMode.None:
+                                            {
+                                                _worldDeltaMovement = RealtimeCSG.CSGGrid.HandleLockedAxi(_worldDeltaMovement);
+                                                break;
+                                            }
+                                        }
 
 										if (Tools.current == Tool.Move)
 										{
@@ -3197,25 +3247,45 @@ namespace RealtimeCSG
 										}
 
 										// try to snap selected points against non-selected points
-										var doSnapping = CSGSettings.SnapToGrid ^ SelectionUtility.IsSnappingToggled;
-										if (doSnapping)
-										{
-											var worldPoints = _brushSelection.GetSelectedWorldPoints(useBackupPoints: true);
-											if (_movePlaneInNormalDirection && _editMode != EditMode.ScalePolygon)
-											{
-												var worldLineOrg	= _movePolygonOrigin;
-												var worldLineDir	= _movePolygonDirection;
-												_worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToRay(new Ray(worldLineOrg, worldLineDir), _worldDeltaMovement, worldPoints);
-											} else
-											{
-												//for (int i = 0; i < worldPoints.Length; i++)
-												//	worldPoints[i] = GeometryUtility.ProjectPointOnPlane(movePlane, worldPoints[i]);// - center));
-												_worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToGrid(_worldDeltaMovement, worldPoints, snapToSelf: true);
-											}
-										} else
-										{
-											_worldDeltaMovement = RealtimeCSG.CSGGrid.HandleLockedAxi(_worldDeltaMovement);
-										}
+										var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+                                        switch (activeSnappingMode)
+                                        {
+                                            case SnapMode.GridSnapping:
+                                            {
+                                                var worldPoints = _brushSelection.GetSelectedWorldPoints(useBackupPoints: true);
+                                                if (_movePlaneInNormalDirection && _editMode != EditMode.ScalePolygon)
+                                                {
+                                                    var worldLineOrg = _movePolygonOrigin;
+                                                    var worldLineDir = _movePolygonDirection;
+                                                    _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToRayGrid(new Ray(worldLineOrg, worldLineDir), _worldDeltaMovement, worldPoints);
+                                                } else
+                                                {
+                                                    //for (int i = 0; i < worldPoints.Length; i++)
+                                                    //	worldPoints[i] = GeometryUtility.ProjectPointOnPlane(movePlane, worldPoints[i]);// - center));
+                                                    _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToGrid(_worldDeltaMovement, worldPoints, snapToSelf: true);
+                                                }
+                                                break;
+                                            }
+                                            case SnapMode.RelativeSnapping:
+                                            {
+                                                if (_movePlaneInNormalDirection && _editMode != EditMode.ScalePolygon)
+                                                {
+                                                    var worldLineOrg = _movePolygonOrigin;
+                                                    var worldLineDir = _movePolygonDirection;
+                                                    _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaToRayRelative(new Ray(worldLineOrg, worldLineDir), _worldDeltaMovement);
+                                                } else
+                                                {
+                                                    _worldDeltaMovement = RealtimeCSG.CSGGrid.SnapDeltaRelative(_worldDeltaMovement);
+                                                }
+                                                break;
+                                            }
+                                            default:
+                                            case SnapMode.None:
+                                            {
+                                                _worldDeltaMovement = RealtimeCSG.CSGGrid.HandleLockedAxi(_worldDeltaMovement);
+                                                break;
+                                            }
+                                        }
 
 										switch (_editMode)
 										{

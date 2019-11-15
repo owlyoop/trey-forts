@@ -26,7 +26,7 @@ public class UIManager : MonoBehaviourPunCallbacks
 	public Text ammoInClip;
 	public Text ammoAmount;
 	public Text dollar;
-	public Image radialReload;
+    public RadialReload radialReload;
 
 
 
@@ -34,6 +34,7 @@ public class UIManager : MonoBehaviourPunCallbacks
 	public RectTransform healthBarBackground;
 
 	public GameObject currentWeaponSlots;
+    public GameObject currentAbilitySlots;
 
 	public bool hasUnlockedMouseUIEnabled;
 
@@ -268,6 +269,7 @@ public class UIManager : MonoBehaviourPunCallbacks
 			{
 				currentWeaponSlots.SetActive(true);
 				currentWeaponSlots.GetComponent<CurrentWeaponSlotsUI>().AddSlots();
+                currentAbilitySlots.GetComponent<CurrentAbilitiesUI>().AddSlots();
 				healthBar.gameObject.SetActive(true);
 				healthBarBackground.gameObject.SetActive(true);
 				healthText.enabled = true;

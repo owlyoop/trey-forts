@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1244854492849641100}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap pos bottom
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -39,7 +39,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7105720279556674546}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap pos left
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -60,6 +60,36 @@ Transform:
   m_Father: {fileID: 8326894151754660478}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4431440052223605348
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4721874102814329120}
+  m_Layer: 17
+  m_Name: snap pos front
+  m_TagString: Untagged
+  m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4721874102814329120
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4431440052223605348}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 8326894151754660478}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4759425423402656112
 GameObject:
   m_ObjectHideFlags: 0
@@ -69,7 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8909345242006420960}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap pos top
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -101,7 +131,9 @@ GameObject:
   - component: {fileID: 8326894151754660478}
   - component: {fileID: 8295487366649299657}
   - component: {fileID: 919566813077801669}
-  m_Layer: 0
+  - component: {fileID: 6973042372926578018}
+  - component: {fileID: 5748529151836760043}
+  m_Layer: 17
   m_Name: Concrete Block Prop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -125,6 +157,8 @@ Transform:
   - {fileID: 8909345242006420960}
   - {fileID: 7105720279556674546}
   - {fileID: 4569265876649847709}
+  - {fileID: 4721874102814329120}
+  - {fileID: 4631785992128713070}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -150,10 +184,16 @@ MonoBehaviour:
   snapPositionLeft: {fileID: 7105720279556674546}
   snapPositionRight: {fileID: 4569265876649847709}
   snapPositionTop: {fileID: 8909345242006420960}
+  snapPositionFront: {fileID: 4721874102814329120}
+  snapPositionBack: {fileID: 4631785992128713070}
   defaultMat: {fileID: -3033667219593020291, guid: f9d5c17dffda619418c9c0196567f6db,
     type: 3}
   placementModeMat: {fileID: 2100000, guid: 07a467bc599441f4b9e72f271721edf9, type: 2}
-  col: {fileID: 4917953703214807053}
+  buildTimeMat: {fileID: 2100000, guid: d95cc7fa09eb0ed419967bb5f9e91ffa, type: 2}
+  CanRotateX: 1
+  CanRotateY: 1
+  cols:
+  - {fileID: 6973042372926578018}
   rend: {fileID: 5475244960851407528}
 --- !u!54 &919566813077801669
 Rigidbody:
@@ -168,9 +208,35 @@ Rigidbody:
   m_AngularDrag: 0.05
   m_UseGravity: 0
   m_IsKinematic: 1
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 126
   m_CollisionDetection: 0
+--- !u!65 &6973042372926578018
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6767341060917077385}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1.98, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5748529151836760043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6767341060917077385}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e44b5a6b67ebead46bc02bde555783fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PropRigidbody: {fileID: 919566813077801669}
 --- !u!1 &7109820374481565703
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,7 +246,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4569265876649847709}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: snap pos right
   m_TagString: Untagged
   m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
@@ -210,8 +276,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7523485420297131246}
-  - component: {fileID: 4917953703214807053}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -232,19 +297,36 @@ Transform:
   m_Father: {fileID: 8326894151754660478}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!65 &4917953703214807053
-BoxCollider:
+--- !u!1 &8835618073565810602
+GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8416014791378807537}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Size: {x: 0.98, y: 0.98, z: 1.98}
-  m_Center: {x: 0, y: 0, z: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4631785992128713070}
+  m_Layer: 17
+  m_Name: snap pos back
+  m_TagString: Untagged
+  m_Icon: {fileID: 7866945982896999795, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4631785992128713070
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8835618073565810602}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 8326894151754660478}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1553164674026566313
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -256,6 +338,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: concrete_block
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: d1cd590e22357c64a80f447d92fc506c,
+        type: 3}
+      propertyPath: m_Layer
+      value: 17
+      objectReference: {fileID: 0}
+    - target: {fileID: 2534866581884222612, guid: d1cd590e22357c64a80f447d92fc506c,
+        type: 3}
+      propertyPath: m_Layer
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: d1cd590e22357c64a80f447d92fc506c,
         type: 3}

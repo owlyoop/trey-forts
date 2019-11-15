@@ -10,7 +10,7 @@ namespace RealtimeCSG.Helpers
 		private static Vector3 s_StartPosition;
 		private static Vector3[] s_SnapVertices;
 
-		internal static Vector3 Do(int id, Vector3 position, Vector3 direction, float size, CSGHandles.CapFunction capFunction, bool snapping, Vector3[] snapVertices, CSGHandles.InitFunction initFunction = null, CSGHandles.InitFunction shutdownFunction = null)
+		internal static Vector3 Do(int id, Vector3 position, Vector3 direction, float size, CSGHandles.CapFunction capFunction, SnapMode snapMode, Vector3[] snapVertices, CSGHandles.InitFunction initFunction = null, CSGHandles.InitFunction shutdownFunction = null)
 		{
 			var evt = Event.current;
 			switch (evt.GetTypeForControl(id))
@@ -59,12 +59,27 @@ namespace RealtimeCSG.Helpers
 						var worldPosition	= Handles.matrix.MultiplyPoint(s_StartPosition) + (worldDirection * dist);
 						position			= Handles.inverseMatrix.MultiplyPoint(worldPosition);
 
-						if (snapping)
-						{
-							var delta = RealtimeCSG.CSGGrid.SnapDeltaToGrid(position - s_StartPosition, s_SnapVertices, snapToGridPlane: false, snapToSelf: true);
-							position = delta + s_StartPosition;
-						} else
-							position = RealtimeCSG.CSGGrid.HandleLockedAxi(position - s_StartPosition) + s_StartPosition;
+                        switch(snapMode)
+                        {
+                            case SnapMode.GridSnapping:
+                            {
+                                var delta = RealtimeCSG.CSGGrid.SnapDeltaToGrid(position - s_StartPosition, s_SnapVertices, snapToGridPlane: false, snapToSelf: true);
+                                position = delta + s_StartPosition;
+                                break;
+                            }
+                            case SnapMode.RelativeSnapping:
+                            {
+                                var delta = RealtimeCSG.CSGGrid.SnapDeltaRelative(position - s_StartPosition, snapToGridPlane: false);
+                                position = delta + s_StartPosition;
+                                break;
+                            }
+                            default:
+                            case SnapMode.None:
+                            {
+                                position = RealtimeCSG.CSGGrid.HandleLockedAxi(position - s_StartPosition) + s_StartPosition;
+                                break;
+                            }
+                        }
 						
 						GUI.changed = true;
 						evt.Use();

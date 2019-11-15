@@ -101,8 +101,8 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		playerInputs.Jump = Input.GetKey(KeyCode.Space);
 		playerInputs.Crouch = Input.GetKey(KeyCode.C);
 
-		playerInputs.PropSpawner = Input.GetKey(KeyCode.T);
-		playerInputs.PropMover = Input.GetKey(KeyCode.G);
+		playerInputs.PropSpawner = Input.GetKeyDown(KeyCode.T);
+		playerInputs.PropMover = Input.GetKeyDown(KeyCode.G);
 
 		playerInputs.Interact = Input.GetKeyDown(KeyCode.E);
 		playerInputs.InteractHeld = Input.GetKey(KeyCode.E);
@@ -236,9 +236,24 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		{
 			if (wep != null && playerStats.isAlive)
 			{
-				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
-				playerWeapons.SwitchToPropSpawner();
-				playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchToWeapon();
+                if (playerWeapons.propWepSlots[0].activeSelf)
+                {
+                    if (mainUI.propSpawnMenu.activeSelf)
+                    {
+                        mainUI.PropSpawnMenuSetActive(false);
+                    }
+                    else
+                    {
+                        mainUI.PropSpawnMenuSetActive(true);
+                    }
+                }
+                else
+                {
+                    playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+                    playerWeapons.SwitchToPropSpawner();
+                    playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchToWeapon();
+                }
+
 			}
 		}
 
@@ -258,22 +273,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		{
 			if (wep != null && playerStats.isAlive)
 			{
-				if (playerWeapons.propWepSlots[0].activeSelf)
-				{
-					if (mainUI.propSpawnMenu.activeSelf)
-					{
-						mainUI.PropSpawnMenuSetActive(false);
-					}
-					else
-					{
-						mainUI.PropSpawnMenuSetActive(true);
-					}
-				}
-                else
-                {
-                    playerWeapons.ActivateAbility(0);
-                }
-                
+                playerWeapons.ActivateAbility(0);
 			}
 		}
 

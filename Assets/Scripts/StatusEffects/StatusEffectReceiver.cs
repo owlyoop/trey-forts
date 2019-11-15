@@ -9,7 +9,6 @@ public class StatusEffectReceiver : MonoBehaviour
 
 	public List<StatusEffect> CurrentStatusEffectsOnPlayer;
 
-    public int NumBarbedWiresTouching = 0;
     public int NumHitboxesTouchingBarbeds = 0;
 
 

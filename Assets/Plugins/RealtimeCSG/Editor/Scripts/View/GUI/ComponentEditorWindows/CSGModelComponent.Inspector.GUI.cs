@@ -12,8 +12,6 @@ namespace RealtimeCSG
 {
     internal sealed partial class CSGModelComponentInspectorGUI
     {
-        private static bool _showDetails = true;
-
         private class MeshData
         {
             public Int32	VertexCount;
@@ -186,7 +184,11 @@ namespace RealtimeCSG
             float? PackMargin	= models[0].packMargin;
             
             var		StaticFlags				= GameObjectUtility.GetStaticEditorFlags(models[0].gameObject);
-            bool?	GenerateLightMaps		= (StaticFlags & StaticEditorFlags.LightmapStatic) == StaticEditorFlags.LightmapStatic;
+#if UNITY_2019_2_OR_NEWER 
+            bool?	GenerateLightMaps		= (StaticFlags & StaticEditorFlags.ContributeGI) == StaticEditorFlags.ContributeGI;
+#else
+            bool? GenerateLightMaps         = (StaticFlags & StaticEditorFlags.LightmapStatic) == StaticEditorFlags.LightmapStatic;            
+#endif
             var		Settings				= models[0].Settings;
             var		VertexChannels			= models[0].VertexChannels;
 #if UNITY_2017_3_OR_NEWER
@@ -194,6 +196,9 @@ namespace RealtimeCSG
 #endif
             ExportType? ExportType			= models[0].exportType;
             OriginType? OriginType			= models[0].originType;
+#if UNITY_2019_2_OR_NEWER
+            ReceiveGI?  MeshReceiveGI		= models[0].ReceiveGI;
+#endif
             bool?	ExportColliders			= models[0].exportColliders;
 //			bool?	VertexChannelColor		= (vertexChannels & VertexChannelFlags.Color) == VertexChannelFlags.Color;
             bool?	VertexChannelTangent	= (VertexChannels & VertexChannelFlags.Tangent) == VertexChannelFlags.Tangent;
@@ -234,10 +239,17 @@ namespace RealtimeCSG
                 CookingOptions  = models[i].MeshColliderCookingOptions;
 #endif
                 var		currStaticFlags				= GameObjectUtility.GetStaticEditorFlags(models[i].gameObject);
-                var		currGenerateLightMaps		= (currStaticFlags & StaticEditorFlags.LightmapStatic) == StaticEditorFlags.LightmapStatic;
+#if UNITY_2019_2_OR_NEWER
+                var		currGenerateLightMaps		= (currStaticFlags & StaticEditorFlags.ContributeGI) == StaticEditorFlags.ContributeGI;
+#else
+                var currGenerateLightMaps           = (currStaticFlags & StaticEditorFlags.LightmapStatic) == StaticEditorFlags.LightmapStatic;
+#endif
                 ExportType currExportType			= models[i].exportType;
-                OriginType currOriginType			= models[i].originType;
-                bool	currExportColliders			= models[i].exportColliders;
+                OriginType  currOriginType			= models[i].originType;
+#if UNITY_2019_2_OR_NEWER
+                ReceiveGI   currReceiveGI           = models[i].ReceiveGI;
+#endif
+                bool currExportColliders			= models[i].exportColliders;
                 float	currAngleError				= models[i].angleError;
                 float	currAreaError				= models[i].areaError;
                 float	currHardAngle				= models[i].hardAngle;
@@ -277,6 +289,9 @@ namespace RealtimeCSG
                 
                 if (ExportType				.HasValue && ExportType				.Value != currExportType			) ExportType = null;
                 if (OriginType				.HasValue && OriginType				.Value != currOriginType			) OriginType = null;
+#if UNITY_2019_2_OR_NEWER
+                if (MeshReceiveGI           .HasValue && MeshReceiveGI          .Value != currReceiveGI             ) MeshReceiveGI = null;
+#endif
                 if (ExportColliders			.HasValue && ExportColliders		.Value != currExportColliders		) ExportColliders = null;
                 
                 if (InvertedWorld			.HasValue && InvertedWorld			.Value != currInvertedWorld			) InvertedWorld = null;
@@ -316,779 +331,432 @@ namespace RealtimeCSG
                 if (defaultPhysicsMaterial != currdefaultPhysicsMaterial) defaultPhysicsMaterialMixed = true;
             }
 
-            GUILayout.BeginVertical(GUI.skin.box);
-            {
-                EditorGUILayout.LabelField("Behaviour");
-                EditorGUI.indentLevel++;
-                {
-                    bool inverted_world = InvertedWorld.HasValue ? InvertedWorld.Value : false;
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUI.showMixedValue = !InvertedWorld.HasValue;
-                        inverted_world = EditorGUILayout.Toggle(InvertedWorldContent, inverted_world);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        for (int i = 0; i < models.Length; i++)
-                        {
-                            var model = models[i];
-                            if (inverted_world)	model.Settings |=  ModelSettingsFlags.InvertedWorld;
-                            else				model.Settings &= ~ModelSettingsFlags.InvertedWorld;
-                        }
+            var behaviourVisible    = SessionState.GetBool("CSGModel.Behaviour", true);
+            var exportVisible       = SessionState.GetBool("CSGModel.Export", true);
+            var physicsVisible      = SessionState.GetBool("CSGModel.Physics", true);
+            var renderingVisible    = SessionState.GetBool("CSGModel.Rendering", true);
+            var UVSettingsVisible   = SessionState.GetBool("CSGModel.UVSettings", true);
+            var meshAdvancedVisible = SessionState.GetBool("CSGModel.MeshAdvanced", true);
+            var statisticsVisible   = SessionState.GetBool("CSGModel.Statistics", true);
 
-                        GUI.changed = true;
-                        InvertedWorld = inverted_world;
-                    }
-                }
-                EditorGUI.indentLevel--;
-            }
-            GUILayout.EndVertical();
-            if (models != null && models.Length == 1)
-            {
-                GUILayout.Space(10);
-                GUILayout.BeginVertical(GUI.skin.box);
-                {
-                    EditorGUILayout.LabelField(ExportLabel);
-                    {
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.Space(20);
-                            EditorGUI.BeginChangeCheck();
-                            {
-                                EditorGUI.showMixedValue = !OriginType.HasValue;
-                                OriginType = (OriginType)EditorGUILayout.EnumPopup(ExportOriginLabel, OriginType ?? Components.OriginType.ModelCenter, popupStyle);
-                                EditorGUI.showMixedValue = false;
-                            }
-                            if (EditorGUI.EndChangeCheck() && OriginType.HasValue)
-                            {
-                                for (int i = 0; i < models.Length; i++)
-                                {
-                                    models[i].originType = OriginType.Value;
-                                }
-                            }
-                        }
-                        GUILayout.EndHorizontal();
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.Space(20);
-                            var exportColliderToggle = ExportColliders ?? true;
-                            EditorGUI.BeginChangeCheck();
-                            {
-                                EditorGUI.showMixedValue = !OriginType.HasValue;
-                                exportColliderToggle = EditorGUILayout.Toggle(ExportColliderLabel, exportColliderToggle);
-                                EditorGUI.showMixedValue = false;
-                            }
-                            if (EditorGUI.EndChangeCheck() && OriginType.HasValue)
-                            {
-                                for (int i = 0; i < models.Length; i++)
-                                {
-                                    models[i].exportColliders = exportColliderToggle;
-                                }
-                                ExportColliders = exportColliderToggle;
-                            }
-                        }
-                        GUILayout.EndHorizontal();
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.Space(20);
-                            EditorGUI.BeginDisabledGroup(!ExportType.HasValue);
-                            {
-                                if (EditModeCommonGUI.IndentableButton(ExportToButtonLabel) && ExportType.HasValue)
-                                {
-#if !EVALUATION
-                                    MeshInstanceManager.Export(models[0], ExportType.Value, ExportColliders ?? true);
-#else
-                                    Debug.LogWarning("Export is disabled in evaluation version");
-#endif
-                                }
-                            }
-                            EditorGUI.EndDisabledGroup();
-                            EditorGUI.BeginChangeCheck();
-                            {
-                                EditorGUI.showMixedValue = !ExportType.HasValue;
-                                ExportType = (ExportType)EditorGUILayout.EnumPopup(ExportType ?? Components.ExportType.FBX, popupStyle);
-                                EditorGUI.showMixedValue = false;
-                            }
-                            if (EditorGUI.EndChangeCheck() && ExportType.HasValue)
-                            {
-                                for (int i = 0; i < models.Length; i++)
-                                {
-                                    models[i].exportType = ExportType.Value;
-                                }
-                            }
-                        }
-                        GUILayout.EndHorizontal();
-                    }
-                }
-                GUILayout.EndVertical();
-            }
-            GUILayout.Space(10);
             GUILayout.BeginVertical(GUI.skin.box);
             {
-                EditorGUILayout.LabelField("Physics");
-                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                behaviourVisible = EditorGUILayout.Foldout(behaviourVisible, "Behaviour");
+                if (EditorGUI.EndChangeCheck())
+                    SessionState.SetBool("CSGModel.Behaviour", behaviourVisible);
+                if (behaviourVisible)
                 { 
-                    bool collider_value = NoCollider.HasValue ? NoCollider.Value : false;
-                    EditorGUI.BeginChangeCheck();
+                    EditorGUI.indentLevel++;
                     {
-                        EditorGUI.showMixedValue = !NoCollider.HasValue;
-                        collider_value = !EditorGUILayout.Toggle(GenerateColliderContent, !collider_value);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        for (int i = 0; i < models.Length; i++)
-                        {
-                            var model = models[i];
-                            if (collider_value)	model.Settings |=  ModelSettingsFlags.NoCollider;
-                            else				model.Settings &= ~ModelSettingsFlags.NoCollider;
-                        }
-                        GUI.changed = true;
-                        NoCollider = collider_value;
-                        updateMeshes = true;
-                    }
-                }
-                var have_no_collider = NoCollider.HasValue && NoCollider.Value;
-                EditorGUI.BeginDisabledGroup(have_no_collider);
-                {
-                    bool trigger_value_mixed = have_no_collider ? true : !IsTrigger.HasValue;
-                    bool trigger_value = IsTrigger.HasValue ? IsTrigger.Value : false;
-                    {
+                        bool inverted_world = InvertedWorld.HasValue ? InvertedWorld.Value : false;
                         EditorGUI.BeginChangeCheck();
                         {
-                            EditorGUI.showMixedValue = trigger_value_mixed;
-                            trigger_value = EditorGUILayout.Toggle(ModelIsTriggerContent, trigger_value);
+                            EditorGUI.showMixedValue = !InvertedWorld.HasValue;
+                            inverted_world = EditorGUILayout.Toggle(InvertedWorldContent, inverted_world);
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
                             for (int i = 0; i < models.Length; i++)
                             {
                                 var model = models[i];
-                                if (trigger_value)	model.Settings |= ModelSettingsFlags.IsTrigger;
-                                else				model.Settings &= ~ModelSettingsFlags.IsTrigger;
+                                if (inverted_world)	model.Settings |=  ModelSettingsFlags.InvertedWorld;
+                                else				model.Settings &= ~ModelSettingsFlags.InvertedWorld;
                             }
+
                             GUI.changed = true;
-                            IsTrigger = trigger_value;
-                            updateMeshes = true;
+                            InvertedWorld = inverted_world;
                         }
                     }
-                    bool set_convex_value_mixed = have_no_collider ? true : !SetToConvex.HasValue;
-                    bool set_convex_value = have_no_collider ? false : (SetToConvex.HasValue ? SetToConvex.Value : false);
-                    { 
-                        EditorGUI.BeginChangeCheck();
-                        {
-                            EditorGUI.showMixedValue = set_convex_value_mixed;
-                            var prevColor = GUI.color;
-                            if (!set_convex_value && trigger_value)
-                            {
-                                var color = new Color(1, 0.25f, 0.25f);
-                                GUI.color = color;
-                            }
-                            set_convex_value = EditorGUILayout.Toggle(ColliderSetToConvexContent, set_convex_value);
-                            GUI.color = prevColor;
-                        }
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            for (int i = 0; i < models.Length; i++)
-                            {
-                                if (set_convex_value) models[i].Settings |=  ModelSettingsFlags.SetColliderConvex;
-                                else				  models[i].Settings &= ~ModelSettingsFlags.SetColliderConvex;
-                            }
-                            GUI.changed = true;
-                            SetToConvex = set_convex_value;
-                            updateMeshes = true;
-                        }
-                    }
-                    {
-                        EditorGUI.BeginChangeCheck();
-                        {
-                            EditorGUI.showMixedValue = defaultPhysicsMaterialMixed;
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.PrefixLabel(DefaultPhysicsMaterialContent);
-                            defaultPhysicsMaterial = EditorGUILayout.ObjectField(defaultPhysicsMaterial, typeof(PhysicMaterial), true) as PhysicMaterial;
-                            GUILayout.EndHorizontal();
-                        }
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            for (int i = 0; i < models.Length; i++)
-                            {
-                                models[i].DefaultPhysicsMaterial = defaultPhysicsMaterial;
-                            }
-                            GUI.changed = true;
-                            //MeshInstanceManager.Clear();
-                            updateMeshes = true;
-                        }
-                    }
-                    if (!have_no_collider && !set_convex_value && trigger_value)
-                    {
-                        var prevColor = GUI.color;
-                        var color = new Color(1, 0.25f, 0.25f);
-                        GUI.color = color;
-                        GUILayout.Label("Warning:\r\nFor performance reasons colliders need to\r\nbe convex!");
-                    
-                        GUI.color = prevColor;
-                    }
+                    EditorGUI.indentLevel--;
                 }
-                EditorGUI.EndDisabledGroup();
-                {
-                    bool autoRigidbody = (AutoGenerateRigidBody.HasValue ? AutoGenerateRigidBody.Value : false);
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUI.showMixedValue = !AutoGenerateRigidBody.HasValue;
-                        autoRigidbody = !EditorGUILayout.Toggle(ColliderAutoRigidBodyContent, !autoRigidbody);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        for (int i = 0; i < models.Length; i++)
-                        {
-                            if (autoRigidbody) models[i].Settings |= ModelSettingsFlags.AutoUpdateRigidBody;
-                            else models[i].Settings &= ~ModelSettingsFlags.AutoUpdateRigidBody;
-                        }
-                        GUI.changed = true;
-                        AutoGenerateRigidBody = autoRigidbody;
-                    }
-                }
-                EditorGUI.indentLevel--;
             }
             GUILayout.EndVertical();
-            GUILayout.Space(10);
-            GUILayout.BeginVertical(GUI.skin.box);
-            {
-                //ShadowCastingMode shadowcastingValue = ShadowCastingMode.HasValue ? ShadowCastingMode.Value : UnityEngine.Rendering.ShadowCastingMode.On;
-                //var castOnlyShadow = (shadowcastingValue == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly);
-                EditorGUILayout.LabelField("Rendering");
-                EditorGUI.indentLevel++;
-                //EditorGUI.BeginDisabledGroup(castOnlyShadow);
-                { 
-                    bool donotrender_value = //castOnlyShadow ? true : 
-                                                (DoNotRender.HasValue ? DoNotRender.Value : false);
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUI.showMixedValue = //castOnlyShadow ? true : 
-                                                    !DoNotRender.HasValue;
-                        donotrender_value = EditorGUILayout.Toggle(DoNotRenderContent, donotrender_value);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        for (int i = 0; i < models.Length; i++)
-                        {
-                            var model = models[i];
-                            if (donotrender_value) model.Settings |=  ModelSettingsFlags.DoNotRender;
-                            else				   model.Settings &= ~ModelSettingsFlags.DoNotRender;
-                        }
-                        GUI.changed = true;
-                        DoNotRender = donotrender_value;
-                        updateMeshes = true;
-                    }
-                }
-                //EditorGUI.EndDisabledGroup();
-                {
-                    bool two_sided_shadows_value = //castOnlyShadow ? true : 
-                                                    (TwoSidedShadows.HasValue ? TwoSidedShadows.Value : false);
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUI.showMixedValue = //castOnlyShadow ? true : 
-                                                    !TwoSidedShadows.HasValue;
-                        two_sided_shadows_value = EditorGUILayout.Toggle(TwoSidedShadowsContent, two_sided_shadows_value);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        for (int i = 0; i < models.Length; i++)
-                        {
-                            var model = models[i];
-                            if (two_sided_shadows_value) model.Settings |= ModelSettingsFlags.TwoSidedShadows;
-                            else model.Settings &= ~ModelSettingsFlags.TwoSidedShadows;
-                        }
-                        GUI.changed = true;
-                        TwoSidedShadows = two_sided_shadows_value;
-                        updateMeshes = true;
-                    }
-                }
+            if (behaviourVisible)
                 GUILayout.Space(10);
-                /*
-                EditorGUI.BeginDisabledGroup(DoNotRender.HasValue && DoNotRender.Value);
+            if (models != null && models.Length == 1)
+            {
+                GUILayout.BeginVertical(GUI.skin.box);
                 {
                     EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUI.showMixedValue = !ShadowCastingMode.HasValue;						
-                        shadowcastingValue = (ShadowCastingMode)EditorGUILayout.EnumPopup(CastShadows, shadowcastingValue);
-                    }
+                    exportVisible = EditorGUILayout.Foldout(exportVisible, ExportLabel);
                     if (EditorGUI.EndChangeCheck())
+                        SessionState.SetBool("CSGModel.Export", exportVisible);
+                    if (exportVisible)
                     {
-                        for (int i = 0; i < models.Length; i++)
                         {
-                            settings = models[i].Settings;
-                            settings &= ~ModelSettingsFlags.ShadowCastingModeFlags;
-                            settings |= (ModelSettingsFlags)(((int)shadowcastingValue) & (int)ModelSettingsFlags.ShadowCastingModeFlags);
-                            models[i].Settings = settings;
-                        }
-                        GUI.changed = true;
-                        ShadowCastingMode = shadowcastingValue;
-                        updateMeshes = true;
-                    }
-
-                    var isUsingDeferredRenderingPath = false;//IsUsingDeferredRenderingPath();
-                    EditorGUI.BeginDisabledGroup(castOnlyShadow || isUsingDeferredRenderingPath);
-                    {
-                        var receiveshadowsValue = !castOnlyShadow && (isUsingDeferredRenderingPath || (ReceiveShadows ?? false));
-                        EditorGUI.BeginChangeCheck();
-                        {
-                            EditorGUI.showMixedValue = (castOnlyShadow || !ReceiveShadows.HasValue) && !isUsingDeferredRenderingPath;
-                            receiveshadowsValue = EditorGUILayout.Toggle(CSGModelComponentInspectorGUI.ReceiveShadowsContent, receiveshadowsValue || isUsingDeferredRenderingPath);
-                        }
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            for (int i = 0; i < models.Length; i++)
+                            GUILayout.BeginHorizontal();
                             {
-                                if (receiveshadowsValue) models[i].Settings &= ~ModelSettingsFlags.DoNotReceiveShadows;
-                                else                     models[i].Settings |=  ModelSettingsFlags.DoNotReceiveShadows;	
-                            }
-                            GUI.changed = true;
-                            ReceiveShadows = receiveshadowsValue;
-                        }
-                    }
-                    EditorGUI.EndDisabledGroup();
-                }
-                EditorGUI.EndDisabledGroup();*/
-
-                //EditorGUI.BeginDisabledGroup(castOnlyShadow);
-                EditorGUI.showMixedValue = false;
-                UpdateTargets(models);
-                if (_probesInstance != null &&
-                    _probesOnGUIMethod != null && 
-                    _probesTargets != null &&
-                    _probesSerializedObject != null &&
-                    _probesInitialized)
-                {
-                    GUILayout.Space(10);
-                    try
-                    {
-#if UNITY_5_6_OR_NEWER
-                        _probesSerializedObject.UpdateIfRequiredOrScript();
-#else
-                        _probesSerializedObject.UpdateIfDirtyOrScript();
-#endif
-                        _probesOnGUIMethod.Invoke(_probesInstance, new System.Object[] { _probesTargets, (Renderer)_probesTargets[0], false });
-                        _probesSerializedObject.ApplyModifiedProperties();
-                    }
-                    catch { }
-                }
-                //EditorGUI.EndDisabledGroup();
-                EditorGUI.indentLevel--;
-            }
-            GUILayout.EndVertical();
-            GUILayout.Space(10);
-            GUILayout.BeginVertical(GUI.skin.box);
-            {
-                EditorGUILayout.LabelField("UV Settings");
-                EditorGUI.indentLevel++;
-                {
-                    if (DoNotRender.HasValue && DoNotRender.Value)
-                    {
-                        var prevColor = GUI.color;
-                        var color = new Color(1, 0.25f, 0.25f);
-                        GUI.color = color;
-                        EditorGUILayout.LabelField("Rendering is disabled");
-                        GUI.color = prevColor;
-                    } else
-                    {	
-                        bool enable = !GenerateLightMaps.HasValue || (GenerateLightMaps.HasValue && !GenerateLightMaps.Value);
-                        var enableOrDisableButtonText = !GenerateLightMaps.HasValue ?
-                                                            EnableLightmapsForAllContent : 
-                                                            (!GenerateLightMaps.Value ? EnableLightmapsContent : DisableLightmapsContent);
-                        if (EditModeCommonGUI.IndentableButton(enableOrDisableButtonText))
-                        {
-                            for (int i = 0; i < models.Length; i++)
-                            {
-                                var	oldStaticFlags	= GameObjectUtility.GetStaticEditorFlags(models[i].gameObject);
-                                StaticEditorFlags newStaticFlags;
-                                if (enable)
-                                    newStaticFlags = oldStaticFlags | StaticEditorFlags.LightmapStatic;
-                                else
-                                    newStaticFlags = oldStaticFlags & ~StaticEditorFlags.LightmapStatic;
-                                if (oldStaticFlags != newStaticFlags)
-                                {
-                                    GameObjectUtility.SetStaticEditorFlags(models[i].gameObject, newStaticFlags);
-                                    MeshInstanceManager.ClearUVs(models[i]);
-                                }
-                            }
-                        }
-                                            
-                        if (!GenerateLightMaps.HasValue || (GenerateLightMaps.HasValue && GenerateLightMaps.Value))
-                        {
-                            if (!DoNotRender.HasValue)
-                            {
-                                var prevColor = GUI.color;
-                                var color = new Color(1, 0.25f, 0.25f);
-                                GUI.color = color;
-                                EditorGUILayout.LabelField("Not all models have their rendering enabled");
-                                GUI.color = prevColor;
-                            }
-                            
-                            EditorGUILayout.LabelField("Unity UV Generation");
-                            EditorGUI.indentLevel++;
-                            {
-                                {
-                                    var angleError = AngleError ?? 0;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !AngleError.HasValue;
-                                        angleError = EditorGUILayout.Slider(AngleErrorContent, angleError, CSGModel.MinAngleError, CSGModel.MaxAngleError);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            models[i].angleError = angleError;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        updateMeshes = true;
-                                    }
-                                }
-                                {
-                                    var areaError = AreaError ?? 0;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !AreaError.HasValue;
-                                        areaError = EditorGUILayout.Slider(AreaErrorContent, areaError, CSGModel.MinAreaError, CSGModel.MaxAreaError);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            models[i].areaError = areaError;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        updateMeshes = true;
-                                    }
-                                }
-                                {
-                                    var hardAngle = HardAngle ?? 0;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !HardAngle.HasValue;
-                                        hardAngle = EditorGUILayout.Slider(HardAngleContent, hardAngle, 0, 360);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            models[i].hardAngle = hardAngle;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        updateMeshes = true;
-                                    }
-                                }
-                                {
-                                    var packMargin = PackMargin ?? 0;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !PackMargin.HasValue;
-                                        packMargin = EditorGUILayout.FloatField(PackMarginContent, packMargin * 1024.0f) / 1024.0f;
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            models[i].packMargin = packMargin;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        updateMeshes = true;
-                                    }
-                                }
-                                UnityEditor.UnwrapParam uvGenerationSettings;
-                                UnityEditor.UnwrapParam.SetDefaults(out uvGenerationSettings);
-
-                                if (!AngleError.HasValue || AngleError.Value	!= uvGenerationSettings.angleError ||
-                                    !AreaError .HasValue || AreaError .Value	!= uvGenerationSettings.areaError ||
-                                    !HardAngle .HasValue || HardAngle .Value	!= uvGenerationSettings.hardAngle ||
-                                    !PackMargin.HasValue || PackMargin.Value	!= uvGenerationSettings.packMargin)
-                                { 
-                                    if (EditModeCommonGUI.IndentableButton(ResetContent))
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            models[i].angleError	= uvGenerationSettings.angleError;
-                                            models[i].areaError		= uvGenerationSettings.areaError;
-                                            models[i].hardAngle		= uvGenerationSettings.hardAngle;
-                                            models[i].packMargin	= uvGenerationSettings.packMargin;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        updateMeshes = true;
-                                    }
-                                }
-                            }
-                            {
-                                var autoRebuildUvs = AutoRebuildUVs ?? false;
+                                GUILayout.Space(20);
                                 EditorGUI.BeginChangeCheck();
                                 {
-                                    EditorGUI.showMixedValue = !AutoRebuildUVs.HasValue;
-                                    autoRebuildUvs = EditorGUILayout.Toggle(AutoRebuildUVsContent, autoRebuildUvs);
+                                    EditorGUI.showMixedValue = !OriginType.HasValue;
+                                    OriginType = (OriginType)EditorGUILayout.EnumPopup(ExportOriginLabel, OriginType ?? Components.OriginType.ModelCenter, popupStyle);
+                                    EditorGUI.showMixedValue = false;
                                 }
-                                if (EditorGUI.EndChangeCheck())
+                                if (EditorGUI.EndChangeCheck() && OriginType.HasValue)
                                 {
                                     for (int i = 0; i < models.Length; i++)
                                     {
-                                        if (autoRebuildUvs)
-                                            models[i].Settings |= ModelSettingsFlags.AutoRebuildUVs;
-                                        else
-                                            models[i].Settings &= ~ModelSettingsFlags.AutoRebuildUVs;
-                                        MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                        models[i].originType = OriginType.Value;
                                     }
-                                    GUI.changed = true;
-                                    AutoRebuildUVs = autoRebuildUvs;
                                 }
                             }
-                            EditModeCommonGUI.UpdateButtons(models);
-                            EditorGUI.indentLevel--;
-                            GUILayout.Space(10);
-                            EditorGUILayout.LabelField("Unity UV Charting Control");
-                            EditorGUI.indentLevel++;
+                            GUILayout.EndHorizontal();
+                            GUILayout.BeginHorizontal();
                             {
+                                GUILayout.Space(20);
+                                var exportColliderToggle = ExportColliders ?? true;
+                                EditorGUI.BeginChangeCheck();
                                 {
-                                    var preserveUVs = PreserveUVs ?? false;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !PreserveUVs.HasValue;
-                                        preserveUVs = !EditorGUILayout.Toggle(PreserveUVsContent, !preserveUVs);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            if (preserveUVs)
-                                                models[i].Settings |= ModelSettingsFlags.PreserveUVs;
-                                            else
-                                                models[i].Settings &= ~ModelSettingsFlags.PreserveUVs;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        PreserveUVs = preserveUVs;
-                                        updateMeshes = true;
-                                    }
+                                    EditorGUI.showMixedValue = !OriginType.HasValue;
+                                    exportColliderToggle = EditorGUILayout.Toggle(ExportColliderLabel, exportColliderToggle);
+                                    EditorGUI.showMixedValue = false;
                                 }
-                                EditorGUI.indentLevel++;
-
-                                bool disabledAutoUVs = (PreserveUVs ?? false);
-                                using (new EditorGUI.DisabledScope(disabledAutoUVs))
+                                if (EditorGUI.EndChangeCheck() && OriginType.HasValue)
                                 {
+                                    for (int i = 0; i < models.Length; i++)
                                     {
-                                        var autoUVMaxDistance = AutoUVMaxDistance ?? 0.0f;
-                                        EditorGUI.BeginChangeCheck();
-                                        {
-                                            EditorGUI.showMixedValue = !AutoUVMaxDistance.HasValue;
-                                            autoUVMaxDistance = EditorGUILayout.FloatField(AutoUVMaxDistanceContent, autoUVMaxDistance);
-                                            if (autoUVMaxDistance < 0.0f)
-                                                autoUVMaxDistance = 0.0f;
-                                        }
-                                        if (EditorGUI.EndChangeCheck())
-                                        {
-                                            for (int i = 0; i < models.Length; i++)
-                                            {
-                                                models[i].autoUVMaxDistance = autoUVMaxDistance;
-                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                            }
-                                            GUI.changed = true;
-                                            updateMeshes = true;
-                                        }
+                                        models[i].exportColliders = exportColliderToggle;
                                     }
-                                    {
-                                        var autoUVMaxAngle = AutoUVMaxAngle ?? 0.0f;
-                                        EditorGUI.BeginChangeCheck();
-                                        {
-                                            EditorGUI.showMixedValue = !AutoUVMaxAngle.HasValue;
-                                            autoUVMaxAngle = EditorGUILayout.Slider(AutoUVMaxAngleContent, autoUVMaxAngle, 0, 180);
-                                        }
-                                        if (EditorGUI.EndChangeCheck())
-                                        {
-                                            for (int i = 0; i < models.Length; i++)
-                                            {
-                                                models[i].autoUVMaxAngle = autoUVMaxAngle;
-                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                            }
-                                            GUI.changed = true;
-                                            updateMeshes = true;
-                                        }
-                                    }
-
-                                }
-                                EditorGUI.indentLevel--;
-                                {
-                                    var ignoreNormals = IgnoreNormals ?? false;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !IgnoreNormals.HasValue;
-                                        ignoreNormals = EditorGUILayout.Toggle(IgnoreNormalsContent, ignoreNormals);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            if (ignoreNormals)
-                                                models[i].Settings |= ModelSettingsFlags.IgnoreNormals;
-                                            else
-                                                models[i].Settings &= ~ModelSettingsFlags.IgnoreNormals;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        updateMeshes = true;
-                                    }
-                                }
-                                {
-                                    var minimumChartSize = MinimumChartSize ?? 4;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !MinimumChartSize.HasValue;
-                                        minimumChartSize = EditorGUILayout.IntPopup(MinimumChartSizeContent, minimumChartSize, MinimumChartSizeStrings, MinimumChartSizeValues);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            models[i].minimumChartSize = minimumChartSize;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        updateMeshes = true;
-                                    }
+                                    ExportColliders = exportColliderToggle;
                                 }
                             }
-                            EditorGUI.indentLevel--;
-                            GUILayout.Space(10);
-                            EditorGUILayout.LabelField("Lightmap Settings");
-                            EditorGUI.indentLevel++;
-                            { 
+                            GUILayout.EndHorizontal();
+                            GUILayout.BeginHorizontal();
+                            {
+                                GUILayout.Space(20);
+                                EditorGUI.BeginDisabledGroup(!ExportType.HasValue);
                                 {
-                                    var scaleInLightmap = ScaleInLightmap ?? 1.0f;
-                                    EditorGUI.BeginChangeCheck();
+                                    if (EditModeCommonGUI.IndentableButton(ExportToButtonLabel) && ExportType.HasValue)
                                     {
-                                        EditorGUI.showMixedValue = !ScaleInLightmap.HasValue;
-                                        scaleInLightmap = EditorGUILayout.FloatField(ScaleInLightmapContent, scaleInLightmap);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            models[i].scaleInLightmap = scaleInLightmap;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        ScaleInLightmap = scaleInLightmap;
-                                        updateMeshes = true;
-                                    }
-                                }
-
-#if UNITY_2017_2_OR_NEWER
-                                {
-                                    var stitchLightmapSeams = StitchLightmapSeams ?? false;
-                                    EditorGUI.BeginChangeCheck();
-                                    {
-                                        EditorGUI.showMixedValue = !StitchLightmapSeams.HasValue;
-                                        stitchLightmapSeams = EditorGUILayout.Toggle(StitchLightmapSeamsContent, stitchLightmapSeams);
-                                    }
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        for (int i = 0; i < models.Length; i++)
-                                        {
-                                            if (stitchLightmapSeams)
-                                                models[i].Settings |= ModelSettingsFlags.StitchLightmapSeams;
-                                            else
-                                                models[i].Settings &= ~ModelSettingsFlags.StitchLightmapSeams;
-                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
-                                        }
-                                        GUI.changed = true;
-                                        StitchLightmapSeams = stitchLightmapSeams;
-                                        updateMeshes = true;
-                                    }
-                                }
+#if !EVALUATION
+                                        MeshInstanceManager.Export(models[0], ExportType.Value, ExportColliders ?? true);
+#else
+                                        Debug.LogWarning("Export is disabled in evaluation version");
 #endif
-                                
+                                    }
+                                }
+                                EditorGUI.EndDisabledGroup();
+                                EditorGUI.BeginChangeCheck();
+                                {
+                                    EditorGUI.showMixedValue = !ExportType.HasValue;
+                                    ExportType = (ExportType)EditorGUILayout.EnumPopup(ExportType ?? Components.ExportType.FBX, popupStyle);
+                                    EditorGUI.showMixedValue = false;
+                                }
+                                if (EditorGUI.EndChangeCheck() && ExportType.HasValue)
+                                {
+                                    for (int i = 0; i < models.Length; i++)
+                                    {
+                                        models[i].exportType = ExportType.Value;
+                                    }
+                                }
                             }
-                            EditorGUI.indentLevel--;
-                            EditorGUI.indentLevel--;
-
-                            EditorGUI.indentLevel++;
+                            GUILayout.EndHorizontal();
                         }
                     }
                 }
-                EditorGUI.indentLevel--;
+                GUILayout.EndVertical();
+                if (exportVisible)
+                    GUILayout.Space(10);
             }
-            GUILayout.EndVertical();
-            GUILayout.Space(10);
             GUILayout.BeginVertical(GUI.skin.box);
             {
-                EditorGUILayout.LabelField("Mesh (advanced)");
-                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                physicsVisible = EditorGUILayout.Foldout(physicsVisible, "Physics");
+                if (EditorGUI.EndChangeCheck())
+                    SessionState.SetBool("CSGModel.Physics", physicsVisible);
+                if (physicsVisible)
                 {
-                    var showGeneratedMeshes = ShowGeneratedMeshes ?? false;
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        EditorGUI.showMixedValue = !ShowGeneratedMeshes.HasValue;
-                        showGeneratedMeshes = EditorGUILayout.Toggle(ShowGeneratedMeshesContent, showGeneratedMeshes);
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        Undo.RecordObjects(models, "Setting ShowGeneratedMeshes to " + showGeneratedMeshes);
-                        for (int i = 0; i < models.Length; i++)
-                        {
-                            models[i].ShowGeneratedMeshes = showGeneratedMeshes;
-                            MeshInstanceManager.UpdateGeneratedMeshesVisibility(models[i]);
-                        }
-                        // Workaround for unity not refreshing the hierarchy when changing hideflags
-                        EditorApplication.RepaintHierarchyWindow();
-                        EditorApplication.DirtyHierarchyWindowSorting();
-                    }
-
-#if UNITY_2017_3_OR_NEWER
-                    GUILayout.Space(10);
-                    
-                    EditorGUI.BeginDisabledGroup(NoCollider??true);
-                    EditorGUILayout.LabelField(MeshColliderCookingContent);
                     EditorGUI.indentLevel++;
                     { 
-                        var cookForFasterSimulation	    = CookForFasterSimulation   ?? false;
-                        var enableMeshCleaning	        = EnableMeshCleaning        ?? false;
-                        var weldColocatedVertices		= WeldColocatedVertices     ?? false;
+                        bool collider_value = NoCollider.HasValue ? NoCollider.Value : false;
                         EditorGUI.BeginChangeCheck();
                         {
-
-                            EditorGUI.showMixedValue = !VertexChannelTangent.HasValue;
-                            cookForFasterSimulation  = EditorGUILayout.Toggle(CookForFasterSimulationContent, cookForFasterSimulation);
-                        
-                            EditorGUI.showMixedValue = !VertexChannelNormal.HasValue;
-                            enableMeshCleaning       = EditorGUILayout.Toggle(EnableMeshCleaningContent, enableMeshCleaning);
-                        
-                            EditorGUI.showMixedValue = !VertexChannelUV0.HasValue;
-                            weldColocatedVertices    = EditorGUILayout.Toggle(WeldColocatedVerticesContent, weldColocatedVertices);
+                            EditorGUI.showMixedValue = !NoCollider.HasValue;
+                            collider_value = !EditorGUILayout.Toggle(GenerateColliderContent, !collider_value);
                         }
                         if (EditorGUI.EndChangeCheck())
                         {
                             for (int i = 0; i < models.Length; i++)
                             {
-                                var meshColliderCookingOptions = models[i].MeshColliderCookingOptions;
-                                meshColliderCookingOptions &= ~(MeshColliderCookingOptions.CookForFasterSimulation |
-                                                                MeshColliderCookingOptions.EnableMeshCleaning |
-                                                                MeshColliderCookingOptions.WeldColocatedVertices);
-                            
-                                if (cookForFasterSimulation)	meshColliderCookingOptions |= MeshColliderCookingOptions.CookForFasterSimulation;
-                                if (enableMeshCleaning)	        meshColliderCookingOptions |= MeshColliderCookingOptions.EnableMeshCleaning;
-                                if (weldColocatedVertices)		meshColliderCookingOptions |= MeshColliderCookingOptions.WeldColocatedVertices;
-                                models[i].MeshColliderCookingOptions = meshColliderCookingOptions;
+                                var model = models[i];
+                                if (collider_value)	model.Settings |=  ModelSettingsFlags.NoCollider;
+                                else				model.Settings &= ~ModelSettingsFlags.NoCollider;
                             }
                             GUI.changed = true;
+                            NoCollider = collider_value;
+                            updateMeshes = true;
+                        }
+                    }
+                    var have_no_collider = NoCollider.HasValue && NoCollider.Value;
+                    EditorGUI.BeginDisabledGroup(have_no_collider);
+                    {
+                        bool trigger_value_mixed = have_no_collider ? true : !IsTrigger.HasValue;
+                        bool trigger_value = IsTrigger.HasValue ? IsTrigger.Value : false;
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            {
+                                EditorGUI.showMixedValue = trigger_value_mixed;
+                                trigger_value = EditorGUILayout.Toggle(ModelIsTriggerContent, trigger_value);
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                for (int i = 0; i < models.Length; i++)
+                                {
+                                    var model = models[i];
+                                    if (trigger_value)	model.Settings |= ModelSettingsFlags.IsTrigger;
+                                    else				model.Settings &= ~ModelSettingsFlags.IsTrigger;
+                                }
+                                GUI.changed = true;
+                                IsTrigger = trigger_value;
+                                updateMeshes = true;
+                            }
+                        }
+                        bool set_convex_value_mixed = have_no_collider ? true : !SetToConvex.HasValue;
+                        bool set_convex_value = have_no_collider ? false : (SetToConvex.HasValue ? SetToConvex.Value : false);
+                        { 
+                            EditorGUI.BeginChangeCheck();
+                            {
+                                EditorGUI.showMixedValue = set_convex_value_mixed;
+                                var prevColor = GUI.color;
+                                if (!set_convex_value && trigger_value)
+                                {
+                                    var color = new Color(1, 0.25f, 0.25f);
+                                    GUI.color = color;
+                                }
+                                set_convex_value = EditorGUILayout.Toggle(ColliderSetToConvexContent, set_convex_value);
+                                GUI.color = prevColor;
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                for (int i = 0; i < models.Length; i++)
+                                {
+                                    if (set_convex_value) models[i].Settings |=  ModelSettingsFlags.SetColliderConvex;
+                                    else				  models[i].Settings &= ~ModelSettingsFlags.SetColliderConvex;
+                                }
+                                GUI.changed = true;
+                                SetToConvex = set_convex_value;
+                                updateMeshes = true;
+                            }
+                        }
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            {
+                                EditorGUI.showMixedValue = defaultPhysicsMaterialMixed;
+                                GUILayout.BeginHorizontal();
+                                EditorGUILayout.PrefixLabel(DefaultPhysicsMaterialContent);
+                                defaultPhysicsMaterial = EditorGUILayout.ObjectField(defaultPhysicsMaterial, typeof(PhysicMaterial), true) as PhysicMaterial;
+                                GUILayout.EndHorizontal();
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                for (int i = 0; i < models.Length; i++)
+                                {
+                                    models[i].DefaultPhysicsMaterial = defaultPhysicsMaterial;
+                                }
+                                GUI.changed = true;
+                                //MeshInstanceManager.Clear();
+                                updateMeshes = true;
+                            }
+                        }
+                        if (!have_no_collider && !set_convex_value && trigger_value)
+                        {
+                            var prevColor = GUI.color;
+                            var color = new Color(1, 0.25f, 0.25f);
+                            GUI.color = color;
+                            GUILayout.Label("Warning:\r\nFor performance reasons colliders need to\r\nbe convex!");
+                    
+                            GUI.color = prevColor;
                         }
                     }
                     EditorGUI.EndDisabledGroup();
+                    {
+                        bool autoRigidbody = (AutoGenerateRigidBody.HasValue ? AutoGenerateRigidBody.Value : false);
+                        EditorGUI.BeginChangeCheck();
+                        {
+                            EditorGUI.showMixedValue = !AutoGenerateRigidBody.HasValue;
+                            autoRigidbody = !EditorGUILayout.Toggle(ColliderAutoRigidBodyContent, !autoRigidbody);
+                        }
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            for (int i = 0; i < models.Length; i++)
+                            {
+                                if (autoRigidbody) models[i].Settings |= ModelSettingsFlags.AutoUpdateRigidBody;
+                                else models[i].Settings &= ~ModelSettingsFlags.AutoUpdateRigidBody;
+                            }
+                            GUI.changed = true;
+                            AutoGenerateRigidBody = autoRigidbody;
+                        }
+                    }
                     EditorGUI.indentLevel--;
-#endif
-                    GUILayout.Space(10);
-                    
-                    EditorGUILayout.LabelField("Used Vertex Channels");
+                }
+            }
+            GUILayout.EndVertical();
+            if (physicsVisible)
+                GUILayout.Space(10);
+            GUILayout.BeginVertical(GUI.skin.box);
+            {
+                EditorGUI.BeginChangeCheck();
+                renderingVisible = EditorGUILayout.Foldout(renderingVisible, "Rendering");
+                if (EditorGUI.EndChangeCheck())
+                    SessionState.SetBool("CSGModel.Rendering", renderingVisible);
+                if (renderingVisible)
+                {
+                    //ShadowCastingMode shadowcastingValue = ShadowCastingMode.HasValue ? ShadowCastingMode.Value : UnityEngine.Rendering.ShadowCastingMode.On;
+                    //var castOnlyShadow = (shadowcastingValue == UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly);
                     EditorGUI.indentLevel++;
+                    //EditorGUI.BeginDisabledGroup(castOnlyShadow);
+                    {
+                        bool donotrender_value = //castOnlyShadow ? true : 
+                                                    (DoNotRender.HasValue ? DoNotRender.Value : false);
+                        EditorGUI.BeginChangeCheck();
+                        {
+                            EditorGUI.showMixedValue = //castOnlyShadow ? true : 
+                                                        !DoNotRender.HasValue;
+                            donotrender_value = EditorGUILayout.Toggle(DoNotRenderContent, donotrender_value);
+                        }
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            for (int i = 0; i < models.Length; i++)
+                            {
+                                var model = models[i];
+                                if (donotrender_value) model.Settings |= ModelSettingsFlags.DoNotRender;
+                                else model.Settings &= ~ModelSettingsFlags.DoNotRender;
+                            }
+                            GUI.changed = true;
+                            DoNotRender = donotrender_value;
+                            updateMeshes = true;
+                        }
+                    }
+                    //EditorGUI.EndDisabledGroup();
+                    {
+                        bool two_sided_shadows_value = //castOnlyShadow ? true : 
+                                                        (TwoSidedShadows.HasValue ? TwoSidedShadows.Value : false);
+                        EditorGUI.BeginChangeCheck();
+                        {
+                            EditorGUI.showMixedValue = //castOnlyShadow ? true : 
+                                                        !TwoSidedShadows.HasValue;
+                            two_sided_shadows_value = EditorGUILayout.Toggle(TwoSidedShadowsContent, two_sided_shadows_value);
+                        }
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            for (int i = 0; i < models.Length; i++)
+                            {
+                                var model = models[i];
+                                if (two_sided_shadows_value) model.Settings |= ModelSettingsFlags.TwoSidedShadows;
+                                else model.Settings &= ~ModelSettingsFlags.TwoSidedShadows;
+                            }
+                            GUI.changed = true;
+                            TwoSidedShadows = two_sided_shadows_value;
+                            updateMeshes = true;
+                        }
+                    }
+
+                    GUILayout.Space(10);
+                    /*
+                    EditorGUI.BeginDisabledGroup(DoNotRender.HasValue && DoNotRender.Value);
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        {
+                            EditorGUI.showMixedValue = !ShadowCastingMode.HasValue;						
+                            shadowcastingValue = (ShadowCastingMode)EditorGUILayout.EnumPopup(CastShadows, shadowcastingValue);
+                        }
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            for (int i = 0; i < models.Length; i++)
+                            {
+                                settings = models[i].Settings;
+                                settings &= ~ModelSettingsFlags.ShadowCastingModeFlags;
+                                settings |= (ModelSettingsFlags)(((int)shadowcastingValue) & (int)ModelSettingsFlags.ShadowCastingModeFlags);
+                                models[i].Settings = settings;
+                            }
+                            GUI.changed = true;
+                            ShadowCastingMode = shadowcastingValue;
+                            updateMeshes = true;
+                        }
+
+                        var isUsingDeferredRenderingPath = false;//IsUsingDeferredRenderingPath();
+                        EditorGUI.BeginDisabledGroup(castOnlyShadow || isUsingDeferredRenderingPath);
+                        {
+                            var receiveshadowsValue = !castOnlyShadow && (isUsingDeferredRenderingPath || (ReceiveShadows ?? false));
+                            EditorGUI.BeginChangeCheck();
+                            {
+                                EditorGUI.showMixedValue = (castOnlyShadow || !ReceiveShadows.HasValue) && !isUsingDeferredRenderingPath;
+                                receiveshadowsValue = EditorGUILayout.Toggle(CSGModelComponentInspectorGUI.ReceiveShadowsContent, receiveshadowsValue || isUsingDeferredRenderingPath);
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                for (int i = 0; i < models.Length; i++)
+                                {
+                                    if (receiveshadowsValue) models[i].Settings &= ~ModelSettingsFlags.DoNotReceiveShadows;
+                                    else                     models[i].Settings |=  ModelSettingsFlags.DoNotReceiveShadows;	
+                                }
+                                GUI.changed = true;
+                                ReceiveShadows = receiveshadowsValue;
+                            }
+                        }
+                        EditorGUI.EndDisabledGroup();
+                    }
+                    EditorGUI.EndDisabledGroup();*/
+
+                    //EditorGUI.BeginDisabledGroup(castOnlyShadow);
+                    EditorGUI.showMixedValue = false;
+                    UpdateTargets(models);
+                    if (_probesInstance != null &&
+                        _probesOnGUIMethod != null &&
+                        _probesTargets != null &&
+                        _probesSerializedObject != null &&
+                        _probesInitialized)
+                    {
+                        GUILayout.Space(10);
+                        try
+                        {
+#if UNITY_5_6_OR_NEWER
+                            _probesSerializedObject.UpdateIfRequiredOrScript();
+#else
+                            _probesSerializedObject.UpdateIfDirtyOrScript();
+#endif
+                            _probesOnGUIMethod.Invoke(_probesInstance, new System.Object[] { _probesTargets, (Renderer)_probesTargets[0], false });
+                            _probesSerializedObject.ApplyModifiedProperties();
+                        }
+                        catch { }
+                    }
+                    //EditorGUI.EndDisabledGroup();
+                    EditorGUI.indentLevel--;
+                }
+            }
+            GUILayout.EndVertical();
+            if (renderingVisible)
+                GUILayout.Space(10);
+            GUILayout.BeginVertical(GUI.skin.box);
+            {
+                EditorGUI.BeginChangeCheck();
+                UVSettingsVisible = EditorGUILayout.Foldout(UVSettingsVisible, "Lighting");
+                if (EditorGUI.EndChangeCheck())
+                    SessionState.SetBool("CSGModel.UVSettings", UVSettingsVisible);
+                if (UVSettingsVisible)
+                {
+                    EditorGUI.indentLevel++;
+#if UNITY_2019_2_OR_NEWER
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        {
+                            EditorGUI.showMixedValue = !MeshReceiveGI.HasValue;
+                            MeshReceiveGI = (ReceiveGI)EditorGUILayout.EnumPopup(ReceiveGIContent, MeshReceiveGI ?? ReceiveGI.LightProbes, popupStyle);
+                        }
+                        if (EditorGUI.EndChangeCheck() && MeshReceiveGI.HasValue)
+                        {
+                            for (int i = 0; i < models.Length; i++)
+                            {
+                                var model = models[i];
+                                model.ReceiveGI = MeshReceiveGI.Value;
+                            }
+                            GUI.changed = true;
+                            updateMeshes = true;
+                        }
+                    }
+#endif
                     {
                         if (DoNotRender.HasValue && DoNotRender.Value)
                         {
@@ -1098,173 +766,599 @@ namespace RealtimeCSG
                             EditorGUILayout.LabelField("Rendering is disabled");
                             GUI.color = prevColor;
                         } else
-                        {
-                            if (!DoNotRender.HasValue)
-                            {
-                                var prevColor = GUI.color;
-                                var color = new Color(1, 0.25f, 0.25f);
-                                GUI.color = color;
-                                EditorGUILayout.LabelField("Not all models have their rendering enabled");
-                                GUI.color = prevColor;
-                            }
-    //						var vertex_channel_color	= VertexChannelColor ?? false;
-                            var vertex_channel_tangent	= VertexChannelTangent ?? false;
-                            var vertex_channel_normal	= VertexChannelNormal ?? false;
-                            var vertex_channel_UV0		= VertexChannelUV0 ?? false;
-                            EditorGUI.BeginChangeCheck();
-                            {
-    //							EditorGUI.showMixedValue = !VertexChannelColor.HasValue;
-    //							vertex_channel_color = EditorGUILayout.Toggle(VertexChannelColorContent, vertex_channel_color);
-                        
-                                EditorGUI.showMixedValue = !VertexChannelTangent.HasValue;
-                                vertex_channel_tangent = EditorGUILayout.Toggle(VertexChannelTangentContent, vertex_channel_tangent);
-                        
-                                EditorGUI.showMixedValue = !VertexChannelNormal.HasValue;
-                                vertex_channel_normal = EditorGUILayout.Toggle(VertexChannelNormalContent, vertex_channel_normal);
-                        
-                                EditorGUI.showMixedValue = !VertexChannelUV0.HasValue;
-                                vertex_channel_UV0 = EditorGUILayout.Toggle(VertexChannelUV1Content, vertex_channel_UV0);
-                            }
-                            if (EditorGUI.EndChangeCheck())
+                        {	
+                            bool enable = !GenerateLightMaps.HasValue || (GenerateLightMaps.HasValue && !GenerateLightMaps.Value);
+                            var enableOrDisableButtonText = !GenerateLightMaps.HasValue ?
+                                                                EnableLightmapsForAllContent : 
+                                                                (!GenerateLightMaps.Value ? EnableLightmapsContent : DisableLightmapsContent);
+                            if (EditModeCommonGUI.IndentableButton(enableOrDisableButtonText))
                             {
                                 for (int i = 0; i < models.Length; i++)
                                 {
-                                    var vertexChannel = models[i].VertexChannels;
-                                    vertexChannel &= ~(//VertexChannelFlags.Color |
-                                                       VertexChannelFlags.Tangent |
-                                                       VertexChannelFlags.Normal |
-                                                       VertexChannelFlags.UV0);
-
-                                    //if (vertex_channel_color)	vertexChannel |= VertexChannelFlags.Color;
-                                    if (vertex_channel_tangent)	vertexChannel |= VertexChannelFlags.Tangent;
-                                    if (vertex_channel_normal)	vertexChannel |= VertexChannelFlags.Normal;
-                                    if (vertex_channel_UV0)		vertexChannel |= VertexChannelFlags.UV0;
-                                    models[i].VertexChannels = vertexChannel;
+                                    var	oldStaticFlags	= GameObjectUtility.GetStaticEditorFlags(models[i].gameObject);
+                                    StaticEditorFlags newStaticFlags;
+#if UNITY_2019_2_OR_NEWER
+                                    if (enable)
+                                        newStaticFlags = oldStaticFlags | StaticEditorFlags.ContributeGI;
+                                    else
+                                        newStaticFlags = oldStaticFlags & ~StaticEditorFlags.ContributeGI;
+#else
+                                    if (enable)
+                                        newStaticFlags = oldStaticFlags | StaticEditorFlags.LightmapStatic;
+                                    else
+                                        newStaticFlags = oldStaticFlags & ~StaticEditorFlags.LightmapStatic;
+#endif
+                                    if (oldStaticFlags != newStaticFlags)
+                                    {
+                                        GameObjectUtility.SetStaticEditorFlags(models[i].gameObject, newStaticFlags);
+                                        MeshInstanceManager.ClearUVs(models[i]);
+                                    }
                                 }
-                                GUI.changed = true;
+                            }
+                                            
+                            if (!GenerateLightMaps.HasValue || (GenerateLightMaps.HasValue && GenerateLightMaps.Value))
+                            {
+                                if (!DoNotRender.HasValue)
+                                {
+                                    var prevColor = GUI.color;
+                                    var color = new Color(1, 0.25f, 0.25f);
+                                    GUI.color = color;
+                                    EditorGUILayout.LabelField("Not all models have their rendering enabled");
+                                    GUI.color = prevColor;
+                                }
+                            
+                                EditorGUILayout.LabelField("Unity UV Generation");
+                                EditorGUI.indentLevel++;
+                                {
+                                    {
+                                        var angleError = AngleError ?? 0;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !AngleError.HasValue;
+                                            angleError = EditorGUILayout.Slider(AngleErrorContent, angleError, CSGModel.MinAngleError, CSGModel.MaxAngleError);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                models[i].angleError = angleError;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                    {
+                                        var areaError = AreaError ?? 0;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !AreaError.HasValue;
+                                            areaError = EditorGUILayout.Slider(AreaErrorContent, areaError, CSGModel.MinAreaError, CSGModel.MaxAreaError);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                models[i].areaError = areaError;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                    {
+                                        var hardAngle = HardAngle ?? 0;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !HardAngle.HasValue;
+                                            hardAngle = EditorGUILayout.Slider(HardAngleContent, hardAngle, 0, 360);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                models[i].hardAngle = hardAngle;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                    {
+                                        var packMargin = PackMargin ?? 0;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !PackMargin.HasValue;
+                                            packMargin = EditorGUILayout.FloatField(PackMarginContent, packMargin * 1024.0f) / 1024.0f;
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                models[i].packMargin = packMargin;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                    UnityEditor.UnwrapParam uvGenerationSettings;
+                                    UnityEditor.UnwrapParam.SetDefaults(out uvGenerationSettings);
+
+                                    if (!AngleError.HasValue || AngleError.Value	!= uvGenerationSettings.angleError ||
+                                        !AreaError .HasValue || AreaError .Value	!= uvGenerationSettings.areaError ||
+                                        !HardAngle .HasValue || HardAngle .Value	!= uvGenerationSettings.hardAngle ||
+                                        !PackMargin.HasValue || PackMargin.Value	!= uvGenerationSettings.packMargin)
+                                    { 
+                                        if (EditModeCommonGUI.IndentableButton(ResetContent))
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                models[i].angleError	= uvGenerationSettings.angleError;
+                                                models[i].areaError		= uvGenerationSettings.areaError;
+                                                models[i].hardAngle		= uvGenerationSettings.hardAngle;
+                                                models[i].packMargin	= uvGenerationSettings.packMargin;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                }
+                                {
+                                    var autoRebuildUvs = AutoRebuildUVs ?? false;
+                                    EditorGUI.BeginChangeCheck();
+                                    {
+                                        EditorGUI.showMixedValue = !AutoRebuildUVs.HasValue;
+                                        autoRebuildUvs = EditorGUILayout.Toggle(AutoRebuildUVsContent, autoRebuildUvs);
+                                    }
+                                    if (EditorGUI.EndChangeCheck())
+                                    {
+                                        for (int i = 0; i < models.Length; i++)
+                                        {
+                                            if (autoRebuildUvs)
+                                                models[i].Settings |= ModelSettingsFlags.AutoRebuildUVs;
+                                            else
+                                                models[i].Settings &= ~ModelSettingsFlags.AutoRebuildUVs;
+                                            MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                        }
+                                        GUI.changed = true;
+                                        AutoRebuildUVs = autoRebuildUvs;
+                                    }
+                                }
+                                EditModeCommonGUI.UpdateButtons(models);
+                                EditorGUI.indentLevel--;
+                                GUILayout.Space(10);
+                                EditorGUILayout.LabelField("Unity UV Charting Control");
+                                EditorGUI.indentLevel++;
+                                {
+                                    {
+                                        var preserveUVs = PreserveUVs ?? false;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !PreserveUVs.HasValue;
+                                            preserveUVs = EditorGUILayout.Toggle(PreserveUVsContent, preserveUVs);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                if (preserveUVs)
+                                                    models[i].Settings |= ModelSettingsFlags.PreserveUVs;
+                                                else
+                                                    models[i].Settings &= ~ModelSettingsFlags.PreserveUVs;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            PreserveUVs = preserveUVs;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                    EditorGUI.indentLevel++;
+
+                                    bool disabledAutoUVs = (PreserveUVs ?? false);
+                                    using (new EditorGUI.DisabledScope(disabledAutoUVs))
+                                    {
+                                        {
+                                            var autoUVMaxDistance = AutoUVMaxDistance ?? 0.0f;
+                                            EditorGUI.BeginChangeCheck();
+                                            {
+                                                EditorGUI.showMixedValue = !AutoUVMaxDistance.HasValue;
+                                                autoUVMaxDistance = EditorGUILayout.FloatField(AutoUVMaxDistanceContent, autoUVMaxDistance);
+                                                if (autoUVMaxDistance < 0.0f)
+                                                    autoUVMaxDistance = 0.0f;
+                                            }
+                                            if (EditorGUI.EndChangeCheck())
+                                            {
+                                                for (int i = 0; i < models.Length; i++)
+                                                {
+                                                    models[i].autoUVMaxDistance = autoUVMaxDistance;
+                                                    MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                                }
+                                                GUI.changed = true;
+                                                updateMeshes = true;
+                                            }
+                                        }
+                                        {
+                                            var autoUVMaxAngle = AutoUVMaxAngle ?? 0.0f;
+                                            EditorGUI.BeginChangeCheck();
+                                            {
+                                                EditorGUI.showMixedValue = !AutoUVMaxAngle.HasValue;
+                                                autoUVMaxAngle = EditorGUILayout.Slider(AutoUVMaxAngleContent, autoUVMaxAngle, 0, 180);
+                                            }
+                                            if (EditorGUI.EndChangeCheck())
+                                            {
+                                                for (int i = 0; i < models.Length; i++)
+                                                {
+                                                    models[i].autoUVMaxAngle = autoUVMaxAngle;
+                                                    MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                                }
+                                                GUI.changed = true;
+                                                updateMeshes = true;
+                                            }
+                                        }
+
+                                    }
+                                    EditorGUI.indentLevel--;
+                                    {
+                                        var ignoreNormals = IgnoreNormals ?? false;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !IgnoreNormals.HasValue;
+                                            ignoreNormals = EditorGUILayout.Toggle(IgnoreNormalsContent, ignoreNormals);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                if (ignoreNormals)
+                                                    models[i].Settings |= ModelSettingsFlags.IgnoreNormals;
+                                                else
+                                                    models[i].Settings &= ~ModelSettingsFlags.IgnoreNormals;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                    {
+                                        var minimumChartSize = MinimumChartSize ?? 4;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !MinimumChartSize.HasValue;
+                                            minimumChartSize = EditorGUILayout.IntPopup(MinimumChartSizeContent, minimumChartSize, MinimumChartSizeStrings, MinimumChartSizeValues);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                models[i].minimumChartSize = minimumChartSize;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            updateMeshes = true;
+                                        }
+                                    }
+                                }
+                                EditorGUI.indentLevel--;
+                                GUILayout.Space(10);
+                                EditorGUILayout.LabelField("Lightmap Settings");
+                                EditorGUI.indentLevel++;
+                                { 
+                                    {
+                                        var scaleInLightmap = ScaleInLightmap ?? 1.0f;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !ScaleInLightmap.HasValue;
+                                            scaleInLightmap = EditorGUILayout.FloatField(ScaleInLightmapContent, scaleInLightmap);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                models[i].scaleInLightmap = scaleInLightmap;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            ScaleInLightmap = scaleInLightmap;
+                                            updateMeshes = true;
+                                        }
+                                    }
+
+#if UNITY_2017_2_OR_NEWER
+                                    {
+                                        var stitchLightmapSeams = StitchLightmapSeams ?? false;
+                                        EditorGUI.BeginChangeCheck();
+                                        {
+                                            EditorGUI.showMixedValue = !StitchLightmapSeams.HasValue;
+                                            stitchLightmapSeams = EditorGUILayout.Toggle(StitchLightmapSeamsContent, stitchLightmapSeams);
+                                        }
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            for (int i = 0; i < models.Length; i++)
+                                            {
+                                                if (stitchLightmapSeams)
+                                                    models[i].Settings |= ModelSettingsFlags.StitchLightmapSeams;
+                                                else
+                                                    models[i].Settings &= ~ModelSettingsFlags.StitchLightmapSeams;
+                                                MeshInstanceManager.Refresh(models[i], onlyFastRefreshes: false);
+                                            }
+                                            GUI.changed = true;
+                                            StitchLightmapSeams = stitchLightmapSeams;
+                                            updateMeshes = true;
+                                        }
+                                    }
+#endif
+                                
+                                }
+                                EditorGUI.indentLevel--;
+                                EditorGUI.indentLevel--;
+
+                                EditorGUI.indentLevel++;
                             }
                         }
                     }
                     EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
             }
             GUILayout.EndVertical();
-            if (models != null && models.Length == 1)
-            {
+            if (UVSettingsVisible)
                 GUILayout.Space(10);
-
-                GUILayout.BeginVertical(GUI.skin.box);
-                _showDetails = EditorGUILayout.BeginToggleGroup("Statistics", _showDetails);
-                if (_showDetails)
+            GUILayout.BeginVertical(GUI.skin.box);
+            {
+                EditorGUI.BeginChangeCheck();
+                meshAdvancedVisible = EditorGUILayout.Foldout(meshAdvancedVisible, "Mesh (advanced)");
+                if (EditorGUI.EndChangeCheck())
+                    SessionState.SetBool("CSGModel.MeshAdvanced", meshAdvancedVisible);
+                if (meshAdvancedVisible)
                 {
-                    if (models[0].generatedMeshes == null || 
-                        !models[0].generatedMeshes)
+                    EditorGUI.indentLevel++;
                     {
-                        GUILayout.Label("Could not find model cache for this model.");
-                    } else
-                    {
-                        var meshContainer = models[0].generatedMeshes;
-
-
-                        var totalTriangles = 0;
-                        var totalVertices = 0;
-                        var totalMeshes = 0;
-                        
-
-                        var materialMeshes = new Dictionary<Material, List<MeshData>>();
-                        foreach (var instance in meshContainer.meshInstanceLookup.Values)
+                        var showGeneratedMeshes = ShowGeneratedMeshes ?? false;
+                        EditorGUI.BeginChangeCheck();
                         {
-                            var mesh				= instance.SharedMesh;
-                            if (!mesh || !MeshInstanceManager.HasVisibleMeshRenderer(instance))
-                                continue;
-
-                            if (!instance.RenderMaterial)
-                            {
-                                var meshDescription = instance.MeshDescription;
-                                if (meshDescription.surfaceParameter > 0)
-                                {
-                                    instance.RenderMaterial		= null;
-                                    instance.PhysicsMaterial	= null;
-                                    var obj = EditorUtility.InstanceIDToObject(meshDescription.surfaceParameter);
-                                    if (obj)
-                                    { 
-                                        switch (meshDescription.meshQuery.LayerParameterIndex)
-                                        {
-                                            case LayerParameterIndex.LayerParameter1: { instance.RenderMaterial		= obj as Material;       break; }
-                                            case LayerParameterIndex.LayerParameter2: { instance.PhysicsMaterial	= obj as PhysicMaterial; break; }
-                                        }
-                                    }
-                                }
-                                if (!instance.RenderMaterial)
-                                {
-                                    if (!dummyMaterial)
-                                        dummyMaterial = new Material(MaterialUtility.FloorMaterial);
-                                    
-                                    instance.RenderMaterial = dummyMaterial;
-                                }
-                            }
-
-                            List<MeshData> meshes;
-                            if (!materialMeshes.TryGetValue(instance.RenderMaterial, out meshes))
-                            {
-                                meshes = new List<MeshData>();
-                                materialMeshes[instance.RenderMaterial] = meshes;
-                            }
-
-                            var meshData = new MeshData();
-                            meshData.Mesh				= mesh;
-                            meshData.VertexCount		= mesh.vertexCount;
-                            meshData.TriangleCount		= mesh.triangles.Length / 3;
-                            meshData.GeometryHashValue	= instance.MeshDescription.geometryHashValue;
-                            meshData.SurfaceHashValue	= instance.MeshDescription.surfaceHashValue;
-                            meshes.Add(meshData);
-                            
-                            totalVertices += meshData.VertexCount;
-                            totalTriangles += meshData.TriangleCount;
-                            totalMeshes++;
+                            EditorGUI.showMixedValue = !ShowGeneratedMeshes.HasValue;
+                            showGeneratedMeshes = EditorGUILayout.Toggle(ShowGeneratedMeshesContent, showGeneratedMeshes);
                         }
-                        EditorGUI.indentLevel++;
-                        EditorGUILayout.Space();
-                        EditorGUILayout.LabelField("total:");
-                        EditorGUILayout.LabelField("vertices: " + totalVertices + "  triangles: " + totalTriangles + "  materials: " + materialMeshes.Count + "  meshes: " + totalMeshes);
-                        GUILayout.Space(10);
-                        EditorGUILayout.LabelField("meshes:");
-                        foreach(var item in materialMeshes)
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            var material = item.Key;
-                            var meshes = item.Value;
-
-                            if (material == dummyMaterial)
-                                material = null;
-
-                            GUILayout.BeginHorizontal();
+                            Undo.RecordObjects(models, "Setting ShowGeneratedMeshes to " + showGeneratedMeshes);
+                            for (int i = 0; i < models.Length; i++)
                             {
-                                EditorGUI.BeginDisabledGroup(true);
-                                {
-                                    EditorGUILayout.ObjectField(material, typeof(Material), true);
-                                }								
-                                GUILayout.BeginVertical();
-                                {
-                                    for (int i = 0; i < meshes.Count; i++)
-                                    {
-                                        EditorGUILayout.ObjectField(meshes[i].Mesh, typeof(Mesh), true);
-                                        EditorGUILayout.LabelField("geometryHash " + meshes[i].GeometryHashValue.ToString("X"));
-                                        EditorGUILayout.LabelField("surfaceHash " + meshes[i].SurfaceHashValue.ToString("X"));
-                                        EditorGUILayout.LabelField("vertices " + meshes[i].VertexCount + "  triangles " + meshes[i].TriangleCount);
-                                    }
-                                }
-                                GUILayout.EndVertical();
-                                EditorGUI.EndDisabledGroup();
+                                models[i].ShowGeneratedMeshes = showGeneratedMeshes;
+                                MeshInstanceManager.UpdateGeneratedMeshesVisibility(models[i]);
                             }
-                            GUILayout.EndHorizontal();
-                            EditorGUILayout.Space();
+                            // Workaround for unity not refreshing the hierarchy when changing hideflags
+                            EditorApplication.RepaintHierarchyWindow();
+                            EditorApplication.DirtyHierarchyWindowSorting();
+                        }
+
+#if UNITY_2017_3_OR_NEWER
+                        GUILayout.Space(10);
+                    
+                        EditorGUI.BeginDisabledGroup(NoCollider??true);
+                        EditorGUILayout.LabelField(MeshColliderCookingContent);
+                        EditorGUI.indentLevel++;
+                        { 
+                            var cookForFasterSimulation	    = CookForFasterSimulation   ?? false;
+                            var enableMeshCleaning	        = EnableMeshCleaning        ?? false;
+                            var weldColocatedVertices		= WeldColocatedVertices     ?? false;
+                            EditorGUI.BeginChangeCheck();
+                            {
+
+                                EditorGUI.showMixedValue = !VertexChannelTangent.HasValue;
+                                cookForFasterSimulation  = EditorGUILayout.Toggle(CookForFasterSimulationContent, cookForFasterSimulation);
+                        
+                                EditorGUI.showMixedValue = !VertexChannelNormal.HasValue;
+                                enableMeshCleaning       = EditorGUILayout.Toggle(EnableMeshCleaningContent, enableMeshCleaning);
+                        
+                                EditorGUI.showMixedValue = !VertexChannelUV0.HasValue;
+                                weldColocatedVertices    = EditorGUILayout.Toggle(WeldColocatedVerticesContent, weldColocatedVertices);
+                            }
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                for (int i = 0; i < models.Length; i++)
+                                {
+                                    var meshColliderCookingOptions = models[i].MeshColliderCookingOptions;
+                                    meshColliderCookingOptions &= ~(MeshColliderCookingOptions.CookForFasterSimulation |
+                                                                    MeshColliderCookingOptions.EnableMeshCleaning |
+                                                                    MeshColliderCookingOptions.WeldColocatedVertices);
+                            
+                                    if (cookForFasterSimulation)	meshColliderCookingOptions |= MeshColliderCookingOptions.CookForFasterSimulation;
+                                    if (enableMeshCleaning)	        meshColliderCookingOptions |= MeshColliderCookingOptions.EnableMeshCleaning;
+                                    if (weldColocatedVertices)		meshColliderCookingOptions |= MeshColliderCookingOptions.WeldColocatedVertices;
+                                    models[i].MeshColliderCookingOptions = meshColliderCookingOptions;
+                                }
+                                GUI.changed = true;
+                            }
+                        }
+                        EditorGUI.EndDisabledGroup();
+                        EditorGUI.indentLevel--;
+#endif
+                        GUILayout.Space(10);
+                    
+                        EditorGUILayout.LabelField("Used Vertex Channels");
+                        EditorGUI.indentLevel++;
+                        {
+                            if (DoNotRender.HasValue && DoNotRender.Value)
+                            {
+                                var prevColor = GUI.color;
+                                var color = new Color(1, 0.25f, 0.25f);
+                                GUI.color = color;
+                                EditorGUILayout.LabelField("Rendering is disabled");
+                                GUI.color = prevColor;
+                            } else
+                            {
+                                if (!DoNotRender.HasValue)
+                                {
+                                    var prevColor = GUI.color;
+                                    var color = new Color(1, 0.25f, 0.25f);
+                                    GUI.color = color;
+                                    EditorGUILayout.LabelField("Not all models have their rendering enabled");
+                                    GUI.color = prevColor;
+                                }
+        //						var vertex_channel_color	= VertexChannelColor ?? false;
+                                var vertex_channel_tangent	= VertexChannelTangent ?? false;
+                                var vertex_channel_normal	= VertexChannelNormal ?? false;
+                                var vertex_channel_UV0		= VertexChannelUV0 ?? false;
+                                EditorGUI.BeginChangeCheck();
+                                {
+        //							EditorGUI.showMixedValue = !VertexChannelColor.HasValue;
+        //							vertex_channel_color = EditorGUILayout.Toggle(VertexChannelColorContent, vertex_channel_color);
+                        
+                                    EditorGUI.showMixedValue = !VertexChannelTangent.HasValue;
+                                    vertex_channel_tangent = EditorGUILayout.Toggle(VertexChannelTangentContent, vertex_channel_tangent);
+                        
+                                    EditorGUI.showMixedValue = !VertexChannelNormal.HasValue;
+                                    vertex_channel_normal = EditorGUILayout.Toggle(VertexChannelNormalContent, vertex_channel_normal);
+                        
+                                    EditorGUI.showMixedValue = !VertexChannelUV0.HasValue;
+                                    vertex_channel_UV0 = EditorGUILayout.Toggle(VertexChannelUV1Content, vertex_channel_UV0);
+                                }
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    for (int i = 0; i < models.Length; i++)
+                                    {
+                                        var vertexChannel = models[i].VertexChannels;
+                                        vertexChannel &= ~(//VertexChannelFlags.Color |
+                                                           VertexChannelFlags.Tangent |
+                                                           VertexChannelFlags.Normal |
+                                                           VertexChannelFlags.UV0);
+
+                                        //if (vertex_channel_color)	vertexChannel |= VertexChannelFlags.Color;
+                                        if (vertex_channel_tangent)	vertexChannel |= VertexChannelFlags.Tangent;
+                                        if (vertex_channel_normal)	vertexChannel |= VertexChannelFlags.Normal;
+                                        if (vertex_channel_UV0)		vertexChannel |= VertexChannelFlags.UV0;
+                                        models[i].VertexChannels = vertexChannel;
+                                    }
+                                    GUI.changed = true;
+                                }
+                            }
                         }
                         EditorGUI.indentLevel--;
                     }
+                    EditorGUI.indentLevel--;
                 }
-                EditorGUILayout.EndToggleGroup();
                 GUILayout.EndVertical();
+                if (models != null && models.Length == 1)
+                {
+                    if (meshAdvancedVisible)
+                        GUILayout.Space(10);
+
+                    GUILayout.BeginVertical(GUI.skin.box);
+                    EditorGUI.BeginChangeCheck();
+                    statisticsVisible = EditorGUILayout.Foldout(statisticsVisible, "Statistics");
+                    if (EditorGUI.EndChangeCheck())
+                        SessionState.SetBool("CSGModel.Statistics", statisticsVisible);
+                    if (statisticsVisible)
+                    {
+                        if (models[0].generatedMeshes == null || 
+                            !models[0].generatedMeshes)
+                        {
+                            GUILayout.Label("Could not find model cache for this model.");
+                        } else
+                        {
+                            var meshContainer = models[0].generatedMeshes;
+
+
+                            var totalTriangles = 0;
+                            var totalVertices = 0;
+                            var totalMeshes = 0;
+                        
+
+                            var materialMeshes = new Dictionary<Material, List<MeshData>>();
+                            foreach (var instance in meshContainer.meshInstanceLookup.Values)
+                            {
+                                var mesh				= instance.SharedMesh;
+                                if (!mesh || !MeshInstanceManager.HasVisibleMeshRenderer(instance))
+                                    continue;
+
+                                if (!instance.RenderMaterial)
+                                {
+                                    var meshDescription = instance.MeshDescription;
+                                    if (meshDescription.surfaceParameter > 0)
+                                    {
+                                        instance.RenderMaterial		= null;
+                                        instance.PhysicsMaterial	= null;
+                                        var obj = EditorUtility.InstanceIDToObject(meshDescription.surfaceParameter);
+                                        if (obj)
+                                        { 
+                                            switch (meshDescription.meshQuery.LayerParameterIndex)
+                                            {
+                                                case LayerParameterIndex.LayerParameter1: { instance.RenderMaterial		= obj as Material;       break; }
+                                                case LayerParameterIndex.LayerParameter2: { instance.PhysicsMaterial	= obj as PhysicMaterial; break; }
+                                            }
+                                        }
+                                    }
+                                    if (!instance.RenderMaterial)
+                                    {
+                                        if (!dummyMaterial)
+                                            dummyMaterial = new Material(MaterialUtility.FloorMaterial);
+                                    
+                                        instance.RenderMaterial = dummyMaterial;
+                                    }
+                                }
+
+                                List<MeshData> meshes;
+                                if (!materialMeshes.TryGetValue(instance.RenderMaterial, out meshes))
+                                {
+                                    meshes = new List<MeshData>();
+                                    materialMeshes[instance.RenderMaterial] = meshes;
+                                }
+
+                                var meshData = new MeshData();
+                                meshData.Mesh				= mesh;
+                                meshData.VertexCount		= mesh.vertexCount;
+                                meshData.TriangleCount		= mesh.triangles.Length / 3;
+                                meshData.GeometryHashValue	= instance.MeshDescription.geometryHashValue;
+                                meshData.SurfaceHashValue	= instance.MeshDescription.surfaceHashValue;
+                                meshes.Add(meshData);
+                            
+                                totalVertices += meshData.VertexCount;
+                                totalTriangles += meshData.TriangleCount;
+                                totalMeshes++;
+                            }
+                            EditorGUI.indentLevel++;
+                            EditorGUILayout.Space();
+                            EditorGUILayout.LabelField("total:");
+                            EditorGUILayout.LabelField("vertices: " + totalVertices + "  triangles: " + totalTriangles + "  materials: " + materialMeshes.Count + "  meshes: " + totalMeshes);
+                            GUILayout.Space(10);
+                            EditorGUILayout.LabelField("meshes:");
+                            foreach(var item in materialMeshes)
+                            {
+                                var material = item.Key;
+                                var meshes = item.Value;
+
+                                if (material == dummyMaterial)
+                                    material = null;
+
+                                GUILayout.BeginHorizontal();
+                                {
+                                    EditorGUI.BeginDisabledGroup(true);
+                                    {
+                                        EditorGUILayout.ObjectField(material, typeof(Material), true);
+                                    }								
+                                    GUILayout.BeginVertical();
+                                    {
+                                        for (int i = 0; i < meshes.Count; i++)
+                                        {
+                                            EditorGUILayout.ObjectField(meshes[i].Mesh, typeof(Mesh), true);
+                                            EditorGUILayout.LabelField("geometryHash " + meshes[i].GeometryHashValue.ToString("X"));
+                                            EditorGUILayout.LabelField("surfaceHash " + meshes[i].SurfaceHashValue.ToString("X"));
+                                            EditorGUILayout.LabelField("vertices " + meshes[i].VertexCount + "  triangles " + meshes[i].TriangleCount);
+                                        }
+                                    }
+                                    GUILayout.EndVertical();
+                                    EditorGUI.EndDisabledGroup();
+                                }
+                                GUILayout.EndHorizontal();
+                                EditorGUILayout.Space();
+                            }
+                            EditorGUI.indentLevel--;
+                        }
+                    }
+                    GUILayout.EndVertical();
+                }
             }
             EditorGUI.showMixedValue = false;
             if (updateMeshes)

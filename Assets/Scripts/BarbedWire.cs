@@ -7,6 +7,8 @@ public class BarbedWire : Damager
 
     public StatusEffect BarbedWirePrefab;
 
+    public FortwarsProp baseProp;
+
     List<PlayerStats> affectedPlayers = new List<PlayerStats>();
 
     public override void DamageTarget(IDamagable target)
@@ -16,36 +18,27 @@ public class BarbedWire : Damager
 
     private void OnTriggerEnter(Collider other)
     {
+        var target = DamageUniqueTargetsOnTriggerEnter(other, baseProp.idOfOwner, 0, DamageTypes.Physical, true);
+        bool alreadyAffected = false;
+        if (target != null && target is PlayerStats)
+        {
+            foreach (StatusEffect s in target.StatusEffectManager.CurrentStatusEffectsOnPlayer)
+            {
+                if (s is BarbedWireEffect)
+                    alreadyAffected = true;
+            }
+
+            if (!alreadyAffected)
+                target.StatusEffectManager.AddStatusEffect(BarbedWirePrefab);
+        }
+
         var hitbox = other.GetComponent<PlayerHitbox>();
+
         if (hitbox != null)
         {
-            bool alreadyHit = false;
-            foreach (PlayerStats player in affectedPlayers)
-            {
-                if (player == hitbox.player)
-                {
-                    alreadyHit = true;
-                }
-            }
             hitbox.player.StatusEffectManager.NumHitboxesTouchingBarbeds++;
-
-            bool alreadyAffected = false;
-            if (!alreadyHit)
-            {
-                foreach (StatusEffect s in hitbox.player.StatusEffectManager.CurrentStatusEffectsOnPlayer)
-                {
-                    if (s is BarbedWireEffect)
-                    {
-                        alreadyAffected = true;
-                    }
-                }
-
-                if (!alreadyAffected && hitbox.player.StatusEffectManager.NumHitboxesTouchingBarbeds == 1)
-                {
-                    hitbox.player.StatusEffectManager.AddStatusEffect(BarbedWirePrefab);
-                }
-            }
         }
+
     }
 
     private void OnTriggerExit(Collider other)
@@ -69,6 +62,21 @@ public class BarbedWire : Damager
                 if (sRef != null)
                 {
                     hitbox.player.StatusEffectManager.RemoveStatusEffect(sRef);
+                    foreach (PlayerStats targets in base.damagedTargets)
+                    {
+                        if (targets == hitbox.player)
+                        {
+                            //damagedTargets.Remove(targets);
+                        }
+                    }
+
+                    for (int i = 0; i < base.damagedTargets.Count; i++)
+                    {
+                        if (hitbox.player == damagedTargets[i] as PlayerStats)
+                        {
+                            damagedTargets.RemoveAt(i);
+                        }
+                    }
                 }
             }
         }

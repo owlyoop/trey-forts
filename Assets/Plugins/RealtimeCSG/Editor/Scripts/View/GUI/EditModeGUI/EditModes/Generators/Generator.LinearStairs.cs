@@ -574,8 +574,7 @@ namespace RealtimeCSG
 
 
 				
-				var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-				var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
+				var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
 
 
 				var nearestControl = HandleUtility.nearestControl;
@@ -619,7 +618,7 @@ namespace RealtimeCSG
 					{
 						var point	= localToWorld.MultiplyPoint(new Vector3( width * 0.25f, height, lengthOffset));
 						var size	= HandleUtility.GetHandleSize(point) * kSlopeDotSize;
-						var temp	= CSGSlider1D.Do(topSlopeLeftID, point, topDirection, size, CSGHandles.CircleDotCap, doSnapping, null, null, null);
+						var temp	= CSGSlider1D.Do(topSlopeLeftID, point, topDirection, size, CSGHandles.CircleDotCap, activeSnappingMode, null, null, null);
 						lengthOffset = worldToLocal.MultiplyPoint(temp).z;
 					}
 					if (EditorGUI.EndChangeCheck()) { Undo.RecordObject(this, "Modified Length"); settings.SetExtraDepth(lengthOffset); }
@@ -628,7 +627,7 @@ namespace RealtimeCSG
 					{
 						var point	= localToWorld.MultiplyPoint(new Vector3( width * 0.75f, height, lengthOffset));
 						var size	= HandleUtility.GetHandleSize(point) * kSlopeDotSize;
-						var temp	= CSGSlider1D.Do(topSlopeRightID, point, topDirection, size, CSGHandles.CircleDotCap, doSnapping, null, null, null);
+						var temp	= CSGSlider1D.Do(topSlopeRightID, point, topDirection, size, CSGHandles.CircleDotCap, activeSnappingMode, null, null, null);
 						lengthOffset = worldToLocal.MultiplyPoint(temp).z;
 					}
 					if (EditorGUI.EndChangeCheck()) { Undo.RecordObject(this, "Modified Length"); settings.SetExtraDepth(lengthOffset); }
@@ -642,7 +641,7 @@ namespace RealtimeCSG
 					{
 						var point	= localToWorld.MultiplyPoint(new Vector3( width * 0.25f, heightOffset, length));
 						var size	= HandleUtility.GetHandleSize(point) * kSlopeDotSize;
-						var temp	= CSGSlider1D.Do(bottomSlopeLeftID, point, bottomDirection, size, CSGHandles.CircleDotCap, doSnapping, null, null, null);
+						var temp	= CSGSlider1D.Do(bottomSlopeLeftID, point, bottomDirection, size, CSGHandles.CircleDotCap, activeSnappingMode, null, null, null);
 						heightOffset = worldToLocal.MultiplyPoint(temp).y;
 					}
 					if (EditorGUI.EndChangeCheck()) { Undo.RecordObject(this, "Modified Height"); settings.SetExtraHeight(heightOffset); }
@@ -651,7 +650,7 @@ namespace RealtimeCSG
 					{
 						var point	= localToWorld.MultiplyPoint(new Vector3( width * 0.75f, heightOffset, length));
 						var size	= HandleUtility.GetHandleSize(point) * kSlopeDotSize;
-						var temp	= CSGSlider1D.Do(bottomSlopeRightID, point, bottomDirection, size, CSGHandles.CircleDotCap, doSnapping, null, null, null);
+						var temp	= CSGSlider1D.Do(bottomSlopeRightID, point, bottomDirection, size, CSGHandles.CircleDotCap, activeSnappingMode, null, null, null);
 						heightOffset = worldToLocal.MultiplyPoint(temp).y;
 					}
 					if (EditorGUI.EndChangeCheck()) { Undo.RecordObject(this, "Modified Height"); settings.SetExtraHeight(heightOffset); }

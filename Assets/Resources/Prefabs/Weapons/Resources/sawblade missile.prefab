@@ -55,6 +55,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
+  OwnerPunID: 0
   speed: 0
   life: 0
   baseDamage: 0
@@ -67,6 +68,9 @@ MonoBehaviour:
   DamagePerTick: 2
   TickDelay: 0.1
   mesh: {fileID: 2777677599288217294}
+  layermask:
+    serializedVersion: 2
+    m_Bits: 4097
 --- !u!1001 &2777677599288313966
 PrefabInstance:
   m_ObjectHideFlags: 0

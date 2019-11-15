@@ -27,13 +27,15 @@ public class Explosion : Damager
 	public int OwnerPunID;
 	public PlayerStats player;
 
-    public List<PlayerStats> hitPlayers = new List<PlayerStats>();
+    public List<PlayerStats> uniquePlayers = new List<PlayerStats>();
+
+    public StatusEffect firePrefab;
 
     private void Start()
 	{
 		explosionPos = transform.position;
 		Collider[] colliders = Physics.OverlapSphere(explosionPos, exRadius);
-        List<PlayerStats> uniquePlayers = base.GetUniqueTargets(colliders);
+        uniquePlayers = base.GetUniqueTargets(colliders);
 
         foreach (Collider col in colliders)
 		{
@@ -48,6 +50,7 @@ public class Explosion : Damager
 				wishDirection = transform.position - playerPos;
 				velocityToAdd = -wishDirection.normalized * force;
 
+                Debug.Log("poop");
 				player.AddVelocity(velocityToAdd);
 			}
 
@@ -85,10 +88,30 @@ public class Explosion : Damager
 			}
 		}
 
-
+        
         foreach (PlayerStats targets in uniquePlayers)
         {
             targets.TakeDamage(OwnerPunID, baseDamage, damageType);
+
+            bool alreadyOnFire = false;
+            if (targets.StatusEffectManager.CurrentStatusEffectsOnPlayer.Count == 0)
+            {
+                //targets.StatusEffectManager.AddStatusEffect(firePrefab);
+            }
+                
+            else
+            {
+                foreach (StatusEffect s in targets.StatusEffectManager.CurrentStatusEffectsOnPlayer)
+                {
+                    if (s is FireStatusEffect)
+                        alreadyOnFire = true;
+                    Debug.Log("fire fire");
+                    if (!alreadyOnFire)
+                    {
+                        //targets.StatusEffectManager.AddStatusEffect(firePrefab);
+                    }
+                }
+            }
         }
 		Invoke("Kill", 1);
 	}

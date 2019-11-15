@@ -19,11 +19,17 @@ public class PlayerRagdoll : MonoBehaviour
     public Collider RightArm;
     public Collider RightForearm;
 
+    public List<Collider> colliderCollection = new List<Collider>();
+
 
 
     private void Start()
     {
-        
+    }
+
+    public void SpawnRagdoll()
+    {
+
     }
 
     

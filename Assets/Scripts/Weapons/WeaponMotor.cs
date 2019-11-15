@@ -5,8 +5,9 @@ using Photon.Pun;
 
 public class WeaponMotor : MonoBehaviourPunCallbacks
 {
-	
-	public GameObject networkObjToSpawn;
+
+    public float WeaponSwitchAwayTime = 0f;
+    public float WeaponSwitchToTime = 0f;
 
 	public virtual void UpdateUI() { }
 

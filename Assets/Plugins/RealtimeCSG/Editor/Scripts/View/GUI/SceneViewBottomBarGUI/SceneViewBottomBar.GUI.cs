@@ -66,7 +66,7 @@ namespace RealtimeCSG
 			//if (Event.current.type == EventType.Layout)
 			//	return;
 
-			var snapToGrid		= RealtimeCSG.CSGSettings.SnapToGrid;
+			var snapMode        = RealtimeCSG.CSGSettings.SnapMode;
 			var uniformGrid		= RealtimeCSG.CSGSettings.UniformGrid;
 			var moveSnapVector  = RealtimeCSG.CSGSettings.SnapVector;
 			var rotationSnap	= RealtimeCSG.CSGSettings.SnapRotation;
@@ -169,7 +169,7 @@ namespace RealtimeCSG
 			if (viewWidth >= 800)
 				layoutX += 6; // (x:91.00, y:0.00, width:6.00, height:6.00)
 				
-			#region "SnapToGrid" button
+			#region "SnapMode" button
 			GUI.changed = false;
 			{
 				currentRect.width	= 27;
@@ -179,18 +179,54 @@ namespace RealtimeCSG
 				currentRect.x		= layoutX;
 				layoutX += currentRect.width;
 
-				snapToGrid = GUI.Toggle(currentRect, snapToGrid, CSG_GUIStyleUtility.Skin.snappingIconOn, EditorStyles.toolbarButton);
-				//(x:97.00, y:0.00, width:27.00, height:18.00)
-				TooltipUtility.SetToolTip(snapToGridTooltip, currentRect);
 
-				layoutX += 4;
-			}
-			modified = GUI.changed || modified;
-			#endregion
+                switch (snapMode)
+                {
+                    case SnapMode.GridSnapping:
+                    {
+                        var newValue = GUI.Toggle(currentRect, snapMode == SnapMode.GridSnapping, CSG_GUIStyleUtility.Skin.gridSnapIconOn, EditorStyles.toolbarButton);
+                        if (GUI.changed)
+                        {
+                            snapMode = newValue ? SnapMode.GridSnapping : SnapMode.RelativeSnapping;
+                            //Debug.Log($"SnapMode.GridSnapping {snapMode}");
+                        }
+                        //(x:97.00, y:0.00, width:27.00, height:18.00)
+                        TooltipUtility.SetToolTip(gridSnapModeTooltip, currentRect);
+                        break;
+                    }
+                    case SnapMode.RelativeSnapping:
+                    {
+                        var newValue = GUI.Toggle(currentRect, snapMode == SnapMode.RelativeSnapping, CSG_GUIStyleUtility.Skin.relSnapIconOn, EditorStyles.toolbarButton);
+                        if (GUI.changed)
+                        {
+                            snapMode = newValue ? SnapMode.RelativeSnapping : SnapMode.None;
+                            //Debug.Log($"SnapMode.RelativeSnapping {snapMode}");
+                        }
+                        //(x:97.00, y:0.00, width:27.00, height:18.00)
+                        TooltipUtility.SetToolTip(relativeSnapModeTooltip, currentRect);
+                        break;
+                    }
+                    default:
+                    case SnapMode.None:
+                    {
+                        var newValue = GUI.Toggle(currentRect, snapMode != SnapMode.None, CSG_GUIStyleUtility.Skin.noSnapIconOn, EditorStyles.toolbarButton);
+                        if (GUI.changed)
+                        {
+                            snapMode = newValue ? SnapMode.GridSnapping : SnapMode.None;
+                            //Debug.Log($"SnapMode.None {snapMode}");
+                        }
+                        //(x:97.00, y:0.00, width:27.00, height:18.00)
+                        TooltipUtility.SetToolTip(noSnappingModeTooltip, currentRect);
+                        break;
+                    }
+                }
+            }
+            modified = GUI.changed || modified;
+            #endregion
 				
 			if (viewWidth >= 460)
 			{
-				if (snapToGrid)
+				if (snapMode != SnapMode.None)
 				{
 					#region "Position" label
 					if (viewWidth >= 500)
@@ -682,7 +718,7 @@ namespace RealtimeCSG
 			
 			scaleSnap = Mathf.Max(MathConstants.MinimumScale, scaleSnap);
 						
-			RealtimeCSG.CSGSettings.SnapToGrid				= snapToGrid;
+			RealtimeCSG.CSGSettings.SnapMode				= snapMode;
 			RealtimeCSG.CSGSettings.SnapVector				= moveSnapVector;
 			RealtimeCSG.CSGSettings.SnapRotation			= rotationSnap;
 			RealtimeCSG.CSGSettings.SnapScale				= scaleSnap;

@@ -806,30 +806,42 @@ namespace RealtimeCSG
 			RotateObjects(transforms, center, rotationQuaternion);
 		}
 
-		void RotateObjects(Transform[] transforms, Vector3 center, Vector3 normal, Vector3 pointStart, float startAngle, Vector3 currentPoint, out float currentAngle, bool toggleSnapping)
+		void RotateObjects(Transform[] transforms, Vector3 center, Vector3 normal, Vector3 pointStart, float startAngle, Vector3 currentPoint, out float currentAngle)
 		{
 			currentAngle = GeometryUtility.SignedAngle(center - pointStart, center - currentPoint, normal);
-			currentAngle = GridUtility.SnappedAngle(currentAngle - startAngle, toggleSnapping) + startAngle;
+			currentAngle = GridUtility.SnappedAngle(currentAngle - startAngle) + startAngle;
 			
 			RotateObjects(transforms, center, normal, currentAngle - startAngle);
 		}
 
-		bool MoveObjects(Transform[] transforms, Vector3 offset, out Vector3 snappedOffset, bool doSnapping)
+		bool MoveObjects(Transform[] transforms, Vector3 offset, out Vector3 snappedOffset, SnapMode snapMode)
 		{
 			// move an object on the grid
-			if (doSnapping)
-			{
-				var localPlane = GeometryUtility.TransformPlane(activeSpaceMatrices.activeWorldToLocal, movePlane);
-				localPlane.normal = GridUtility.CleanNormal(localPlane.normal);
-				var localPoints = originalLocalTargetBounds.GetAllCorners();
-				for (int i = 0; i < localPoints.Length; i++)
-					localPoints[i] = activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(
-										GeometryUtility.ProjectPointOnPlane(localPlane, localPoints[i]));
-				offset = RealtimeCSG.CSGGrid.SnapDeltaToGrid(offset, localPoints, snapToSelf: true);
-			} else
-			{
-				offset = RealtimeCSG.CSGGrid.HandleLockedAxi(offset);
-			}
+            switch(snapMode)
+            {
+                case SnapMode.GridSnapping:
+			    {
+				    var localPlane = GeometryUtility.TransformPlane(activeSpaceMatrices.activeWorldToLocal, movePlane);
+				    localPlane.normal = GridUtility.CleanNormal(localPlane.normal);
+				    var localPoints = originalLocalTargetBounds.GetAllCorners();
+				    for (int i = 0; i < localPoints.Length; i++)
+					    localPoints[i] = activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(
+										    GeometryUtility.ProjectPointOnPlane(localPlane, localPoints[i]));
+				    offset = RealtimeCSG.CSGGrid.SnapDeltaToGrid(offset, localPoints, snapToSelf: true);
+                    break;
+                }
+                case SnapMode.RelativeSnapping:
+                {
+                    offset = RealtimeCSG.CSGGrid.SnapDeltaRelative(offset);
+                    break;
+                }
+                default:
+                case SnapMode.None:
+			    {
+				    offset = RealtimeCSG.CSGGrid.HandleLockedAxi(offset);
+                    break;
+			    }
+            }
 			snappedOffset = offset;
 			if (offset != MathConstants.zeroVector3 &&
 				cloneDragKeyPressed)
@@ -905,20 +917,32 @@ namespace RealtimeCSG
 			RotateObjects(topTransforms, pivotCenter, rotation);
 		}
 
-		void MoveBoundsCenter(int boundsCenterIndex, Vector3 offset, out Vector3 snappedOffset, bool doSnapping)
+		void MoveBoundsCenter(int boundsCenterIndex, Vector3 offset, out Vector3 snappedOffset, SnapMode snapMode)
 		{
 			var worldOffset = offset;
 			var localOffset = activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
 
 			// move a surface in the direction of it's normal
-			if (doSnapping)
-			{
-				var worldLineOrg	= activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(originalLocalCenterPoints[boundsCenterIndex]);
-				var worldLineDir	= activeSpaceMatrices.activeLocalToWorld.MultiplyVector(targetLocalDirections[boundsCenterIndex]);				
-				var worldPoints		= new Vector3[] { activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(originalLocalCenterPoints[boundsCenterIndex]) };
-				worldOffset			= RealtimeCSG.CSGGrid.SnapDeltaToRay(new Ray(worldLineOrg, worldLineDir), worldOffset, worldPoints, snapToSelf: true);
-				localOffset			= activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
-			}
+            switch(snapMode)
+            {
+                case SnapMode.GridSnapping:
+			    {
+				    var worldLineOrg	= activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(originalLocalCenterPoints[boundsCenterIndex]);
+				    var worldLineDir	= activeSpaceMatrices.activeLocalToWorld.MultiplyVector(targetLocalDirections[boundsCenterIndex]);				
+				    var worldPoints		= new Vector3[] { activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(originalLocalCenterPoints[boundsCenterIndex]) };
+				    worldOffset			= RealtimeCSG.CSGGrid.SnapDeltaToRayGrid(new Ray(worldLineOrg, worldLineDir), worldOffset, worldPoints, snapToSelf: true);
+				    localOffset			= activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
+                    break;
+			    }
+                case SnapMode.RelativeSnapping:
+			    {
+				    var worldLineOrg	= activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(originalLocalCenterPoints[boundsCenterIndex]);
+				    var worldLineDir	= activeSpaceMatrices.activeLocalToWorld.MultiplyVector(targetLocalDirections[boundsCenterIndex]);
+				    worldOffset			= RealtimeCSG.CSGGrid.SnapDeltaToRayRelative(new Ray(worldLineOrg, worldLineDir), worldOffset);
+				    localOffset			= activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
+                    break;
+			    }
+            }
 
 			if (float.IsNaN(localOffset.x) ||
 				float.IsNaN(localOffset.y) ||
@@ -978,21 +1002,34 @@ namespace RealtimeCSG
 			CSG_EditorGUIUtility.UpdateSceneViews();
 		}
 
-		void MoveBoundsEdge(int edgeCenter, Vector3 offset, out Vector3 snappedOffset, bool doSnapping)
+		void MoveBoundsEdge(int edgeCenter, Vector3 offset, out Vector3 snappedOffset, SnapMode snapMode)
 		{
 			var worldOffset = offset;
 			var localOffset = activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
 
 			// move a surface in the direction of it's normal
-			if (doSnapping)
-			{
-				var worldPoints = new Vector3[] { activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(originalLocalEdgePoints[edgeCenter]) };
-				worldOffset = RealtimeCSG.CSGGrid.SnapDeltaToGrid(worldOffset, worldPoints, snapToSelf: true);
-				localOffset = activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
-			} else
-			{
-				worldOffset = RealtimeCSG.CSGGrid.HandleLockedAxi(worldOffset);
-				localOffset = activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
+            switch(snapMode)
+            {
+                case SnapMode.GridSnapping:
+			    {
+				    var worldPoints = new Vector3[] { activeSpaceMatrices.activeLocalToWorld.MultiplyPoint(originalLocalEdgePoints[edgeCenter]) };
+				    worldOffset = RealtimeCSG.CSGGrid.SnapDeltaToGrid(worldOffset, worldPoints, snapToSelf: true);
+				    localOffset = activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
+                    break;
+                }
+                case SnapMode.RelativeSnapping:
+                {
+                    worldOffset = RealtimeCSG.CSGGrid.SnapDeltaRelative(worldOffset);
+                    localOffset = activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
+                    break;
+                }
+                default:
+                case SnapMode.None:
+                {
+                    worldOffset = RealtimeCSG.CSGGrid.HandleLockedAxi(worldOffset);
+                    localOffset = activeSpaceMatrices.activeWorldToLocal.MultiplyVector(worldOffset);
+                    break;
+                }
 			}
 			if (float.IsNaN(localOffset.x) ||
 				float.IsNaN(localOffset.y) ||
@@ -1616,10 +1653,9 @@ namespace RealtimeCSG
 							};
 							EditorGUI.BeginChangeCheck();
 							{
-								var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-								var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
+								var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
 								newPosition = RealtimeCSG.Helpers.CSGHandles.PositionHandle(newPosition,
-									Tools.handleRotation, snapping: doSnapping, snapVertices: snapVertices, initFunction: init, shutdownFunction: shutdown);
+									Tools.handleRotation, activeSnappingMode, snapVertices: snapVertices, initFunction: init, shutdownFunction: shutdown);
 							}
 							if (EditorGUI.EndChangeCheck())
 							{
@@ -2118,7 +2154,6 @@ namespace RealtimeCSG
 								UpdateGrid(startCamera);
 							}
 
-							var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
 							var mouseRay		= HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
 							
 							var worldIntersection = movePlane.RayIntersection(mouseRay);
@@ -2142,8 +2177,8 @@ namespace RealtimeCSG
 							if (float.IsNaN(worldDeltaMovement.x) || float.IsNaN(worldDeltaMovement.y) || float.IsNaN(worldDeltaMovement.z))
 								break;
 
-							var doSnapping = RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-							MoveBoundsCenter(i, worldDeltaMovement, out worldDeltaMovement, doSnapping);
+							var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+							MoveBoundsCenter(i, worldDeltaMovement, out worldDeltaMovement, activeSnappingMode);
 							break;
 						}
 						case EventType.MouseUp:
@@ -2333,17 +2368,25 @@ namespace RealtimeCSG
 									
 										RealtimeCSG.CSGGrid.SetForcedGrid(intersection.worldPlane);
 
-										var toggleSnapping = (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-										var doSnapping = RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-										if (doSnapping)
+										var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+										switch (activeSnappingMode)
 										{
-											var localPoints = new Vector3[8];
-											var localPlane = intersection.worldPlane;
-											for (var p = 0; p < localPoints.Length; p++)
-												localPoints[p] = GeometryUtility.ProjectPointOnPlane(localPlane, (hoverRotation * projectedBounds[p]) + hoverPosition);
+                                            case SnapMode.GridSnapping:
+                                            {
+                                                var localPoints = new Vector3[8];
+                                                var localPlane = intersection.worldPlane;
+                                                for (var p = 0; p < localPoints.Length; p++)
+                                                    localPoints[p] = GeometryUtility.ProjectPointOnPlane(localPlane, (hoverRotation * projectedBounds[p]) + hoverPosition);
 
-											hoverPosition += RealtimeCSG.CSGGrid.SnapDeltaToGrid(MathConstants.zeroVector3, localPoints);
-										}
+                                                hoverPosition += RealtimeCSG.CSGGrid.SnapDeltaToGrid(MathConstants.zeroVector3, localPoints);
+                                                break;
+                                            }
+                                            case SnapMode.RelativeSnapping:
+                                            {
+                                                hoverPosition += RealtimeCSG.CSGGrid.SnapDeltaRelative(MathConstants.zeroVector3);
+                                                break;
+                                            }
+                                        }
                                         hoverPosition = GeometryUtility.ProjectPointOnPlane(intersection.worldPlane, hoverPosition);// + (normal * 0.01f);
 									
 										worldDeltaMovement = hoverPosition - brushPosition;
@@ -2377,9 +2420,8 @@ namespace RealtimeCSG
 								if (float.IsNaN(worldDeltaMovement.x) || float.IsNaN(worldDeltaMovement.y) || float.IsNaN(worldDeltaMovement.z))
 									break;
 							
-								var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-								var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-								if (MoveObjects(topTransforms, worldDeltaMovement, out worldDeltaMovement, doSnapping))
+								var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+								if (MoveObjects(topTransforms, worldDeltaMovement, out worldDeltaMovement, activeSnappingMode))
 									originalPoint = worldIntersection;
 							}
 							break;
@@ -2453,13 +2495,12 @@ namespace RealtimeCSG
 									UpdateGrid(startCamera);
 								}
 
-								var toggleSnapping = (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
 								var mouseRay = HandleUtility.GUIPointToWorldRay(realMousePosition);
 
 								firstMove = false;
 								var rotatePlane = new CSGPlane(rotateNormal, boundsCenter);
 								rotateMousePosition = rotatePlane.RayIntersection(mouseRay);
-								RotateObjects(topTransforms, rotateCenter, rotateNormal, rotateStart, rotateStartAngle, rotateMousePosition, out rotateCurrentSnappedAngle, toggleSnapping);
+								RotateObjects(topTransforms, rotateCenter, rotateNormal, rotateStart, rotateStartAngle, rotateMousePosition, out rotateCurrentSnappedAngle);
 								break;
 							}
 							case EventType.MouseUp:
@@ -2532,8 +2573,7 @@ namespace RealtimeCSG
 									RealtimeCSG.CSGGrid.SetForcedGrid(movePlane);
 								}
 
-								var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-								var mouseRay		= HandleUtility.GUIPointToWorldRay(realMousePosition);
+								var mouseRay	    	= HandleUtility.GUIPointToWorldRay(realMousePosition);
 						
 								var worldIntersection = movePlane.RayIntersection(mouseRay);
 								if (float.IsNaN(worldIntersection.x) || float.IsNaN(worldIntersection.y) || float.IsNaN(worldIntersection.z))
@@ -2550,9 +2590,9 @@ namespace RealtimeCSG
 
 								if (float.IsNaN(worldDeltaMovement.x) || float.IsNaN(worldDeltaMovement.y) || float.IsNaN(worldDeltaMovement.z))
 									break;
-							
-								var doSnapping = RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-								MoveBoundsEdge(i, worldDeltaMovement, out worldDeltaMovement, doSnapping);
+
+                                var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
+								MoveBoundsEdge(i, worldDeltaMovement, out worldDeltaMovement, activeSnappingMode);
 								break;
 							}
 							case EventType.MouseUp:

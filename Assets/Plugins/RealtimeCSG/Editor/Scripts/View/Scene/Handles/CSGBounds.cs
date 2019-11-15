@@ -65,9 +65,7 @@ namespace RealtimeCSG.Helpers
 				originalBounds = bounds;
 			};
 
-			var toggleSnapping	= (Event.current.modifiers & EventModifiers.Control) == EventModifiers.Control;
-			var doSnapping		= RealtimeCSG.CSGSettings.SnapToGrid ^ toggleSnapping;
-
+			var activeSnappingMode = RealtimeCSG.CSGSettings.ActiveSnappingMode;
 			for (int i = 0; i < sidePoints.Length; i++)
 			{
 				Handles.color	= sideColors[(i * 2) + 1];
@@ -77,7 +75,7 @@ namespace RealtimeCSG.Helpers
 				var size		= sideSizes[i];
 				var id			= sideControlIDs[i];
 				EditorGUI.BeginChangeCheck();
-				position = CSGSlider1D.Do(id, position, normal, size, CSGHandles.HoverArrowHandleCap, doSnapping, null, init, shutdown);
+				position = CSGSlider1D.Do(id, position, normal, size, CSGHandles.HoverArrowHandleCap, activeSnappingMode, null, init, shutdown);
 				if (EditorGUI.EndChangeCheck())
 				{
 					var originalPoint = BoundsUtilities.GetBoundsSidePoint(originalBounds, i);
@@ -107,7 +105,7 @@ namespace RealtimeCSG.Helpers
 					var size		= edgeSizes[i] / 20.0f;
 					var id			= edgeControlIDs[i];
 					EditorGUI.BeginChangeCheck();
-					position = CSGHandles.Slider2D(id, position, Vector3.zero, normal, direction1, direction2, size, null, doSnapping, null, init, shutdown);
+					position = CSGHandles.Slider2D(id, position, Vector3.zero, normal, direction1, direction2, size, null, activeSnappingMode, null, init, shutdown);
 					if (EditorGUI.EndChangeCheck())
 					{
 						var originalPoint = BoundsUtilities.GetBoundsEdgePoint(originalBounds, i);

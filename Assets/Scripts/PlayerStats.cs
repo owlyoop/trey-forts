@@ -47,9 +47,9 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 	public GamePhases _gameManager;
 	public FloatingTextController dmgText;
 	public MyCharacterController CharControl;
-    public GameObject ragdollPrebaf;
     public Divekick divekickHitbox;
     public Camera cam;
+    public Transform ParticleParent;
 
     [Header("Hitbox References")]
     public PlayerHitbox headHitbox;
@@ -64,6 +64,8 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
     public PlayerHitbox rightArmHitbox;
     public PlayerHitbox rightForearmHitbox;
     public List<PlayerHitbox> hitboxCollection = new List<PlayerHitbox>();
+    public PlayerRagdoll ragdollPrefab;
+    PlayerRagdoll ragdoll;
 
     [Header("Props")]
     public List<GameObject> PropsOwnedByPlayer;
@@ -115,7 +117,7 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
 
 		ChangeToSpectator();
-		ui.radialReload.enabled = false;
+        ui.radialReload.StopReload();
 
 		SetTeam(playerTeam);
 
@@ -140,7 +142,11 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 		StatusEffectManager.AddPassiveStatusEffects();
 		EventManager.onWaitingForPlayersEnd += WaitingForPlayersEnd;
 		CharControl = GetComponent<MyCharacterController>();
-	}
+        Physics.IgnoreLayerCollision(12, 9 ,true);
+        Physics.IgnoreLayerCollision(10, 9, true);
+
+        //CharControl.Motor.CollidableLayers
+    }
 
 	private void OnDisable()
 	{
@@ -175,7 +181,8 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 			}
 		}
 		GetComponent<MyCharacterController>().TransitionToState(CharacterState.Spectator);
-		RpcRespawn();
+        SetCollidersActive(false);
+        RpcRespawn();
 	}
     
     // Re-initialize the movementpseed and jump character stat. use after i set something to a flat value, rather than modifiers.
@@ -221,7 +228,7 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 			ui.ammoInClip.text = "";
 			ui.ammoAmount.text = "";
 			ui.healthText.text = currentHealth.ToString();
-			ui.radialReload.enabled = false;
+            ui.radialReload.StopReload();
 			OnChangeHealth(currentHealth);
 			ui.currencyAmount.text = currentCurrency.ToString();
 
@@ -234,12 +241,15 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 			ui.dollar.enabled = false;
 			ui.healthBar.gameObject.SetActive(false);
 			ui.healthBarBackground.gameObject.SetActive(false);
+            
 		}
 
 	}
 
 	public void OnDeath()
 	{
+        Debug.Log("player died");
+        SpawnRagdoll(hitboxCollection);
 		if (!photonView.IsMine)
 			return;
 		isAlive = false;
@@ -254,21 +264,55 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 		}
 		hasFlag = false;
 		GetComponent<MyCharacterController>().TransitionToState(CharacterState.Dead);
-		
+        SetCollidersActive(false);
 
-		if (playerClass != null)
+
+        if (playerClass != null)
 		{
 			this.GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
 			GetComponent<PlayerInput>().playerWeapons.DecactivateAllWeapons();
 		}
 	}
 
+    public void SetCollidersActive(bool choice)
+    {
+        if (choice)
+        {
+            CharControl.Motor.SetCapsuleCollisionsActivation(true);
+            this.GetComponent<Collider>().enabled = true;
+            foreach (PlayerHitbox hb in hitboxCollection)
+            {
+                hb.gameObject.SetActive(true);
+            }
+        }
+        else
+        {
+            CharControl.Motor.SetCapsuleCollisionsActivation(false);
+            this.GetComponent<Collider>().enabled = false;
+            foreach (PlayerHitbox hb in hitboxCollection)
+            {
+                hb.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public void SpawnRagdoll(List<PlayerHitbox> hitboxes)
+    {
+        ragdoll = Instantiate(ragdollPrefab, this.transform.position, this.transform.rotation);
+
+        for (int i = 0; i < hitboxes.Count; i++)
+        {
+            ragdoll.colliderCollection[i].transform.SetPositionAndRotation(hitboxes[i].transform.position, hitboxes[i].transform.rotation);
+            ragdoll.colliderCollection[i].attachedRigidbody.velocity = hitboxes[i].GetComponent<Rigidbody>().velocity;
+        }
+    }
+
 	public void RespawnAndInitialize()
 	{
 		RpcRespawn();
 	}
 
-	void RpcRespawn()
+	private void RpcRespawn()
 	{
 		if (!photonView.IsMine)
 			return;
@@ -295,7 +339,7 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 		}
 
 		isAlive = true;
-		
+        SetCollidersActive(true);
 		canPickUpFlag = true;
 		ui.SetActivateDeathUI(false);
 		playerClass = queuedClass;
@@ -341,7 +385,7 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 		currentHealth = currentHealth - dmg;
 		OnChangeHealth(currentHealth);
 		PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().dmgText.CreateFloatingText(dmg.ToString(), this.transform);
-		if (currentHealth <= 0)
+		if (currentHealth <= 0 && isAlive)
 		{
 			currentHealth = 0;
 			OnDeath();

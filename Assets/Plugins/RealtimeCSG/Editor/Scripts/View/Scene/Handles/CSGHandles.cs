@@ -280,15 +280,15 @@ namespace RealtimeCSG.Helpers
 			}
 		}
 
-		public static Vector3 Slider (Vector3 position, Vector3 direction, float size, CapFunction capFunction, bool snapping, Vector3[] snapVertices, InitFunction initFunction, InitFunction shutdownFunction) 
+		public static Vector3 Slider (Vector3 position, Vector3 direction, float size, CapFunction capFunction, SnapMode snapMode, Vector3[] snapVertices, InitFunction initFunction, InitFunction shutdownFunction) 
 		{
 			var id = GUIUtility.GetControlID (s_SliderHash, FocusType.Keyboard);
-			return CSGSlider1D.Do(id, position, direction, size, capFunction, snapping, snapVertices, initFunction, shutdownFunction);
+			return CSGSlider1D.Do(id, position, direction, size, capFunction, snapMode, snapVertices, initFunction, shutdownFunction);
 		}
 		
-		public static Vector3 Slider2D(int id, Vector3 handlePos, Vector3 offset, Vector3 handleDir, Vector3 slideDir1, Vector3 slideDir2, float handleSize, CapFunction capFunction, bool snapping, Vector3[] snapVertices, InitFunction initFunction, InitFunction shutdownFunction)
+		public static Vector3 Slider2D(int id, Vector3 handlePos, Vector3 offset, Vector3 handleDir, Vector3 slideDir1, Vector3 slideDir2, float handleSize, CapFunction capFunction, SnapMode snapMode, Vector3[] snapVertices, InitFunction initFunction, InitFunction shutdownFunction)
 		{
-			return CSGSlider2D.Do(id, handlePos, offset, handleDir, slideDir1, slideDir2, handleSize, capFunction, snapping, snapVertices, initFunction, shutdownFunction);
+			return CSGSlider2D.Do(id, handlePos, offset, handleDir, slideDir1, slideDir2, handleSize, capFunction, snapMode, snapVertices, initFunction, shutdownFunction);
 		}
 		
 		internal static AABB Box(AABB bounds, Quaternion rotation, bool showEdgePoints = true)
@@ -326,7 +326,7 @@ namespace RealtimeCSG.Helpers
                                        (isPreSelected) ? preselectionColor : color);
         }
 
-        public static Vector3 PositionHandle(Vector3 position, Quaternion rotation, bool snapping, Vector3[] snapVertices = null, InitFunction initFunction = null, InitFunction shutdownFunction = null)
+        public static Vector3 PositionHandle(Vector3 position, Quaternion rotation, SnapMode snapMode, Vector3[] snapVertices = null, InitFunction initFunction = null, InitFunction shutdownFunction = null)
 		{	
             GUI.SetNextControlName("xAxis");   var xAxisSlider   = GUIUtility.GetControlID (s_xAxisMoveHandleHash, FocusType.Passive);
             GUI.SetNextControlName("yAxis");   var yAxisSlider   = GUIUtility.GetControlID (s_yAxisMoveHandleHash, FocusType.Passive);
@@ -395,21 +395,21 @@ namespace RealtimeCSG.Helpers
             {
                 Handles.color = xAxisColor;
 
-                position = CSGSlider1D.Do(xAxisSlider, position, rotation * Vector3.right, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
+                position = CSGSlider1D.Do(xAxisSlider, position, rotation * Vector3.right, size, ArrowHandleCap, snapMode, snapVertices, initFunction, shutdownFunction);
             }
 
             CSGHandles.disabled = yAxisDisabled;
             { 
                 Handles.color = yAxisColor;
 
-                position = CSGSlider1D.Do(yAxisSlider, position, rotation * Vector3.up, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
+                position = CSGSlider1D.Do(yAxisSlider, position, rotation * Vector3.up, size, ArrowHandleCap, snapMode, snapVertices, initFunction, shutdownFunction);
             }
 
             CSGHandles.disabled = zAxisDisabled;
             {
                 Handles.color = zAxisColor;
 
-                position = CSGSlider1D.Do(zAxisSlider, position, rotation * Vector3.forward, size, ArrowHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
+                position = CSGSlider1D.Do(zAxisSlider, position, rotation * Vector3.forward, size, ArrowHandleCap, snapMode, snapVertices, initFunction, shutdownFunction);
             }
 
 
@@ -417,21 +417,21 @@ namespace RealtimeCSG.Helpers
             if (!CSGHandles.disabled)
             {
                 Handles.color = xzPlaneColor;
-                position = DoPlanarHandle(xzPlaneSlider, PrincipleAxis2.XZ, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+                position = DoPlanarHandle(xzPlaneSlider, PrincipleAxis2.XZ, position, rotation, size * 0.25f, snapMode, snapVertices, initFunction, shutdownFunction);
             }
 
             CSGHandles.disabled = xyPlaneDisabled;
             if (!CSGHandles.disabled)
             {
                 Handles.color = xyPlaneColor;
-                position = DoPlanarHandle(xyPlaneSlider, PrincipleAxis2.XY, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+                position = DoPlanarHandle(xyPlaneSlider, PrincipleAxis2.XY, position, rotation, size * 0.25f, snapMode, snapVertices, initFunction, shutdownFunction);
             }
 
             CSGHandles.disabled = yzPlaneDisabled;
             if (!CSGHandles.disabled)
             {
                 Handles.color = yzPlaneColor;
-                position = DoPlanarHandle(yzPlaneSlider, PrincipleAxis2.YZ, position, rotation, size * 0.25f, snapping, snapVertices, initFunction, shutdownFunction);
+                position = DoPlanarHandle(yzPlaneSlider, PrincipleAxis2.YZ, position, rotation, size * 0.25f, snapMode, snapVertices, initFunction, shutdownFunction);
             }
 
 
@@ -555,7 +555,7 @@ namespace RealtimeCSG.Helpers
 			return rotation;
 		}
 
-		internal static Vector3 DoPlanarHandle(PrincipleAxis2 planeID, Vector3 position, Quaternion rotation, float handleSize, bool snapping, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, InitFunction shutdownFunction = null)
+		internal static Vector3 DoPlanarHandle(PrincipleAxis2 planeID, Vector3 position, Quaternion rotation, float handleSize, SnapMode snapMode, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, InitFunction shutdownFunction = null)
 		{
 			int moveHandleHash = 0;
 			switch (planeID)
@@ -577,10 +577,10 @@ namespace RealtimeCSG.Helpers
 				}
 			}
 			int id = GUIUtility.GetControlID (moveHandleHash, FocusType.Keyboard);
-			return DoPlanarHandle(id, planeID, position, rotation, handleSize, snapping, snapVertices, initFunction, shutdownFunction);
+			return DoPlanarHandle(id, planeID, position, rotation, handleSize, snapMode, snapVertices, initFunction, shutdownFunction);
 		}
 
-		internal static Vector3 DoPlanarHandle(int id, PrincipleAxis2 planeID, Vector3 position, Quaternion rotation, float handleSize, bool snapping, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, InitFunction shutdownFunction = null)
+		internal static Vector3 DoPlanarHandle(int id, PrincipleAxis2 planeID, Vector3 position, Quaternion rotation, float handleSize, SnapMode snapMode, Vector3[] snapVertices, CSGHandles.InitFunction initFunction, InitFunction shutdownFunction = null)
 		{
 			int axis1index = 0;
 			int axis2index = 0;
@@ -657,7 +657,7 @@ namespace RealtimeCSG.Helpers
 			}
 			Handles.DrawSolidRectangleWithOutline(s_Vertices, innerColor, outerColor);
 			
-			position = Slider2D(id, position, handleOffset, axisNormal, axis1, axis2, handleSize * 0.5f, RectangleHandleCap, snapping, snapVertices, initFunction, shutdownFunction);
+			position = Slider2D(id, position, handleOffset, axisNormal, axis1, axis2, handleSize * 0.5f, RectangleHandleCap, snapMode, snapVertices, initFunction, shutdownFunction);
 			
 			Handles.color = prevColor;
 

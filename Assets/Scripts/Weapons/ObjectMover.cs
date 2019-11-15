@@ -25,7 +25,8 @@ public class ObjectMover : WeaponMotor
 	public float allowedRange = 12f;
 
 	public float rotationSpeed = 100f;
-	
+
+    public LayerMask layersHit;
 	
 	public string debugID;
 
@@ -40,7 +41,6 @@ public class ObjectMover : WeaponMotor
 		isRotatingObject = false;
 		isFrozen = false;
 
-		networkObjToSpawn = null;
 	}
 
 	public override void PrimaryFire()
@@ -54,9 +54,9 @@ public class ObjectMover : WeaponMotor
 
 		if (Physics.Raycast(rayOrigin, shootDirection, out shot, allowedRange, layermask) && !isHoldingObject)
 		{
-			if (shot.collider.GetComponent<FortwarsProp>() != null)
+			if (shot.collider.GetComponent<PropColliderRef>() != null)
 			{
-				theObject = shot.rigidbody;
+				theObject = shot.collider.GetComponent<PropColliderRef>().PropRigidbody;
 				distance = shot.distance;
 				origRot = theObject.transform.rotation;
 				origCamRot = cam.transform.rotation;
@@ -67,7 +67,7 @@ public class ObjectMover : WeaponMotor
 				theObject.constraints = RigidbodyConstraints.None;
 				theObject.freezeRotation = false;
 			}
-		}
+        }
 		
 	}
 
