@@ -17,7 +17,7 @@ public class MoneyPrinter : FortwarsProp
         {
             nextActionTime = Time.time + TickDelay;
             if (player != null)
-                player.OnChangeCurrencyAmount(player.currentCurrency + MoneyPerTick);
+                player.OnChangeCurrencyAmount(player.CurrentCurrency + MoneyPerTick);
         }
     }
 

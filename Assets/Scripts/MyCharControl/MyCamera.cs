@@ -2,11 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 namespace KinematicCharacterController.Owly
 {
-	public class MyCamera : MonoBehaviourPunCallbacks
+	public class MyCamera : MonoBehaviour
 	{
 		[Header("Framing")]
 		public Camera Camera;
@@ -54,8 +53,6 @@ namespace KinematicCharacterController.Owly
 
 		private const int MaxObstructions = 32;
 
-		private PhotonView view;
-
 		public Vector3 LookAtPosition;
 
 		void OnValidate()
@@ -66,9 +63,7 @@ namespace KinematicCharacterController.Owly
 
 		void Awake()
 		{
-			view = GetComponentInParent<PhotonView>();
-			Transform = this.transform;
-
+            Transform = this.transform;
 			_currentDistance = DefaultDistance;
 			TargetDistance = _currentDistance;
 
@@ -87,8 +82,6 @@ namespace KinematicCharacterController.Owly
 
 		private void Update()
 		{
-			if (!view.IsMine)
-				return;
 		}
 
 		public void UpdateWithInput(float deltaTime, float zoomInput, Vector3 rotationInput)

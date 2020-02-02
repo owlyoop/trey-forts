@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 public class ProjectileLauncher : WeaponMotor
 {
@@ -14,10 +13,7 @@ public class ProjectileLauncher : WeaponMotor
 	public float projectileLife;
 	public int baseDamage;
 	public int clipSize;
-	public int maxAmmo;
 	
-	public int currentAmmoInClip;
-	public int currentAmmoReserves;
 	[System.NonSerialized]
 	public Damager.DamageTypes damageType;
 	[System.NonSerialized]
@@ -31,7 +27,6 @@ public class ProjectileLauncher : WeaponMotor
 	
 	public Vector3 shotPoint;
 
-	public PlayerStats playersStats;
 	private float reloadStartTime;
 	private bool isReloading;
 
@@ -39,13 +34,13 @@ public class ProjectileLauncher : WeaponMotor
 
 	private void Start()
 	{
-		cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
-		playersStats = GetComponentInParent<WeaponSlots>().player;
+        cam = GetComponentInParent<WeaponSlots>().player.cam;
+		player = GetComponentInParent<WeaponSlots>().player;
 		lastFireTime = 0f;
-		currentAmmoInClip = clipSize;
-		currentAmmoReserves = maxAmmo;
-		playersStats.OnChangeAmmoInClip(currentAmmoInClip);
-		playersStats.OnChangeAmmoReservesAmount(currentAmmoReserves);
+		CurrentAmmoInClip = clipSize;
+        CurrentAmmo = MaxAmmo;
+		player.OnChangeAmmoInClip(CurrentAmmoInClip);
+		player.OnChangeAmmoReservesAmount(CurrentAmmo);
 		isReloading = false;
 	}
 
@@ -62,47 +57,35 @@ public class ProjectileLauncher : WeaponMotor
 
 	public override void PrimaryFire()
 	{
-		if (Time.time > lastFireTime + (1 / shotsPerSecond) && currentAmmoInClip > 0)
+		if (Time.time > lastFireTime + (1 / shotsPerSecond) && CurrentAmmoInClip > 0)
 		{
 			isReloading = false;
-            playersStats.ui.radialReload.StopReload();
+            player.ui.RadialReload.StopReload();
             RaycastHit shot;
 			Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 			shootDirection = cam.transform.forward;
 
-
-			//GameObject go = PhotonNetwork.Instantiate("Missile", gunEnd.transform.position, gunEnd.rotation);
-			//GameObject go = (GameObject)Instantiate(projectilePrefab);
-			//Physics.IgnoreCollision(GetComponentInParent<Collider>(), go.GetComponent<Collider>());
-			//go.transform.position = gunEnd.transform.position;
-			
-			
-
-			if (Physics.Raycast(rayOrigin, shootDirection, out shot, 2000f, layermask))
-			{
-				shotPoint = shot.point;
-
-			}
-			else
-			{
-				shotPoint = rayOrigin + (shootDirection * 2000f);
-			}
-			//go.transform.LookAt(shotPoint);
-
-			//go.GetComponent<Projectile>().speed = projectileSpeed;
-			//go.GetComponent<Projectile>().life = projectileLife;
-			//go.GetComponent<Projectile>().baseDamage = baseDamage;
-			//go.GetComponent<Projectile>().damageType = damageType;
+            if (Physics.Raycast(rayOrigin, shootDirection, out shot, 2000f, layermask))
+            {
+                shotPoint = shot.point;
+            }
+            else
+            {
+                shotPoint = rayOrigin + (shootDirection * 2000f);
+            }
 
 			lastFireTime = Time.time;
-			currentAmmoInClip = currentAmmoInClip - 1;
-			playersStats.OnChangeAmmoInClip(currentAmmoInClip);
+			CurrentAmmoInClip = CurrentAmmoInClip - 1;
+			player.OnChangeAmmoInClip(CurrentAmmoInClip);
+
+            //GetComponentInParent<WeaponSlots>().player.GetComponent<PhotonView>().RPC("FireProjectile", RpcTarget.AllViaServer,
+            //GetComponentInParent<WeaponSlots>().player.GetComponent<PhotonView>().ViewID, projectilePrefab.name,
+            //shotPoint, gunEnd.transform.position,
+            //	projectileSpeed, projectileLife, baseDamage, damageType);
+
+            player.GetComponent<PlayerRpcCalls>().FireProjectile(projectilePrefab.name, shotPoint, gunEnd.transform.position, projectileSpeed, projectileLife, baseDamage, damageType);
 
 
-			GetComponentInParent<WeaponSlots>().player.GetComponent<PhotonView>().RPC("FireProjectile", RpcTarget.AllViaServer,
-				GetComponentInParent<WeaponSlots>().player.GetComponent<PhotonView>().ViewID, projectilePrefab.name,
-				shotPoint, gunEnd.transform.position,
-				projectileSpeed, projectileLife, baseDamage, damageType);
 		}
 		else
 		{
@@ -112,30 +95,29 @@ public class ProjectileLauncher : WeaponMotor
 
 	public override void GetWeaponStats(RangedProjectile wep)
 	{
-		shotsPerSecond = wep.shotsPerSecond;
+		shotsPerSecond = wep.ShotsPerSecond;
 		projectileSpeed = wep.projectileSpeed;
 		projectileLife = wep.projectileLife;
-		baseDamage = wep.baseDamage;
-		clipSize = wep.clipSize;
-		maxAmmo = wep.maxAmmo;
+		baseDamage = wep.BaseDamage;
+		clipSize = wep.ClipSize;
+        MaxAmmo = wep.MaxAmmo;
 		damageType = wep.damageType;
-		reloadTime = wep.reloadTime;
+		reloadTime = wep.ReloadTime;
 	}
 
 	public override void UpdateUI()
 	{
-		playersStats = GetComponentInParent<WeaponSlots>().player;
-		playersStats.OnChangeAmmoInClip(currentAmmoInClip);
-		playersStats.OnChangeAmmoReservesAmount(currentAmmoReserves);
+        base.UpdateUI();
+		
 	}
 
 	public override void ReloadButton()
 	{
-		if (currentAmmoReserves > 0 && currentAmmoInClip < clipSize)
+		if (CurrentAmmo > 0 && CurrentAmmoInClip < clipSize)
 		{
             isReloading = true;
             reloadStartTime = Time.time;
-            playersStats.ui.radialReload.StartReload(reloadTime);
+            player.ui.RadialReload.StartReload(reloadTime);
 		}
 	}
 
@@ -143,16 +125,16 @@ public class ProjectileLauncher : WeaponMotor
 	{
 		if (isReloading && Time.time > reloadStartTime + reloadTime)
 		{
-			currentAmmoInClip = currentAmmoInClip + 1;
-			currentAmmoReserves = currentAmmoReserves - 1;
+			CurrentAmmoInClip = CurrentAmmoInClip + 1;
+			CurrentAmmo = CurrentAmmo - 1;
 
 			UpdateUI();
 			reloadStartTime = Time.time;
 
-			if (currentAmmoInClip == clipSize)
+			if (CurrentAmmoInClip == clipSize)
 			{
                 isReloading = false;
-                playersStats.ui.radialReload.StopReload();
+                player.ui.RadialReload.StopReload();
 			}
 			else
 			{
@@ -161,4 +143,59 @@ public class ProjectileLauncher : WeaponMotor
 			
 		}
 	}
+
+    public override void PrimaryFireHolding()
+    {
+        
+    }
+
+    public override void PrimaryFireButtonUp()
+    {
+        
+    }
+
+    public override void SecondaryFire()
+    {
+        
+    }
+
+    public override void SecondaryFireHolding()
+    {
+        
+    }
+
+    public override void ScrollWheelUp()
+    {
+        
+    }
+
+    public override void ScrollWheelDown()
+    {
+        
+    }
+
+    public override void OnSwitchAwayFromWeapon()
+    {
+        
+    }
+
+    public override void OnSwitchToWeapon()
+    {
+        
+    }
+
+    public override void UseButtonHolding()
+    {
+        
+    }
+
+    public override void UseButtonUp()
+    {
+        
+    }
+
+    public override void GetWeaponStats(Weapon wep)
+    {
+        
+    }
 }

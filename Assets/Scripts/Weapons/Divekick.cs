@@ -29,7 +29,7 @@ public class Divekick : Damager
         this.gameObject.SetActive(true);
         isDivekickActive = true;
         iter = 0;
-        Debug.Log("activate divekick");
+        //Debug.Log("activate divekick");
     }
 
     public void DeactivateDivekick()
@@ -57,12 +57,12 @@ public class Divekick : Damager
             {
                 if (playerHit.player == player)
                 {
-                    Debug.Log("is own");
+                    //Debug.Log("is own");
                     isValidDamageTarget = false;
                 }
                 else
                 {
-                    Debug.Log("enemy hit");
+                    //Debug.Log("enemy hit");
                     isValidDamageTarget = true;
                     _target = target;
                 }
@@ -111,8 +111,8 @@ public class Divekick : Damager
         if (player.CharControl.CurrentCharacterState == KinematicCharacterController.Owly.CharacterState.Divekick)
         {
             iter++;
-            target.TakeDamage(player.GetComponent<Photon.Pun.PhotonView>().ViewID, baseDamage, DamageTypes.Physical);
-            player.CharControl.TransitionToState(player.playerClass.defaultState);
+            target.TakeDamage(baseDamage, DamageTypes.Physical, player, player.transform.position);
+            player.CharControl.TransitionToState(player.CurrentClass.defaultState);
             
         }
 

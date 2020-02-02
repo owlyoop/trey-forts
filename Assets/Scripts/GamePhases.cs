@@ -44,6 +44,8 @@ public class GamePhases : MonoBehaviour
 
 	EventManager _eventManager;
 
+    public GameObject playerPrefab;
+
 
 	private void Start()
 	{
@@ -51,7 +53,8 @@ public class GamePhases : MonoBehaviour
 		isWaitingForPlayers = true;
 		BlueTeamScore = 0;
 		RedTeamScore = 0;
-	}
+        //PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 2f, 0f), Quaternion.identity, 0);
+    }
 
 	private void Update()
 	{

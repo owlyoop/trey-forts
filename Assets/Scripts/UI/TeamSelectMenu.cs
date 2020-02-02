@@ -17,28 +17,23 @@ public class TeamSelectMenu : MonoBehaviour
 
 	void Start()
 	{
-		if (!player.photonView.IsMine)
-			return;
 		Cursor.lockState = CursorLockMode.None;
 	}
 
 	public void OnClickBlueTeamButton()
 	{
-		//if (!player.photonView.IsMine)
-		//	return;
-		if (player.playerClass.className != "Spectator")
+		if (player.CurrentClass.className != "Spectator")
 		{
 			player.SetTeam(1);
-			player.RespawnAndInitialize();
-			player.ChangeAwayFromSpectator();
+            //player.TakeDamage(player.photonView.ViewID, 50000, Damager.DamageTypes.Physical);
 			CloseUI();
 			OpenClassMenu();
 		}
 		else
 		{
 			// player is spectator, we dont want to spawn them until they pick a class
-			player.GetComponent<PlayerInput>().mainUI.classMenu.QueuedTeam = 1;
-			player.GetComponent<PlayerInput>().mainUI.classMenu.cameFromTeamMenu = true;
+			player.GetComponent<PlayerInput>().mainUI.ClassMenu.QueuedTeam = 1;
+			player.GetComponent<PlayerInput>().mainUI.ClassMenu.cameFromTeamMenu = true;
 			CloseUI();
 			OpenClassMenu();
 		}
@@ -46,20 +41,17 @@ public class TeamSelectMenu : MonoBehaviour
 
 	public void OnClickRedTeamButton()
 	{
-	//	if (!player.photonView.IsMine)
-	//		return;
-		if (player.playerClass.className != "Spectator")
+		if (player.CurrentClass.className != "Spectator")
 		{
 			player.SetTeam(2);
-			player.RespawnAndInitialize();
-			player.ChangeAwayFromSpectator();
+            //player.TakeDamage(player.photonView.ViewID, 50000, Damager.DamageTypes.Physical);
 			CloseUI();
 			OpenClassMenu();
 		}
 		else
 		{
-			player.GetComponent<PlayerInput>().mainUI.classMenu.QueuedTeam = 2;
-			player.GetComponent<PlayerInput>().mainUI.classMenu.cameFromTeamMenu = true;
+			player.GetComponent<PlayerInput>().mainUI.ClassMenu.QueuedTeam = 2;
+			player.GetComponent<PlayerInput>().mainUI.ClassMenu.cameFromTeamMenu = true;
 			CloseUI();
 			OpenClassMenu();
 			
@@ -69,8 +61,6 @@ public class TeamSelectMenu : MonoBehaviour
 
 	public void OnClickSpectateTeamButton()
 	{
-		//if (!player.photonView.IsMine)
-	//		return;
 		player.SetTeam(0);
 		player.ChangeToSpectator();
 		CloseUI();

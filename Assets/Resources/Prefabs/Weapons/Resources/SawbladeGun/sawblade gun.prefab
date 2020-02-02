@@ -45,7 +45,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 093f83ab642df0843a4a7ed4e49c97a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  networkObjToSpawn: {fileID: 0}
+  WeaponSwitchAwayTime: 0
+  WeaponSwitchToTime: 0
   projectilePrefab: {fileID: 2777677599288217292, guid: e0e0856913e6a8541805ebcaeb07c01f,
     type: 3}
   gunEnd: {fileID: 2144528943895771468}
@@ -62,6 +63,9 @@ MonoBehaviour:
   shootDirection: {x: 0, y: 0, z: 0}
   shotPoint: {x: 0, y: 0, z: 0}
   playersStats: {fileID: 0}
+  layermask:
+    serializedVersion: 2
+    m_Bits: 132097
 --- !u!1 &8799070633998743015
 GameObject:
   m_ObjectHideFlags: 0

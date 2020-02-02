@@ -89,6 +89,6 @@ public class PuckOrb : AbilityMotor
     {
         OnCooldownStart();
         _cooldownTime = Time.time;
-        owner.ui.currentAbilitySlots.GetComponent<CurrentAbilitiesUI>().StartAbilityCooldown(baseAbility.AbilityName);
+        owner.ui.CurrentAbilitySlots.GetComponent<CurrentAbilitiesUI>().StartAbilityCooldown(baseAbility.AbilityName);
     }
 }

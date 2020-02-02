@@ -103,7 +103,7 @@ MonoBehaviour:
     type: 3}
   layermask:
     serializedVersion: 2
-    m_Bits: 4097
+    m_Bits: 136193
 --- !u!65 &4215250413552184072
 BoxCollider:
   m_ObjectHideFlags: 0

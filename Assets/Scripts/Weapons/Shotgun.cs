@@ -12,13 +12,9 @@ public class Shotgun : WeaponMotor
 	public int damagePerPellet;
 	public float shotsPerSecond;
 	public int clipSize;
-	public int maxAmmo;
 
-	public int currentAmmoInClip;
-	public int currentAmmoReserves;
 
 	public Camera cam;
-	public PlayerStats player;
 
 	float lastFireTime;
 	bool isReloading = false;
@@ -26,18 +22,22 @@ public class Shotgun : WeaponMotor
 	public Vector3 shotPoint;
 	public Transform gunEnd;
 
+    public LayerMask layermask;
 
+    int OwnerPunID;
 	public GameObject hitPrefab;
 
 	private void Start()
 	{
-		cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
+		
 		player = GetComponentInParent<WeaponSlots>().player;
+        cam = player.cam;
+        //OwnerPunID = player.photonView.ViewID;
 		lastFireTime = 0f;
-		currentAmmoInClip = clipSize;
-		currentAmmoReserves = maxAmmo;
-		player.OnChangeAmmoInClip(currentAmmoInClip);
-		player.OnChangeAmmoReservesAmount(currentAmmoReserves);
+		CurrentAmmoInClip = clipSize;
+		CurrentAmmo = MaxAmmo;
+		player.OnChangeAmmoInClip(CurrentAmmoInClip);
+		player.OnChangeAmmoReservesAmount(CurrentAmmo);
 	}
 
 	private void Update()
@@ -48,19 +48,15 @@ public class Shotgun : WeaponMotor
 
 	public override void PrimaryFire()
 	{
-		if (Time.time > lastFireTime + (1 / shotsPerSecond) && currentAmmoInClip > 0)
+		if (Time.time > lastFireTime + (1 / shotsPerSecond) && CurrentAmmoInClip > 0)
 		{
 			isReloading = false;
-			player.ui.radialReload.enabled = false;
+			player.ui.RadialReload.enabled = false;
 			RaycastHit shot;
 			Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 			shootDirection = cam.transform.forward;
 
-			int layermask = 1 << 9;
-			layermask = ~layermask;
-
-
-
+            List<IDamagable> targets = new List<IDamagable>();
 
 			for (int i = 0; i < numPellets; i++)
 			{
@@ -73,6 +69,10 @@ public class Shotgun : WeaponMotor
 				{
 					shotPoint = shot.point;
 					spawnDecal = true;
+                    if (shot.collider.GetComponent<IDamagable>() != null)
+                    {
+                        targets.Add(shot.collider.GetComponent<IDamagable>());
+                    }
 				}
 				else
 				{
@@ -86,25 +86,85 @@ public class Shotgun : WeaponMotor
 					go.transform.position = shotPoint;
 					go.transform.rotation = Quaternion.FromToRotation(Vector3.forward, shot.normal);
 				}
-				
-				shootDirection = cam.transform.forward;
+
 			}
 
-
+            foreach(IDamagable target in targets)
+            {
+                target.TakeDamage(damagePerPellet, Damager.DamageTypes.Physical, player, player.transform.position);
+            }
 			lastFireTime = Time.time;
-			currentAmmoInClip = currentAmmoInClip - 1;
-			player.OnChangeAmmoInClip(currentAmmoInClip);
+			CurrentAmmoInClip = CurrentAmmoInClip - 1;
+			player.OnChangeAmmoInClip(CurrentAmmoInClip);
 		}
 	}
 	
 
 	public override void GetWeaponStats(Weapon wep)
 	{
-
+        clipSize = wep.ClipSize;
+        damagePerPellet = wep.BaseDamage;
+        shotsPerSecond = wep.ShotsPerSecond;
+        base.GetWeaponStats(wep);
 	}
 
 	public override void ReloadButton()
 	{
-		base.ReloadButton();
+		
 	}
+
+    public override void UpdateUI()
+    {
+        base.UpdateUI();
+    }
+
+    public override void PrimaryFireHolding()
+    {
+        
+    }
+
+    public override void PrimaryFireButtonUp()
+    {
+        
+    }
+
+    public override void SecondaryFire()
+    {
+        
+    }
+
+    public override void SecondaryFireHolding()
+    {
+        
+    }
+
+    public override void ScrollWheelUp()
+    {
+        
+    }
+
+    public override void ScrollWheelDown()
+    {
+        
+    }
+
+    public override void OnSwitchAwayFromWeapon()
+    {
+        
+    }
+
+    public override void OnSwitchToWeapon()
+    {
+        
+    }
+
+    public override void UseButtonHolding()
+    {
+        
+    }
+
+    public override void UseButtonUp()
+    {
+        
+    }
 }

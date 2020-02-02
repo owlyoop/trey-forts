@@ -546,7 +546,7 @@ GameObject:
   - component: {fileID: 7230591005684204133}
   - component: {fileID: 1175307144244490069}
   - component: {fileID: 6196184522027901077}
-  m_Layer: 17
+  m_Layer: 15
   m_Name: Hurt Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -744,6 +744,7 @@ MonoBehaviour:
   buildTimeMat: {fileID: 2100000, guid: d95cc7fa09eb0ed419967bb5f9e91ffa, type: 2}
   CanRotateX: 1
   CanRotateY: 1
+  GhostMode: 0
   cols:
   - {fileID: 7399468180258059104}
   rend: {fileID: 7558511142701711884}

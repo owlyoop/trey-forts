@@ -1,5 +1,4 @@
 ﻿using KinematicCharacterController.Owly;
-using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -90,60 +89,54 @@ public class SawbladeMissile : Projectile
 			if (Time.time > nextActionTime)
 			{
 				nextActionTime = Time.time + TickDelay;
-				target.TakeDamage(OwnerPunID, DamagePerTick, damageType);
+				target.TakeDamage(DamagePerTick, damageType, player, this.transform.position);
 			}
 		}
 	}
 
 	private void OnTriggerEnter(Collider col)
 	{
-		if (player.photonView.IsMine)
-		{
-			if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.GetComponent<PlayerStats>() != player && layermask == (layermask | (1 << col.gameObject.layer)))
-			{
-				if (numBounces <= maxBounces && col.GetComponent<IDamagable>() != null)
-				{
-					IDamagable target = col.GetComponent<IDamagable>();
+        if (col.gameObject.GetComponent<PlayerStats>() != player && layermask == (layermask | (1 << col.gameObject.layer)))
+        {
+            if (numBounces <= maxBounces && col.GetComponent<IDamagable>() != null)
+            {
+                IDamagable target = col.GetComponent<IDamagable>();
 
-					target.TakeDamage(OwnerPunID, baseDamage, damageType);
-				}
+                target.TakeDamage(baseDamage, damageType, player, this.transform.position);
+            }
 
-			}
-		}
-	}
+        }
+    }
 
 	private void OnCollisionEnter(Collision col)
 	{
-		if (player.photonView.IsMine)
-		{
-			if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.GetComponent<PlayerStats>() != player && layermask == (layermask | (1 << col.gameObject.layer)))
-			{
-				if (numBounces <= maxBounces)
-				{
+        if (col.gameObject.GetComponent<PlayerStats>() != player && layermask == (layermask | (1 << col.gameObject.layer)))
+        {
+            if (numBounces <= maxBounces)
+            {
 
-					hitpnt = col.GetContact(0);
+                hitpnt = col.GetContact(0);
 
-					newDir = Vector3.Reflect(currentDirection, hitpnt.normal);
-					accel = 0f;
-					oldDir = currentDirection;
-					currentDirection = newDir;
+                newDir = Vector3.Reflect(currentDirection, hitpnt.normal);
+                accel = 0f;
+                oldDir = currentDirection;
+                currentDirection = newDir;
 
-					//transform.rotation = Quaternion.LookRotation(currentDirection);
-					numBounces++;
-					
-				}
+                //transform.rotation = Quaternion.LookRotation(currentDirection);
+                numBounces++;
 
-				if (numBounces > maxBounces)
-				{
-					Invoke("Kill", stickLife);
-					isStuck = true;
-					Debug.Log("stuck now");
-					currentDirection = Vector3.zero;
-				}
-				
-			}
-		}
-	}
+            }
+
+            if (numBounces > maxBounces)
+            {
+                Invoke("Kill", stickLife);
+                isStuck = true;
+                Debug.Log("stuck now");
+                currentDirection = Vector3.zero;
+            }
+
+        }
+    }
 
 	private void OnTriggerStay(Collider other)
 	{

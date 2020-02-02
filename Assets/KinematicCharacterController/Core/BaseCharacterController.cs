@@ -1,11 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 namespace KinematicCharacterController
 {
-    public abstract class BaseCharacterController : MonoBehaviourPunCallbacks
+    public abstract class BaseCharacterController : MonoBehaviour
     {
         /// <summary>
         // The KinematicCharacterMotor that will be assigned to this CharacterController via the inspector

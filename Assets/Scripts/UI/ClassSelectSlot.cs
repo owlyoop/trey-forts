@@ -37,18 +37,36 @@ public class ClassSelectSlot : MonoBehaviour
 
         if (_weaponSet.isElite)
         {
-            if (menu.player.currentCurrency >= menu.selectedClass.eliteMoneyCost)
+            bool canSelect = false;
+            if (menu.player.CurrentCurrency >= menu.selectedClass.eliteMoneyCost)
             {
-                menu.classSelectButton.interactable = true;
+                canSelect = true;
             }
             else
             {
-                menu.classSelectButton.interactable = false;
+                canSelect = false;
+            }
+
+            if (menu.player._gameManager.isInBuildPhase || menu.player._gameManager.isWaitingForPlayers)
+            {
+                canSelect = false;
+            }
+
+            if (menu.player.HasPreviouslyPlayed)
+                canSelect = false;
+
+            if (canSelect)
+            {
+                menu.EliteClassButton.interactable = true;
+            }
+            else
+            {
+                menu.EliteClassButton.interactable = false;
             }
         }
         else
         {
-            menu.classSelectButton.interactable = true;
+            menu.ClassSelectButton.interactable = true;
         }
 
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using KinematicCharacterController;
 using System;
-using Photon.Pun;
 
 namespace KinematicCharacterController.Owly
 {
@@ -103,13 +102,13 @@ namespace KinematicCharacterController.Owly
 
 		public float currentSpeed;
 		public float dot;
+        public float wishDirLength;
+        public Vector3 wishDirDebug;
 
         public LayerMask collidableLayers;
 
 		private void Start()
 		{
-			if (!photonView.IsMine)
-				return;
 			// Handle initial state
 			TransitionToState(CharacterState.Default);
 			cam = GetComponent<PlayerInput>().cam;
@@ -119,8 +118,6 @@ namespace KinematicCharacterController.Owly
 
 		private void Update()
 		{
-			if (!photonView.IsMine)
-				return;
 		}
 
 		/// <summary>
@@ -442,7 +439,8 @@ namespace KinematicCharacterController.Owly
 							Vector3 reorientedInput = Vector3.Cross(effectiveGroundNormal, inputRight).normalized * _moveInputVector.magnitude;
 							targetMovementVelocity = reorientedInput * MaxStableMoveSpeed;
 
-							if (_jumpRequested)
+
+                            if (_jumpRequested)
 							{
 								float friction;
 								if (currentVelocity.magnitude > 18f)
@@ -450,7 +448,7 @@ namespace KinematicCharacterController.Owly
 									friction = 18f;
 								}
 								else friction = currentVelocity.magnitude;
-								//currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp((-StableMovementSharpness / (BhopFrictionReduction - friction)) * deltaTime));
+								currentVelocity = Vector3.Lerp(currentVelocity, targetMovementVelocity, 1 - Mathf.Exp((-StableMovementSharpness / (BhopFrictionReduction - friction)) * deltaTime));
 							}
 							else
 							{
@@ -466,7 +464,7 @@ namespace KinematicCharacterController.Owly
 							// Add move input
 							if (_moveInputVector.sqrMagnitude > 0f)
 							{
-								//targetMovementVelocity = _moveInputVector * MaxAirMoveSpeed;
+								targetMovementVelocity = _moveInputVector * MaxAirMoveSpeed;
 								Vector3 wishDir;
 
 								float accel;
@@ -478,11 +476,15 @@ namespace KinematicCharacterController.Owly
 								wishDir = transform.TransformDirection(wishDir);
 
                                 
-                                float wishSpeed = wishDir.magnitude;
-								wishSpeed *= MaxStableMoveSpeed;
 								wishDir.Normalize();
 
-								//wishSpeed *= 0.12f;
+                                wishDirLength = wishDir.magnitude;
+
+                                wishDirDebug = wishDir;
+                                float wishSpeed = wishDir.magnitude;
+								wishSpeed *= MaxStableMoveSpeed;
+
+								wishSpeed *= 0.12f;
 
 								//cpm
 								float wishSpeed2 = wishSpeed;
@@ -493,7 +495,7 @@ namespace KinematicCharacterController.Owly
 								else
 								{
 									accel = BhopAirDeaccelSpeed;
-								}
+                                }
 
 								if (horiz != 0)
 								{
@@ -502,12 +504,17 @@ namespace KinematicCharacterController.Owly
 									accel = sideStrafeAcceleration;
 									
 								}
+
+                                if (horiz != 0&& forward != 0)
+                                {
+                                    
+                                }
 								currentVelocity = Accelerate(wishDir, wishSpeed, accel, currentVelocity);
 								
 
 								if (airControl > 0)
 								{
-									currentVelocity = AirControl(wishDir, wishSpeed2, currentVelocity);
+									currentVelocity = AirControl(wishDir, wishSpeed, currentVelocity);
 								}
 
 								// Prevent climbing on un-stable slopes with air movement
@@ -582,8 +589,8 @@ namespace KinematicCharacterController.Owly
 					{
 						if (Motor.GroundingStatus.IsStableOnGround)
 						{
-                              if (player.currentHealth > 0)
-					              TransitionToState(player.playerClass.defaultState);
+                              if (player.CurrentHealth > 0)
+					              TransitionToState(player.CurrentClass.defaultState);
 						}
 						else
 						{
@@ -664,13 +671,10 @@ namespace KinematicCharacterController.Owly
 			{
 				return currentVel;
 			}
-				
 
 			accelSpeed = accel * Time.deltaTime * wishspeed;
 			if (accelSpeed > addSpeed)
 				accelSpeed = addSpeed;
-
-
 
 			currentVel.x += accelSpeed * wishdir.x;
 			currentVel.z += accelSpeed * wishdir.z;
@@ -682,7 +686,8 @@ namespace KinematicCharacterController.Owly
 		{
 			if (Mathf.Abs(Input.GetAxisRaw("Vertical")) < 0.001 || Mathf.Abs(wishSpeed) < 0.001)
 				return currentVelocity;
-			float zspeed = currentVelocity.y;
+            //Mathf.Abs(Input.GetAxisRaw("Vertical")) < 0.001 ||
+            float zspeed = currentVelocity.y;
 			currentVelocity.y = 0;
 
 			float speed = currentVelocity.magnitude;
@@ -692,6 +697,7 @@ namespace KinematicCharacterController.Owly
 			float k = 32;
 			k *= airControl * dot * dot * Time.deltaTime;
 
+            
 			if (dot > 0)
 			{
 				currentVelocity.x = currentVelocity.x * speed + targetMovementVelocity.x * k;
@@ -713,8 +719,8 @@ namespace KinematicCharacterController.Owly
             yield return new WaitForSeconds(2f);
             if (CurrentCharacterState == CharacterState.Divekick)
             {
-                if (player.currentHealth > 0)
-                    TransitionToState(player.playerClass.defaultState);
+                if (player.CurrentHealth > 0)
+                    TransitionToState(player.CurrentClass.defaultState);
             }
         }
 

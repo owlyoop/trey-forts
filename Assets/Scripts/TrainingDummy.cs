@@ -1,5 +1,4 @@
-﻿using Photon.Pun;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,11 +19,10 @@ public class TrainingDummy : MonoBehaviour, IDamagable
 
 	}
 
-	public void TakeDamage(int GiverPunID, int damageTaken, Damager.DamageTypes damageType)
+	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
 	{
-		Debug.Log(GiverPunID);
-		Debug.Log(PhotonView.Find(GiverPunID));
-		PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);
+        Debug.Log(giver.ToString());
+		giver.dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);
 		CurrentHealth = CurrentHealth - damageTaken;
 		if (CurrentHealth <= 0)
 		{

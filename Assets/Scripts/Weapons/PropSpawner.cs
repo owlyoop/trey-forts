@@ -1,13 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 public class PropSpawner : WeaponMotor
 {
 
-	public PlayerInput player;
-	public PlayerStats playersStats;
+	public PlayerInput playerInput;
 	public UIManager playerUI;
 	public PropSpawnMenu propUI;
 	public WeaponSlots wepSlots;
@@ -32,10 +30,11 @@ public class PropSpawner : WeaponMotor
 
 	private void Start()
 	{
+        player = playerInput.playerStats;
 		gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
 		InitilaizeValues();
 
-		if (player.playerWeapons.selectedProp != null)
+		if (playerInput.playerWeapons.selectedProp != null)
 		{
 			SetSelectedProp();
 		}
@@ -46,7 +45,7 @@ public class PropSpawner : WeaponMotor
 	private void InitilaizeValues()
 	{
 		isPlacingObject = false;
-		cam = player.cam;
+		cam = playerInput.cam;
 	}
 
 	public void SetSelectedProp()
@@ -55,13 +54,14 @@ public class PropSpawner : WeaponMotor
 
 		Destroy(ghostProp);
 		Debug.Log("pp 2");
-		Debug.Log(player.mainUI.propMenu.hasPropSelected.ToString());
-		if (playersStats.currentCurrency > playersStats.wepSlots.selectedProp.currencyCost)
+		Debug.Log(playerInput.mainUI.PropMenu.hasPropSelected.ToString());
+		if (player.CurrentCurrency > player.wepSlots.selectedProp.currencyCost)
 		{
-			if (player.mainUI.propMenu.hasPropSelected)
+			if (playerInput.mainUI.PropMenu.hasPropSelected)
 			{
 				Debug.Log("peepee ");
-				ghostProp = Instantiate(playersStats.wepSlots.selectedProp.propPrefab);
+				ghostProp = Instantiate(player.wepSlots.selectedProp.propPrefab);
+                ghostProp.GetComponent<FortwarsProp>().GhostMode = true;
 				theProp = ghostProp.GetComponent<FortwarsProp>();
 				//thePropObj.layer = 10;
 				isPlacingObject = true;
@@ -136,34 +136,30 @@ public class PropSpawner : WeaponMotor
 
 	public override void PrimaryFire()
 	{
-		if (ghostProp != null && isPlacingObject && player.mainUI.propMenu.hasPropSelected && canPlaceProp)
+		if (ghostProp != null && isPlacingObject && playerInput.mainUI.PropMenu.hasPropSelected && canPlaceProp)
 		{
-			//angleOffsetY = 0f;
-
 			//player rpc call to spawn
-			string prefabName = playersStats.wepSlots.selectedProp.propPrefab.name;
+			string prefabName = player.wepSlots.selectedProp.propPrefab.name;
 			Debug.Log(prefabName);
 
             bool validprop = true;
-			if (playersStats.currentCurrency - theProp.currencyCost > 0)
+			if (player.CurrentCurrency - theProp.currencyCost > 0)
 			{
-                if (theProp is MoneyPrinter && playersStats.hasPlacedMoneyPrinter == true)
+                if (theProp is MoneyPrinter && player.hasPlacedMoneyPrinter == true)
                 {
                     validprop = false;
                 }
 
                 if (validprop)
                 {
-                    player.GetComponent<PhotonView>().RPC("SpawnFortwarsProp", RpcTarget.AllViaServer,
-                        playersStats.GetComponent<PhotonView>().ViewID, prefabName, ghostProp.transform.position, ghostProp.transform.rotation);
-
-                    playersStats.OnChangeCurrencyAmount(playersStats.currentCurrency - theProp.currencyCost);
+                    player.GetComponent<PlayerRpcCalls>().SpawnFortwarsProp(prefabName, player, ghostProp.transform.position, ghostProp.transform.rotation);
+                    player.OnChangeCurrencyAmount(player.CurrentCurrency - theProp.currencyCost);
                 }
+
                 if (theProp is MoneyPrinter)
                 {
-                    playersStats.hasPlacedMoneyPrinter = true;
+                    player.hasPlacedMoneyPrinter = true;
                 }
-
 			}
 		}
 	}
@@ -193,7 +189,7 @@ public class PropSpawner : WeaponMotor
 
 	public override void OnSwitchToWeapon()
 	{
-		if (player.playerWeapons.selectedProp != null)
+		if (playerInput.playerWeapons.selectedProp != null)
 		{
 			SetSelectedProp();
 		}
@@ -207,8 +203,53 @@ public class PropSpawner : WeaponMotor
 
 	public override void UpdateUI()
 	{
-		playersStats = GetComponentInParent<WeaponSlots>().player;
-		playersStats.ui.ammoAmount.text = "";
-		playersStats.ui.ammoInClip.text = "";
+		player = GetComponentInParent<WeaponSlots>().player;
+		player.ui.AmmoAmount.text = "";
+		player.ui.AmmoInClip.text = "";
 	}
+
+    public override void PrimaryFireHolding()
+    {
+        
+    }
+
+    public override void PrimaryFireButtonUp()
+    {
+        
+    }
+
+    public override void SecondaryFireHolding()
+    {
+        
+    }
+
+    public override void ScrollWheelUp()
+    {
+        
+    }
+
+    public override void ScrollWheelDown()
+    {
+        
+    }
+
+    public override void UseButtonHolding()
+    {
+        
+    }
+
+    public override void UseButtonUp()
+    {
+        
+    }
+
+    public override void GetWeaponStats(Weapon wep)
+    {
+        
+    }
+
+    public override void GetWeaponStats(RangedProjectile wep)
+    {
+        
+    }
 }

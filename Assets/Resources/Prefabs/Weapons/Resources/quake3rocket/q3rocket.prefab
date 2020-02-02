@@ -235,8 +235,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 093f83ab642df0843a4a7ed4e49c97a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   WeaponSwitchAwayTime: 0
   WeaponSwitchToTime: 0
+  MaxAmmo: 0
+  CurrentAmmo: 0
+  ClipSize: 0
+  CurrentAmmoInClip: 0
   projectilePrefab: {fileID: 1182533768651048, guid: 551da3741c9108d45b612c1bfa4b2ba6,
     type: 3}
   gunEnd: {fileID: 4061076240319424}
@@ -245,17 +250,13 @@ MonoBehaviour:
   projectileLife: 5
   baseDamage: 50
   clipSize: 4
-  maxAmmo: 20
-  currentAmmoInClip: 0
-  currentAmmoReserves: 0
   cam: {fileID: 0}
   rayOrigin: {x: 0, y: 0, z: 0}
   shootDirection: {x: 0, y: 0, z: 0}
   shotPoint: {x: 0, y: 0, z: 0}
-  playersStats: {fileID: 0}
   layermask:
     serializedVersion: 2
-    m_Bits: 168961
+    m_Bits: 136193
 --- !u!120 &120049004531385274
 LineRenderer:
   m_ObjectHideFlags: 0

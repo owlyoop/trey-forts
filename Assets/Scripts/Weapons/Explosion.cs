@@ -3,7 +3,6 @@ using KinematicCharacterController;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 public class Explosion : Damager
 {
@@ -24,10 +23,10 @@ public class Explosion : Damager
 
 	public bool damageThePlayer = true; // should the explosion damage the source/player?
 
-	public int OwnerPunID;
+	public int OwnerID;
 	public PlayerStats player;
 
-    public List<PlayerStats> uniquePlayers = new List<PlayerStats>();
+    public List<IDamagable> uniqueTargets = new List<IDamagable>();
 
     public StatusEffect firePrefab;
 
@@ -35,7 +34,7 @@ public class Explosion : Damager
 	{
 		explosionPos = transform.position;
 		Collider[] colliders = Physics.OverlapSphere(explosionPos, exRadius);
-        uniquePlayers = base.GetUniqueTargets(colliders);
+        uniqueTargets = base.GetUniqueDamagableTargets(colliders);
 
         foreach (Collider col in colliders)
 		{
@@ -54,24 +53,6 @@ public class Explosion : Damager
 				player.AddVelocity(velocityToAdd);
 			}
 
-            //Actual damage check. Idamagable.
-			IDamagable target = col.GetComponent<IDamagable>();
-			if (target != null)
-			{
-                
-                var propHit = col.GetComponent<FortwarsProp>();
-
-                if (propHit != null)
-                {
-                    propHit.TakeDamage(OwnerPunID, baseDamage, damageType);
-                }
-
-                if (col.GetComponent<TrainingDummy>() != null)
-                {
-                    target.TakeDamage(OwnerPunID, baseDamage, damageType);
-                }
-			}
-
             // Rigidbody test. ragdolls and physic props.
 			Rigidbody rb = col.GetComponent<Rigidbody>();
 			if (rb != null)
@@ -87,39 +68,17 @@ public class Explosion : Damager
 				
 			}
 		}
-
-        
-        foreach (PlayerStats targets in uniquePlayers)
+        foreach (IDamagable targets in uniqueTargets)
         {
-            targets.TakeDamage(OwnerPunID, baseDamage, damageType);
-
-            bool alreadyOnFire = false;
-            if (targets.StatusEffectManager.CurrentStatusEffectsOnPlayer.Count == 0)
-            {
-                //targets.StatusEffectManager.AddStatusEffect(firePrefab);
-            }
-                
-            else
-            {
-                foreach (StatusEffect s in targets.StatusEffectManager.CurrentStatusEffectsOnPlayer)
-                {
-                    if (s is FireStatusEffect)
-                        alreadyOnFire = true;
-                    Debug.Log("fire fire");
-                    if (!alreadyOnFire)
-                    {
-                        //targets.StatusEffectManager.AddStatusEffect(firePrefab);
-                    }
-                }
-            }
+            Debug.Log(targets.ToString());
+            targets.TakeDamage(baseDamage, damageType, player, this.transform.position);
         }
 		Invoke("Kill", 1);
 	}
 
 	public override void DamageTarget(IDamagable target)
 	{
-		
-		target.TakeDamage(OwnerPunID, baseDamage, DamageTypes.Physical);
+		target.TakeDamage(baseDamage, DamageTypes.Physical, player, this.transform.position);
 	}
 
 	Vector3 GetVelocityToAdd(GameObject go, float _force)

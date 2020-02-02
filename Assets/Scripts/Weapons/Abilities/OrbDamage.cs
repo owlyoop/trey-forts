@@ -27,6 +27,6 @@ public class OrbDamage : Damager
 
     private void OnTriggerEnter(Collider col)
     {
-        DamageUniqueTargetsOnTriggerEnter(col, orb.owner.photonView.ViewID, damage, DamageTypes.Physical, false);
+        //DamageUniqueTargetsOnTriggerEnter(col, orb.owner.photonView.ViewID, damage, DamageTypes.Physical, false);
     }
 }

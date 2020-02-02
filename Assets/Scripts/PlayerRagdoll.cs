@@ -21,7 +21,8 @@ public class PlayerRagdoll : MonoBehaviour
 
     public List<Collider> colliderCollection = new List<Collider>();
 
-
+    public SkinnedMeshRenderer bodyToColor;
+    public SkinnedMeshRenderer jointsToColor;
 
     private void Start()
     {
@@ -32,6 +33,11 @@ public class PlayerRagdoll : MonoBehaviour
 
     }
 
+    public void SetRagdollMaterials(Material body, Material joints)
+    {
+        bodyToColor.material = body;
+        jointsToColor.material = joints;
+    }
     
 
 }

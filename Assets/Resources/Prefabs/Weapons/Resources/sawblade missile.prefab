@@ -70,7 +70,7 @@ MonoBehaviour:
   mesh: {fileID: 2777677599288217294}
   layermask:
     serializedVersion: 2
-    m_Bits: 4097
+    m_Bits: 135169
 --- !u!1001 &2777677599288313966
 PrefabInstance:
   m_ObjectHideFlags: 0

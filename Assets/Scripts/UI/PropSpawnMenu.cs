@@ -44,7 +44,7 @@ public class PropSpawnMenu : MonoBehaviour
 	public void OnClickCreateButton()
 	{
         bool isValid = false;
-		if (selectedProp != null && playersStats.currentCurrency > selectedProp.currencyCost)
+		if (selectedProp != null && playersStats.CurrentCurrency > selectedProp.currencyCost)
 		{
             if (playersStats._gameManager.isInBuildPhase && selectedProp.canPlaceInBuildPhase)
             {
@@ -64,7 +64,7 @@ public class PropSpawnMenu : MonoBehaviour
 
                 Debug.Log("poopoo");
 
-                if (selectedProp.currencyCost > playersStats.currentCurrency)
+                if (selectedProp.currencyCost > playersStats.CurrentCurrency)
                 {
                     hasPropSelected = false;
                     mainUI.player.playerWeapons.SetSelectedProp(null);

@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 public class ObjectMover : WeaponMotor
 {
@@ -9,8 +8,6 @@ public class ObjectMover : WeaponMotor
 	float distance;
 	public Camera cam;
 	public Transform gunEnd;
-
-	PlayerStats playersStats;
 	
 	private Vector3 shootDirection;
 	private LineRenderer laserLine;
@@ -35,7 +32,7 @@ public class ObjectMover : WeaponMotor
 	{
 		
 		//cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
-		playersStats = cam.GetComponentInParent<PlayerStats>();
+		player = cam.GetComponentInParent<PlayerStats>();
 		laserLine = GetComponent<LineRenderer>();
 		isHoldingObject = false;
 		isRotatingObject = false;
@@ -155,8 +152,8 @@ public class ObjectMover : WeaponMotor
 
 		
 			
-			playersStats.GetComponent<PhotonView>().RPC("UpdateFortwarsPropTransform", RpcTarget.AllViaServer,
-				theObject.GetComponent<FortwarsProp>().idOfOwner, propIndex, theObject.transform.position, theObject.transform.rotation);
+			//player.GetComponent<PhotonView>().RPC("UpdateFortwarsPropTransform", RpcTarget.AllViaServer,
+				//theObject.GetComponent<FortwarsProp>().idOfOwner, propIndex, theObject.transform.position, theObject.transform.rotation);
 
 			propIndex = 0;
 		}
@@ -208,8 +205,43 @@ public class ObjectMover : WeaponMotor
 
 	public override void UpdateUI()
 	{
-		playersStats = GetComponentInParent<WeaponSlots>().player;
-		playersStats.ui.ammoAmount.text = "";
-		playersStats.ui.ammoInClip.text = "";
+		player = GetComponentInParent<WeaponSlots>().player;
+		player.ui.AmmoAmount.text = "";
+		player.ui.AmmoInClip.text = "";
 	}
+
+    public override void PrimaryFireHolding()
+    {
+        
+    }
+
+    public override void SecondaryFireHolding()
+    {
+        
+    }
+
+    public override void OnSwitchAwayFromWeapon()
+    {
+        
+    }
+
+    public override void OnSwitchToWeapon()
+    {
+        
+    }
+
+    public override void ReloadButton()
+    {
+        
+    }
+
+    public override void GetWeaponStats(Weapon wep)
+    {
+        
+    }
+
+    public override void GetWeaponStats(RangedProjectile wep)
+    {
+        
+    }
 }

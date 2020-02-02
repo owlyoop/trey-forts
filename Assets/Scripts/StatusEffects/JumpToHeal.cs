@@ -52,7 +52,7 @@ public class JumpToHeal : StatusEffect
 
 	public override void OnPlayerJump()
 	{
-		receiver.TakeDamage(receiver.GetComponent<Photon.Pun.PhotonView>().ViewID, -5, Damager.DamageTypes.Physical);
+		//receiver.TakeDamage(receiver.GetComponent<Photon.Pun.PhotonView>().ViewID, -5, Damager.DamageTypes.Physical);
 	}
 
 	public override void OnPlayerTakesFatalDamage()

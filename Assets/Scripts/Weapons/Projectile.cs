@@ -7,7 +7,7 @@ public class Projectile : MonoBehaviour
 
 	public PlayerStats player;
 
-	public int OwnerPunID;
+	public int OwnerID;
 	
 
 	public float speed;

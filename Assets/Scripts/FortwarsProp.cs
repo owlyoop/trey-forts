@@ -1,23 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
 public class FortwarsProp : MonoBehaviour, IDamagable
 {
 
-    const float BUILD_PHASE_BUILD_TIME = 0.25f;
-    const float COMBAT_PHASE_BUILD_TIME = 5f;
+  
+    float buildStartAlpha = 0.1f;
+    float buildEndAlpha = 1f;
+    float currentAlpha = 1f;
 
-    float buildStartAlpha = 50f;
-    float buildEndAlpha = 255f;
-    float currentAlpha = 50f;
+    float HealthTickDelay = 0.2f;
+    float nextTickTime = 0f;
+    int HealthPerTick = 10;
 
-    bool isBuilding;
+    bool isHealing; // Prop starts at 1hp and heals over time when it is built.
+    bool isBuilding; // Prop starts off with colliders disabled
 
     public int maxHealth = 500;
-	
-	public int currentHealth;
+    int remainingBuildHealth;
+    public int currentHealth;
 
 	public int currencyCost = 10;
 
@@ -38,33 +40,71 @@ public class FortwarsProp : MonoBehaviour, IDamagable
 
     public bool CanRotateX = true;
     public bool CanRotateY = true;
+    public bool GhostMode;
 
 	public Collider[] cols;
 	public Renderer rend;
 
+    float startTime;
+    
+
 
 	private void Start()
 	{
-        isBuilding = true;
+        Debug.Log("prop start");
         currentHealth = 1;
-        buildTimeMat.color = new Color(buildTimeMat.color.r, buildTimeMat.color.g, buildTimeMat.color.b, buildStartAlpha);
-        StartCoroutine(BuildTimeFadeTo(buildStartAlpha, BUILD_PHASE_BUILD_TIME));
+        remainingBuildHealth = maxHealth;
+        startTime = Time.time;
+        isBuilding = true;
 	}
+
+    public void BuildTimeStart()
+    {
+        if (!GhostMode)
+        {
+            Debug.Log("prop building");
+            currentHealth = 1;
+            isBuilding = true;
+            rend.material = buildTimeMat;
+            foreach (Collider col in cols)
+            {
+                col.enabled = false;
+            }
+        }
+    }
 
     void Update()
     {
-    }
-
-    IEnumerator BuildTimeFadeTo(float goalAlpha, float duration)
-    {
-        float alpha = buildTimeMat.color.a;
-        for (float t = 0.0f; t < 1.0f; t += Time.deltaTime / duration)
+        if (!GhostMode)
         {
-            Color newColor = new Color(1,1,1, Mathf.Lerp(alpha, goalAlpha, t));
-            buildTimeMat.color = newColor;
-            yield return null;
+            if (isBuilding)
+            {
+                if (Time.time > nextTickTime)
+                {
+                    nextTickTime = Time.time + HealthTickDelay;
+                    remainingBuildHealth -= HealthPerTick;
+                    currentHealth += HealthPerTick;
+                    Color newColor = new Color(1, 1, 1, Mathf.Lerp(0.0f, 1f, (float)currentHealth/(float)maxHealth));
+                    rend.material.color = newColor;
+                }
+
+                if (remainingBuildHealth <= 0 || currentHealth >= maxHealth)
+                {
+                    Debug.Log("buildtime over");
+                    isBuilding = false;
+                    rend.material = defaultMat;
+                    foreach (Collider col in cols)
+                    {
+                        col.enabled = true;
+                    }
+                    if (currentHealth > maxHealth)
+                        currentHealth = maxHealth;
+                }
+            }
         }
     }
+
+   
 
 	public void OnDeath()
 	{
@@ -72,17 +112,14 @@ public class FortwarsProp : MonoBehaviour, IDamagable
 		Destroy(gameObject);
 	}
 
-	public void TakeDamage(int GiverPunID, int damageTaken, Damager.DamageTypes damageType)
+	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
 	{
 		currentHealth = currentHealth - damageTaken;
-        Debug.Log(GiverPunID);
-        Debug.Log(PhotonView.Find(GiverPunID));
-        PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);
+        player.dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);
 
 		if (currentHealth <= 0)
 		{
 			currentHealth = 0;
-            StopAllCoroutines();
             OnDeath();
 		}
 	}

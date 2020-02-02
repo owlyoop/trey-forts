@@ -24,7 +24,7 @@ public class FireStatusEffect : StatusEffect
         if (Time.time > nextActionTime)
         {
             nextActionTime = Time.time + TickDelay;
-            receiver.TakeDamage(receiver.photonView.ViewID, DamagePerTick, Damager.DamageTypes.Physical);
+            //receiver.TakeDamage(receiver.photonView.ViewID, DamagePerTick, Damager.DamageTypes.Physical);
         }
 
         if (Time.time > timeApplied + duration)

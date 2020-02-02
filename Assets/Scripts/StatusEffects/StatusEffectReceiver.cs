@@ -9,8 +9,7 @@ public class StatusEffectReceiver : MonoBehaviour
 
 	public List<StatusEffect> CurrentStatusEffectsOnPlayer;
 
-    public int NumHitboxesTouchingBarbeds = 0;
-
+    public int BarbedWiresTouchingPlayer = 0;
 
 	private void Start()
 	{
@@ -23,9 +22,9 @@ public class StatusEffectReceiver : MonoBehaviour
 
 	public void AddPassiveStatusEffects()
 	{
-		for (int i = 0; i < player.playerClass.PassiveEffects.Count; i++)
+		for (int i = 0; i < player.CurrentClass.PassiveEffects.Count; i++)
 		{
-			StatusEffect s = Instantiate(player.playerClass.PassiveEffects[i], this.transform);
+			StatusEffect s = Instantiate(player.CurrentClass.PassiveEffects[i], this.transform);
 			s.receiver = player;
 			CurrentStatusEffectsOnPlayer.Add(s);
 		}
@@ -33,10 +32,31 @@ public class StatusEffectReceiver : MonoBehaviour
 
 	public void AddStatusEffect(StatusEffect effect)
 	{
-        StatusEffect s = Instantiate(effect, this.transform);
-        s.receiver = player;
-        CurrentStatusEffectsOnPlayer.Add(s);
-        s.OnApplyStatusEffect();
+        bool alreadyAffected = false;
+        StatusEffect existingEffect = null;
+        foreach (StatusEffect s in CurrentStatusEffectsOnPlayer)
+        {
+            if (s.GetType() == effect.GetType())
+            {
+                existingEffect = s;
+                Debug.Log("both are same type");
+                alreadyAffected = true;
+            }
+        }
+
+        if (!alreadyAffected)
+        {
+            StatusEffect s = Instantiate(effect, this.transform);
+            s.receiver = player;
+            CurrentStatusEffectsOnPlayer.Add(s);
+            s.CurrentStacks = 1;
+            s.OnApplyStatusEffect();
+        }
+
+        if (existingEffect != null && effect.AllowDuplicates)
+        {
+            existingEffect.CurrentStacks++;
+        }
 	}
 
 	public void RemoveStatusEffect(StatusEffect effect)

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BarbedWire : Damager
@@ -18,64 +19,27 @@ public class BarbedWire : Damager
 
     private void OnTriggerEnter(Collider other)
     {
-        var target = DamageUniqueTargetsOnTriggerEnter(other, baseProp.idOfOwner, 0, DamageTypes.Physical, true);
-        bool alreadyAffected = false;
+        var target = other.GetComponent<PlayerStats>();
         if (target != null && target is PlayerStats)
         {
-            foreach (StatusEffect s in target.StatusEffectManager.CurrentStatusEffectsOnPlayer)
-            {
-                if (s is BarbedWireEffect)
-                    alreadyAffected = true;
-            }
-
-            if (!alreadyAffected)
-                target.StatusEffectManager.AddStatusEffect(BarbedWirePrefab);
+            target.StatusEffectManager.AddStatusEffect(BarbedWirePrefab);
+            target.StatusEffectManager.BarbedWiresTouchingPlayer++;
         }
-
-        var hitbox = other.GetComponent<PlayerHitbox>();
-
-        if (hitbox != null)
-        {
-            hitbox.player.StatusEffectManager.NumHitboxesTouchingBarbeds++;
-        }
-
     }
 
     private void OnTriggerExit(Collider other)
     {
-        var hitbox = other.GetComponent<PlayerHitbox>();
-        if (hitbox != null)
+        var target = other.GetComponent<PlayerStats>();
+        if (target != null)
         {
-            hitbox.player.StatusEffectManager.NumHitboxesTouchingBarbeds--;
-
-            if (hitbox.player.StatusEffectManager.NumHitboxesTouchingBarbeds <= 0)
+            foreach (StatusEffect s in target.StatusEffectManager.CurrentStatusEffectsOnPlayer.ToList())
             {
-                StatusEffect sRef = null;
-                foreach (StatusEffect s in hitbox.player.StatusEffectManager.CurrentStatusEffectsOnPlayer)
+                if (s is BarbedWireEffect)
                 {
-                    if (s is BarbedWireEffect)
+                    target.StatusEffectManager.BarbedWiresTouchingPlayer--;
+                    if (target.StatusEffectManager.BarbedWiresTouchingPlayer == 0)
                     {
-                        sRef = s;
-                    }
-                }
-
-                if (sRef != null)
-                {
-                    hitbox.player.StatusEffectManager.RemoveStatusEffect(sRef);
-                    foreach (PlayerStats targets in base.damagedTargets)
-                    {
-                        if (targets == hitbox.player)
-                        {
-                            //damagedTargets.Remove(targets);
-                        }
-                    }
-
-                    for (int i = 0; i < base.damagedTargets.Count; i++)
-                    {
-                        if (hitbox.player == damagedTargets[i] as PlayerStats)
-                        {
-                            damagedTargets.RemoveAt(i);
-                        }
+                        target.StatusEffectManager.RemoveStatusEffect(s);
                     }
                 }
             }

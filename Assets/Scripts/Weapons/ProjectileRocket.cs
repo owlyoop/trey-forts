@@ -1,5 +1,4 @@
-﻿using Photon.Pun;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,23 +38,20 @@ public class ProjectileRocket : Projectile
 
     private void OnCollisionEnter(Collision col)
     {
-        if (player.photonView.IsMine)
+        if (layermask == (layermask | (1 << col.gameObject.layer)))
         {
-            if (layermask == (layermask | (1 << col.gameObject.layer)))
+            if (col.gameObject.GetComponent<PlayerStats>() != player)
             {
-                if (OwnerPunID == player.GetComponent<PhotonView>().ViewID && col.gameObject.GetComponent<PlayerStats>() != player)
+                bool isValid = true;
+                if (col.gameObject.GetComponent<PlayerHitbox>() != null && col.gameObject.GetComponent<PlayerHitbox>().player == player)
                 {
-                    bool isValid = true;
-                    if (col.gameObject.GetComponent<PlayerHitbox>() != null && col.gameObject.GetComponent<PlayerHitbox>().player == player)
-                    {
-                        isValid = false;
-                    }
+                    isValid = false;
+                }
 
-                    if (isValid)
-                    {
-                        player.GetComponent<PhotonView>().RPC("SpawnExplosion", RpcTarget.AllViaServer, OwnerPunID, transform.position, baseDamage, damageType);
-                        Kill();
-                    }
+                if (isValid)
+                {
+                    player.GetComponent<PlayerRpcCalls>().SpawnExplosion(player, transform.position, baseDamage, damageType);
+                    Kill();
                 }
             }
         }

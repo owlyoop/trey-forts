@@ -3,32 +3,76 @@ using KinematicCharacterController.Owly;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
-public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
+public class PlayerStats : MonoBehaviour, IDamagable
 {
 	// 0 spectator, 1 blue, 2 red
 	public int playerTeam; // 0 spectator, 1 blue, 2 red
 
+    public enum PlayerTeam
+    {
+        Spectator,
+        Blue,
+        Red
+    }
+
 	[Header("Stats")]
 	public CharacterStat maxHealth;
 	int maxHealthValue;
-	public int currentHealth;
-	public int currentCurrency;
-	public int currentAmmoInClip;
-	public int currentAmmoReserves;
+
+    [SerializeField]
+    private int currentHealth;
+    public int CurrentHealth
+    {
+        get { return currentHealth; }
+        private set { currentHealth = value; }
+    }
+
+    [SerializeField]
+    private int currentCurrency;
+    public int CurrentCurrency
+    {
+        get { return currentCurrency; }
+        private set { currentCurrency = value; }
+    }
+
+	public int startingCurrency = 1000;
+
+	int currentAmmoInClip;
+	int currentAmmoReserves;
 	
 	public bool canPickUpFlag;
 	public bool isAlive;
 	public bool hasFlag;
+    public bool HasPreviouslyPlayed = false;
 
-	
+    [SerializeField]
+    WeaponSet currentClass;
 
-	public int startingCurrency = 1000;
+    public WeaponSet CurrentClass
+    {
+        get { return currentClass;  }
+        private set { currentClass = value;  }
+    }
 
-	public WeaponSet playerClass;
-	public WeaponSet queuedClass;
+    [SerializeField]
+    WeaponSet queuedClass;
 
+    public WeaponSet QueuedClass
+    {
+        get { return queuedClass; }
+        private set { queuedClass = value; }
+    }
+
+    [SerializeField]
+    WeaponSet previousClass;
+    public WeaponSet PreviousClass
+    {
+        get { return previousClass; }
+        private set { previousClass = value; }
+    }
+
+    public int EliteClassLivesLeft = 0;
 
     public CharacterStat MovementSpeed;
 	float baseMoveSpeed = 6.2f;
@@ -66,6 +110,8 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
     public List<PlayerHitbox> hitboxCollection = new List<PlayerHitbox>();
     public PlayerRagdoll ragdollPrefab;
     PlayerRagdoll ragdoll;
+    float ragdollForceToAdd = 0;
+    Vector3 ragdollForceDirection;
 
     [Header("Props")]
     public List<GameObject> PropsOwnedByPlayer;
@@ -102,22 +148,18 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
         hitboxCollection.Add(leftForearmHitbox);
         hitboxCollection.Add(rightArmHitbox);
         hitboxCollection.Add(rightForearmHitbox);
+        CharControl = GetComponent<MyCharacterController>();
         _gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GamePhases>();
         divekickHitbox.gameObject.SetActive(false);
 
-        if (!photonView.IsMine)
-		{
-			return;
-		}
+        EnableOwnHitbox(false);
 
 		Physics.IgnoreLayerCollision(10, 12);
         Physics.IgnoreLayerCollision(10, 9);
+        Physics.IgnoreLayerCollision(12, 9, true);
 
-        ui.dollar.enabled = false;
-
-
-		ChangeToSpectator();
-        ui.radialReload.StopReload();
+        ui.DollarSign.enabled = false;
+        ui.RadialReload.StopReload();
 
 		SetTeam(playerTeam);
 
@@ -126,26 +168,11 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 		ui.SetActivateDeathUI(false);
 		hasFlag = false;
 
-        //statmodifiers
-        MovementSpeed.BaseValue = baseMoveSpeed;
-        ClassMovespeedMultiplier = new StatModifier(playerClass.moveSpeedPercentAdd, StatModType.PercentAdd);
-        MovementSpeed.AddModifier(ClassMovespeedMultiplier);
-        GetComponent<MyCharacterController>().MaxStableMoveSpeed = MovementSpeed.Value;
-        Debug.Log("ps start()");
-
-        JumpForce.BaseValue = baseJumpForce;
-        ClassJumpforceMultiplier = new StatModifier(playerClass.jumpHeightPercentAdd, StatModType.PercentAdd);
-        JumpForce.AddModifier(ClassJumpforceMultiplier);
-        GetComponent<MyCharacterController>().JumpSpeed = JumpForce.Value;
 
 
 		StatusEffectManager.AddPassiveStatusEffects();
 		EventManager.onWaitingForPlayersEnd += WaitingForPlayersEnd;
-		CharControl = GetComponent<MyCharacterController>();
-        Physics.IgnoreLayerCollision(12, 9 ,true);
-        Physics.IgnoreLayerCollision(10, 9, true);
-
-        //CharControl.Motor.CollidableLayers
+        
     }
 
 	private void OnDisable()
@@ -160,87 +187,104 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
 	void Update()
 	{
-		if (!photonView.IsMine)
-		{
-			return;
-		}
 	}
 
 	public void ChangeToSpectator()
 	{
-		if (!photonView.IsMine)
-		{
-			return;
-		}
-
 		for (int i = 0; i < _gameManager.classList.Count; i++)
 		{
 			if (_gameManager.classList[i].className == "Spectator")
 			{
-				queuedClass = _gameManager.classList[i];
+                SetQueuedClass(_gameManager.classList[i]);
+                //player first connects, the class is null for some reason
+                if (currentClass == null)
+                {
+                    SwitchPlayerClass(_gameManager.classList[i]);
+                }
 			}
 		}
 		GetComponent<MyCharacterController>().TransitionToState(CharacterState.Spectator);
         SetCollidersActive(false);
         RpcRespawn();
 	}
-    
-    // Re-initialize the movementpseed and jump character stat. use after i set something to a flat value, rather than modifiers.
-    public void CalculateMovementValues()
-    {
-        MovementSpeed.RemoveModifier(ClassMovespeedMultiplier);
-        ClassMovespeedMultiplier = new StatModifier(playerClass.moveSpeedPercentAdd, StatModType.PercentAdd);
-        MovementSpeed.AddModifier(ClassMovespeedMultiplier);
-        CharControl.MaxStableMoveSpeed = MovementSpeed.Value;
-        CharControl.MaxAirMoveSpeed = baseMoveSpeed;
 
-        JumpForce.RemoveModifier(ClassJumpforceMultiplier);
-        ClassJumpforceMultiplier = new StatModifier(playerClass.jumpHeightPercentAdd, StatModType.PercentAdd);
-        JumpForce.AddModifier(ClassJumpforceMultiplier);
+    public void AddMaxHealthModifier(StatModifier mod)
+    {
+        maxHealth.AddModifier(mod);
+        OnChangeHealth(CurrentHealth);
+
+    }
+
+    public void RemoveMaxHealthModifier(StatModifier mod)
+    {
+        maxHealth.RemoveModifier(mod);
+        OnChangeHealth(CurrentHealth);
+    }
+
+    public void AddMovementModifier(StatModifier mod)
+    {
+        MovementSpeed.AddModifier(mod);
+        CharControl.MaxStableMoveSpeed = MovementSpeed.Value;
+    }
+
+    public void RemoveMovementModifier(StatModifier mod)
+    {
+        MovementSpeed.RemoveModifier(mod);
+        CharControl.MaxStableMoveSpeed = MovementSpeed.Value;
+    }
+
+    public void AddJumpModifier(StatModifier mod)
+    {
+        JumpForce.AddModifier(mod);
         CharControl.JumpSpeed = JumpForce.Value;
     }
 
-	public void ChangeAwayFromSpectator()
-	{
-		if (!photonView.IsMine)
-		{
-			return;
-		}
+    public void RemoveJumpModifier(StatModifier mod)
+    {
+        JumpForce.RemoveModifier(mod);
+        CharControl.JumpSpeed = JumpForce.Value;
+    }
 
-		GetComponent<MyCharacterController>().TransitionToState(playerClass.defaultState);
-	}
 
 	//called at the end of rpcrespawn
 	public void InitializeValues()
 	{
-		if (!photonView.IsMine)
-			return;
-
-		if (playerClass.className != "Spectator")
+		if (currentClass.className != "Spectator")
 		{
 			ui.SetActiveMainHud(true);
-			ui.healthBar.gameObject.SetActive(true);
-			ui.healthBarBackground.gameObject.SetActive(true);
-			maxHealth.BaseValue = playerClass.maxHealth;
+			ui.HealthBar.gameObject.SetActive(true);
+			ui.HealthBarBackground.gameObject.SetActive(true);
+			maxHealth.BaseValue = currentClass.maxHealth;
 			maxHealthValue = Mathf.RoundToInt(maxHealth.Value);
 			currentHealth = maxHealthValue;
-			ui.dollar.enabled = true;
-			ui.ammoInClip.text = "";
-			ui.ammoAmount.text = "";
-			ui.healthText.text = currentHealth.ToString();
-            ui.radialReload.StopReload();
+			ui.DollarSign.enabled = true;
+			ui.AmmoInClip.text = "";
+			ui.AmmoAmount.text = "";
+			ui.HealthText.text = currentHealth.ToString();
+            ui.RadialReload.StopReload();
 			OnChangeHealth(currentHealth);
-			ui.currencyAmount.text = currentCurrency.ToString();
-
-            CalculateMovementValues();
+			ui.CurrencyAmount.text = currentCurrency.ToString();
 
 			StatusEffectManager.AddPassiveStatusEffects();
-		}
+
+            MovementSpeed.BaseValue = baseMoveSpeed;
+            ClassMovespeedMultiplier = new StatModifier(currentClass.moveSpeedPercentAdd, StatModType.PercentAdd);
+            MovementSpeed.RemoveAllModifiersFromSource(this);
+            MovementSpeed.AddModifier(ClassMovespeedMultiplier);
+            CharControl.MaxStableMoveSpeed = MovementSpeed.Value;
+
+            JumpForce.BaseValue = baseJumpForce;
+            ClassJumpforceMultiplier = new StatModifier(currentClass.jumpHeightPercentAdd, StatModType.PercentAdd);
+            JumpForce.RemoveAllModifiersFromSource(this);
+            JumpForce.AddModifier(ClassJumpforceMultiplier);
+            CharControl.JumpSpeed = JumpForce.Value;
+        }
 		else
 		{
-			ui.dollar.enabled = false;
-			ui.healthBar.gameObject.SetActive(false);
-			ui.healthBarBackground.gameObject.SetActive(false);
+			ui.DollarSign.enabled = false;
+			ui.HealthBar.gameObject.SetActive(false);
+			ui.HealthBarBackground.gameObject.SetActive(false);
+            
             
 		}
 
@@ -248,10 +292,11 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
 	public void OnDeath()
 	{
+        if (currentClass.isElite)
+            EliteClassLivesLeft = EliteClassLivesLeft - 1;
+
         Debug.Log("player died");
         SpawnRagdoll(hitboxCollection);
-		if (!photonView.IsMine)
-			return;
 		isAlive = false;
 		_respawnTimer = _gameManager.respawnTime;
 		StartCoroutine(RespawnCountdownTimer());
@@ -267,7 +312,7 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
         SetCollidersActive(false);
 
 
-        if (playerClass != null)
+        if (currentClass != null)
 		{
 			this.GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
 			GetComponent<PlayerInput>().playerWeapons.DecactivateAllWeapons();
@@ -298,12 +343,24 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
     public void SpawnRagdoll(List<PlayerHitbox> hitboxes)
     {
+        EnableOwnHitbox(true);
         ragdoll = Instantiate(ragdollPrefab, this.transform.position, this.transform.rotation);
 
         for (int i = 0; i < hitboxes.Count; i++)
         {
             ragdoll.colliderCollection[i].transform.SetPositionAndRotation(hitboxes[i].transform.position, hitboxes[i].transform.rotation);
             ragdoll.colliderCollection[i].attachedRigidbody.velocity = hitboxes[i].GetComponent<Rigidbody>().velocity;
+        }
+        
+        EnableOwnHitbox(false);
+        ragdoll.colliderCollection[1].attachedRigidbody.AddForce(ragdollForceDirection.normalized * ragdollForceToAdd, ForceMode.Impulse);
+        if (playerTeam == 1)
+        {
+            ragdoll.SetRagdollMaterials(bodyMaterialBlue, jointsMaterialBlue);
+        }
+        else if (playerTeam == 2)
+        {
+            ragdoll.SetRagdollMaterials(bodyMaterialRed, jointsMaterialRed);
         }
     }
 
@@ -314,11 +371,7 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
 	private void RpcRespawn()
 	{
-		if (!photonView.IsMine)
-			return;
-
-		Debug.Log(GetComponent<PhotonView>().Owner.ToString());
-
+        //Move player to a spawnpoint
 		if (_gameManager == null)
 		{
 			_gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
@@ -338,15 +391,19 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 			GetComponent<KinematicCharacterMotor>().SetPosition(spawnPoint);
 		}
 
+
 		isAlive = true;
         SetCollidersActive(true);
 		canPickUpFlag = true;
 		ui.SetActivateDeathUI(false);
-		playerClass = queuedClass;
+        ui.SetActiveMainHud(true);
+
+        SwitchPlayerClass(queuedClass);
+
 		GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
-		if (playerClass.className != "Spectator")
+		if (currentClass.className != "Spectator")
 		{
-			GetComponent<MyCharacterController>().TransitionToState(playerClass.defaultState);
+			GetComponent<MyCharacterController>().TransitionToState(currentClass.defaultState);
 		}
 		InitializeValues();
 
@@ -354,12 +411,12 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
 	public IEnumerator RespawnCountdownTimer()
 	{
-		ui.respawnTimer.text = _respawnTimer.ToString();
+		ui.RespawnTimer.text = _respawnTimer.ToString();
 		while (_respawnTimer > 0)
 		{
 			yield return new WaitForSeconds(1.0f);
 			_respawnTimer = _respawnTimer - 1f;
-			ui.respawnTimer.text = _respawnTimer.ToString();
+			ui.RespawnTimer.text = _respawnTimer.ToString();
 		}
 		if (_respawnTimer <= 0)
 		{
@@ -368,88 +425,128 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 
 	}
 
-	public void TakeDamage(int GiverPunID, int damageTaken, Damager.DamageTypes damageType)
+	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
 	{
 		if (isAlive)
 		{
-			if (playerClass.name == "Spectator")
+			if (currentClass.name == "Spectator")
 				return;
-			photonView.RPC("RpcTakeDamage", RpcTarget.AllViaServer, GiverPunID, damageTaken);
+            RpcTakeDamage(damageTaken, damageType, giver, damageSourceLocation);
 		}
 	}
 
-	[PunRPC]
-	void RpcTakeDamage(int GiverPunID, int dmg)
+    public void TakeHeal(int healTaken, Damager.DamageTypes damageType)
+    {
+
+    }
+
+
+    void RpcTakeDamage(int dmg, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
 	{
 		dmg = StatusEffectManager.OnBeforeDamageTaken(dmg);
 		currentHealth = currentHealth - dmg;
 		OnChangeHealth(currentHealth);
-		PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().dmgText.CreateFloatingText(dmg.ToString(), this.transform);
+
+        if (giver != null)
+		    giver.dmgText.CreateFloatingText(dmg.ToString(), this.transform);
+
+        GameObject dmgUi = Instantiate(ui.DamageIndicatorPrefab, ui.DamageIndicators.transform);
+        DamageIndicator indicator = dmgUi.GetComponent<DamageIndicator>();
+        indicator.damageSourcePosition = damageSourceLocation;
+        indicator.ui = ui;
+        float alpha = (float)dmg / (float)maxHealthValue;
+        alpha = Mathf.Lerp(indicator.MinAlpha, indicator.MaxAlpha, alpha);
+        indicator.Indicator.color = new Color(1,0,0,alpha);
+
+        
 		if (currentHealth <= 0 && isAlive)
 		{
 			currentHealth = 0;
 			OnDeath();
-			isAlive = false;
+            ragdollForceToAdd = dmg * 2f;
+            //ragdollForceDirection = PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().transform.position - this.transform.position;
+
+            isAlive = false;
 		}
 	}
 
 	public void OnChangeAmmoReservesAmount(int newCurrentAmmoReserves)
 	{
 		currentAmmoReserves = newCurrentAmmoReserves;
-		ui.ammoAmount.text = currentAmmoReserves.ToString();
+		ui.AmmoAmount.text = currentAmmoReserves.ToString();
 	}
 
 	public void OnChangeAmmoInClip(int newCurrentAmmoInClip)
 	{
 		currentAmmoInClip = newCurrentAmmoInClip;
-		ui.ammoInClip.text = currentAmmoInClip.ToString();
+		ui.AmmoInClip.text = currentAmmoInClip.ToString();
 	}
 
 	void OnChangeHealth (int currentHealth)
 	{
-		ui.healthBar.sizeDelta = new Vector2(((float)currentHealth / (float)maxHealthValue) * ui.healthBarBackground.sizeDelta.x, 32);
-		ui.healthText.text = currentHealth.ToString();
+		ui.HealthBar.sizeDelta = new Vector2(((float)currentHealth / (float)maxHealthValue) * ui.HealthBarBackground.sizeDelta.x, 32);
+		ui.HealthText.text = currentHealth.ToString();
 	}
+
+    public void OnHealthPickup(float percentAdd)
+    {
+        int HpToAdd = (int)((percentAdd/100) * maxHealthValue);
+        if (HpToAdd + CurrentHealth > maxHealthValue)
+        {
+            HpToAdd = (HpToAdd + CurrentHealth) - maxHealthValue;
+        }
+        //TakeDamage(photonView.ViewID, -HpToAdd, Damager.DamageTypes.Physical);
+    }
 
 	public void OnChangeCurrencyAmount(int newMoney)
 	{
         int difference = newMoney - currentCurrency;
         string diftext = difference.ToString();
 		currentCurrency = newMoney;
-		ui.currencyAmount.text = currentCurrency.ToString();
+		ui.CurrencyAmount.text = currentCurrency.ToString();
         dmgText.CreateMoneyText(diftext, dmgText.moneyParent);
 	}
 
     public void OnChangeCurrencyAmountNoUI(int newMoney)
     {
         currentCurrency = newMoney;
-        ui.currencyAmount.text = currentCurrency.ToString();
+        ui.CurrencyAmount.text = currentCurrency.ToString();
     }
 	
 	void HideOwnPlayerModel(bool choice)
 	{
-		if (!photonView.IsMine)
-			return;
-
 		if (choice == true)
 		{
-			//bodyToColor.enabled = false;
-			//jointsToColor.enabled = false;
+			bodyToColor.enabled = false;
+			jointsToColor.enabled = false;
 		}
 		else
 		{
-		//	bodyToColor.enabled = true;
-			//jointsToColor.enabled = true;
+			bodyToColor.enabled = true;
+			jointsToColor.enabled = true;
 		}
-
-
 	}
 
-	public void SpawnRagdoll()
-	{
+    //Here because weapon raycasts can hit the player's self. All the hitboxes of everyone are on the same layer so we cant make the raycast ignore a layer.
+    void EnableOwnHitbox(bool choice)
+    {
+        Debug.Log("hb enable");
+        if (choice)
+        {
+            foreach (PlayerHitbox hb in hitboxCollection)
+            {
+                hb.GetComponent<Collider>().enabled = true;
+            }
+        }
+        else
+        {
+            foreach (PlayerHitbox hb in hitboxCollection)
+            {
+                hb.GetComponent<Collider>().enabled = false;
+            }
+        }
+    }
 
-	}
-	
 	public void SetTeam(int team)
 	{
 		HideOwnPlayerModel(false);
@@ -523,42 +620,24 @@ public class PlayerStats : MonoBehaviourPunCallbacks, IDamagable, IPunObservable
 		if (team == 1)
 		{
 			_gameManager.BlueTeamScore += 1;
-			ui.bluScore.text = _gameManager.BlueTeamScore.ToString();
+			ui.BlueScore.text = _gameManager.BlueTeamScore.ToString();
 		}
 
 		if (team == 2)
 		{
 			_gameManager.RedTeamScore += 1;
-			ui.redScore.text = _gameManager.RedTeamScore.ToString();
+			ui.RedScore.text = _gameManager.RedTeamScore.ToString();
 		}
 	}
 
-	#region IPunObservable implementation
-	public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-	{
-		if(stream.IsWriting)
-		{
-			// We own this player: send the others our data
-			stream.SendNext(playerTeam);
-			stream.SendNext(isAlive);
+    public void SwitchPlayerClass(WeaponSet newClass)
+    {
+        currentClass = newClass;
+        previousClass = currentClass;
+    }
 
-			stream.SendNext(currentHealth);
-			stream.SendNext(currentCurrency);
-			stream.SendNext(currentAmmoInClip);
-			stream.SendNext(currentAmmoReserves);
-
-		}
-		else
-		{
-			// Network player, receive data
-			this.playerTeam = (int)stream.ReceiveNext();
-			this.isAlive = (bool)stream.ReceiveNext();
-
-			this.currentHealth = (int)stream.ReceiveNext();
-			this.currentCurrency = (int)stream.ReceiveNext();
-			this.currentAmmoInClip = (int)stream.ReceiveNext();
-			this.currentAmmoReserves = (int)stream.ReceiveNext();
-		}
-	}
-	#endregion
+    public void SetQueuedClass(WeaponSet nextClass)
+    {
+        queuedClass = nextClass;
+    }
 }

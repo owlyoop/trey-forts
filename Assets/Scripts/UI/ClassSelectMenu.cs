@@ -11,7 +11,8 @@ public class ClassSelectMenu : MonoBehaviour
 
 	public Text selectedClassName;
 
-	public Button classSelectButton;
+	public Button ClassSelectButton;
+    public Button EliteClassButton;
 
 	public List<GameObject> selectedClassWeapons = new List<GameObject>();
 	public List<Weapon> selectedClassWeaponData = new List<Weapon>();
@@ -30,13 +31,18 @@ public class ClassSelectMenu : MonoBehaviour
     public GameObject eliteClassGrid;
 	public GameObject wepGrid;
 
+    public Text CurrentCurrency;
+    public Text dollarSign;
+    public Text moneyText;
+
 	public int QueuedTeam;
 
 	public bool cameFromTeamMenu = false;
 
 	private void Start()
 	{
-		classSelectButton.interactable = false;
+		ClassSelectButton.interactable = false;
+        EliteClassButton.interactable = false;
 		
 		for (int i = 0; i < classListDataAll.Count; i++)
 		{
@@ -54,6 +60,7 @@ public class ClassSelectMenu : MonoBehaviour
             GameObject slot = Instantiate(eliteClassButtonPrefab, eliteClassGrid.transform);
             ClassSelectSlot slotcomp = slot.GetComponent<ClassSelectSlot>();
             slotcomp._weaponSet = eliteClassListDataAll[i];
+            slotcomp.isElite = true;
             slotcomp.dollarSign.enabled = true;
             slotcomp.cost.enabled = true;
             slotcomp.cost.text = eliteClassListDataAll[i].eliteMoneyCost.ToString();
@@ -62,41 +69,64 @@ public class ClassSelectMenu : MonoBehaviour
 
             eliteClassListUISlots.Add(slot);
         }
-
-
+        
+        if (!player.HasPreviouslyPlayed)
+        {
+            CurrentCurrency.text = "";
+        }
+        
     }
 
 	public void OnClickSelectButton()
 	{
-		if (!player.photonView.IsMine)
-			return;
-		if (player.playerClass.className == "Spectator")
+		if (player.CurrentClass.className == "Spectator")
 		{
-			player.queuedClass = selectedClass;
-			player.ChangeAwayFromSpectator();
+            player.SetQueuedClass(selectedClass);
 			SetTeamIfWasSpectator(QueuedTeam);
 			player.ui.SetActiveMainHud(true);
 		}
 		else
 		{
-			player.queuedClass = selectedClass;
-			player.ui.SetActiveMainHud(true);
+            player.SetQueuedClass(selectedClass);
+            player.ui.SetActiveMainHud(true);
 		}
 
-
+        if (!player.HasPreviouslyPlayed)
+        {
+            player.OnChangeCurrencyAmount(player.startingCurrency);
+        }
+        player.HasPreviouslyPlayed = true;
 
 		player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(false);
 
 		cameFromTeamMenu = false;
-
 	}
+
+    public void OnClickBuyEliteButton()
+    {
+        if (player.CurrentClass.className == "Spectator")
+        {
+            player.SetQueuedClass(selectedClass);
+            SetTeamIfWasSpectator(QueuedTeam);
+            player.ui.SetActiveMainHud(true);
+        }
+        else
+        {
+            player.SetQueuedClass(selectedClass);
+            player.ui.SetActiveMainHud(true);
+            player.EliteClassLivesLeft = 1;
+        }
+
+        player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(false);
+
+        cameFromTeamMenu = false;
+    }
 
 	public void SetTeamIfWasSpectator(int team)
 	{
 		player.SetTeam(team);
-		player.playerTeam = team;
-		player.playerClass = selectedClass;
-		player.RespawnAndInitialize();
+        player.SetQueuedClass(selectedClass);
+        player.RespawnAndInitialize();
 	}
 
 	public void UpdateUI()

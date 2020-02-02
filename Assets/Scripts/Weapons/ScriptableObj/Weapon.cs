@@ -13,13 +13,13 @@ public class Weapon : ScriptableObject
 
 	public GameObject weaponPrefab;
 
-	public int baseDamage;
-	public float shotsPerSecond;
+	public int BaseDamage;
+	public float ShotsPerSecond;
 
-	public int clipSize;
-	public float reloadTime;
+	public int ClipSize;
+	public float ReloadTime;
 
-	public int maxAmmo;
+	public int MaxAmmo;
 
 	public Damager.DamageTypes damageType;
 

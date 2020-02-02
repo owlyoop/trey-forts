@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using Photon.Pun;
 
 namespace KinematicCharacterController
 {
@@ -149,7 +148,7 @@ namespace KinematicCharacterController
     /// Component that manages character collisions and movement solving
     /// </summary>
     [RequireComponent(typeof(CapsuleCollider))]
-    public class KinematicCharacterMotor : MonoBehaviourPunCallbacks
+    public class KinematicCharacterMotor : MonoBehaviour
     {
 #pragma warning disable 0414
         /// <summary>
@@ -493,10 +492,6 @@ namespace KinematicCharacterController
 
 		private void Update()
 		{
-			if (!photonView.IsMine)
-			{
-				return;
-			}
 		}
 
 		private void OnEnable()

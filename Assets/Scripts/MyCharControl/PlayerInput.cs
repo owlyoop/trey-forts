@@ -1,15 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 using KinematicCharacterController;
 using KinematicCharacterController.Owly;
-using Photon.Pun.Demo.PunBasics;
 
 public struct PlayerActionInputs
 {
 	public bool PrimaryFire; //default mouse1
 	public bool PrimaryFireUp;
+    public bool PrimaryFireHolding;
 	public bool SecondaryFire; // default mouse2
 
 	public float MouseScroll;
@@ -42,7 +41,7 @@ public struct PlayerActionInputs
 
 }
 
-public class PlayerInput : MonoBehaviourPunCallbacks
+public class PlayerInput : MonoBehaviour
 {
 	//public PlayerMove player;
 	public PlayerStats playerStats;
@@ -62,11 +61,6 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 
     private void Update()
 	{
-		if (!photonView.IsMine)
-		{
-			GetComponent<KinematicCharacterMotor>().enabled = false;
-			return;
-		}
 		HandlePlayerInput();
 		CheckForInput();
 		//GetLook();
@@ -84,7 +78,8 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 
 		playerInputs.PrimaryFire = Input.GetMouseButtonDown(0);
 		playerInputs.PrimaryFireUp = Input.GetMouseButtonUp(0);
-		playerInputs.SecondaryFire = Input.GetMouseButtonDown(1);
+        playerInputs.PrimaryFireHolding = Input.GetMouseButton(0);
+        playerInputs.SecondaryFire = Input.GetMouseButtonDown(1);
 		playerInputs.MouseScroll = Input.GetAxis("Mouse ScrollWheel"); // > 0 up, < 0 down
 
 		playerInputs.Weapon1 = Input.GetKeyDown(KeyCode.Alpha1);
@@ -138,7 +133,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		//var wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex];
 		if (playerInputs.PrimaryFire)
 		{
-			if (!mainUI.hasUnlockedMouseUIEnabled)
+			if (!mainUI.HasUnlockedMouseUIEnabled)
 			{
 				if (wep != null && wep.activeSelf && playerStats.isAlive)
 				{
@@ -163,7 +158,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		if (playerInputs.PrimaryFireUp)
 		{
 			
-			if (!mainUI.hasUnlockedMouseUIEnabled)
+			if (!mainUI.HasUnlockedMouseUIEnabled)
 			{
 				if (wep != null && wep.activeSelf && playerStats.isAlive)
 				{
@@ -180,10 +175,21 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 			}
 		}
 
+        if (playerInputs.PrimaryFireHolding)
+        {
+            if (!mainUI.HasUnlockedMouseUIEnabled)
+            {
+                if (wep != null && wep.activeSelf && playerStats.isAlive)
+                {
+                    wep.GetComponent<WeaponMotor>().PrimaryFireHolding();
+                }
+            }
+        }
+
 
 		if (playerInputs.SecondaryFire)
 		{
-			if (!mainUI.hasUnlockedMouseUIEnabled && playerWeapons.weaponSlots.Count > 0)
+			if (!mainUI.HasUnlockedMouseUIEnabled && playerWeapons.weaponSlots.Count > 0)
 			{
 				if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].activeSelf && playerStats.isAlive)
 				{
@@ -238,7 +244,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 			{
                 if (playerWeapons.propWepSlots[0].activeSelf)
                 {
-                    if (mainUI.propSpawnMenu.activeSelf)
+                    if (mainUI.PropSpawnMenu.activeSelf)
                     {
                         mainUI.PropSpawnMenuSetActive(false);
                     }
@@ -292,7 +298,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 
 		if (playerInputs.OpenTeamSelectMenu)
 		{
-			if (mainUI.teamSelectMenu.activeSelf)
+			if (mainUI.TeamSelectMenu.activeSelf)
 			{
 				mainUI.TeamSelectMenuSetActive(false);
 			}
@@ -306,7 +312,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		{
 			if (playerStats.isAlive)
 			{
-				if (mainUI.classSelectMenu.activeSelf)
+				if (mainUI.ClassSelectMenu.activeSelf)
 				{
 					mainUI.ClassSelectMenuSetActive(false);
 				}
@@ -344,7 +350,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 		{
 			if (playerStats.isAlive)
 			{
-				if (!mainUI.hasUnlockedMouseUIEnabled)
+				if (!mainUI.HasUnlockedMouseUIEnabled)
 				{
 					playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ReloadButton();
 				}
@@ -362,7 +368,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 
 		if (playerInputs.InteractHeld)
 		{
-			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.hasUnlockedMouseUIEnabled)
+			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.HasUnlockedMouseUIEnabled)
 			{
 				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseButtonHolding();
 			}
@@ -370,7 +376,7 @@ public class PlayerInput : MonoBehaviourPunCallbacks
 
 		if (playerInputs.InteractUp)
 		{
-			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.hasUnlockedMouseUIEnabled)
+			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.HasUnlockedMouseUIEnabled)
 			{
 				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseButtonUp();
 			}

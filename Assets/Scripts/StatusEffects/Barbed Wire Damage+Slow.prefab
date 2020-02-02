@@ -45,6 +45,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   giver: {fileID: 0}
   receiver: {fileID: 0}
-  isPassive: 0
+  AllowDuplicates: 0
+  CurrentStacks: 0
+  MaxStacks: 0
   duration: 0
-  MovespeedWhileSlowed: 2.5
+  DamagePerTick: 4
+  TickDelay: 0.2

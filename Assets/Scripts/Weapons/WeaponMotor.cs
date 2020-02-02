@@ -1,35 +1,53 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Photon.Pun;
 
-public class WeaponMotor : MonoBehaviourPunCallbacks
+public abstract class WeaponMotor : MonoBehaviour
 {
-
+    public PlayerStats player;
     public float WeaponSwitchAwayTime = 0f;
     public float WeaponSwitchToTime = 0f;
 
-	public virtual void UpdateUI() { }
+    public int MaxAmmo;
+    public int CurrentAmmo;
+    public int ClipSize;
+    public int CurrentAmmoInClip;
 
-	public virtual void PrimaryFire() {  }
-	public virtual void PrimaryFireHolding() { }
-	public virtual void PrimaryFireButtonUp() { }
+    private void Start()
+    {
+        CurrentAmmo = MaxAmmo;
+    }
+    public virtual void UpdateUI()
+    {
+        player.OnChangeAmmoReservesAmount(CurrentAmmo);
+        player.OnChangeAmmoInClip(CurrentAmmoInClip);
+    }
 
-	public virtual void SecondaryFire() { }
-	public virtual void SecondaryFireHolding() { }
+    public abstract void PrimaryFire();
+    public abstract void PrimaryFireHolding();
+    public abstract void PrimaryFireButtonUp();
 
-	public virtual void ScrollWheelUp() { }
-	public virtual void ScrollWheelDown() { }
+    public abstract void SecondaryFire();
+    public abstract void SecondaryFireHolding();
 
-	public virtual void OnSwitchAwayFromWeapon() { }
-	public virtual void OnSwitchToWeapon() { }
+    public abstract void ScrollWheelUp();
+    public abstract void ScrollWheelDown();
 
-	public virtual void ReloadButton() { }
+    public abstract void OnSwitchAwayFromWeapon();
+    public abstract void OnSwitchToWeapon();
 
-	public virtual void UseButtonHolding() { }
-	public virtual void UseButtonUp() { }
+    public abstract void ReloadButton();
 
-	public virtual void GetWeaponStats(Weapon wep) { }
-	public virtual void GetWeaponStats(RangedProjectile wep) { }
+    public abstract void UseButtonHolding();
+    public abstract void UseButtonUp();
+    public virtual void GetWeaponStats(Weapon wep)
+    {
+        MaxAmmo = wep.MaxAmmo;
+        CurrentAmmo = MaxAmmo;
+    }
+    public virtual void GetWeaponStats(RangedProjectile wep)
+    {
+
+    }
 
 }

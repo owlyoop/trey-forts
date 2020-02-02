@@ -4,12 +4,18 @@ using UnityEngine;
 
 public class BarbedWireEffect : StatusEffect
 {
-    public float MovespeedWhileSlowed = 2f;
+    public static float MovementPercentSubtract = 0.5f;
     public int DamagePerTick = 4;
     public float TickDelay = 0.2f;
     float timer = 0f;
     float nextActionTime = 0f;
 
+    public static StatModifier movementSlow = new StatModifier(-MovementPercentSubtract, StatModType.PercentAdd);
+
+    private void Start()
+    {
+        //movementSlow = new StatModifier(-MovementPercentSubtract, StatModType.PercentAdd);
+    }
     private void Update()
     {
         timer = Time.time;
@@ -17,7 +23,8 @@ public class BarbedWireEffect : StatusEffect
         if (Time.time > nextActionTime)
         {
             nextActionTime = Time.time + TickDelay;
-            receiver.TakeDamage(receiver.photonView.ViewID, DamagePerTick, Damager.DamageTypes.Physical);
+            // Damage source isnt the receivers location. Fix this whenever I implement damage indicators that dont have a location
+            receiver.TakeDamage(DamagePerTick, Damager.DamageTypes.Physical, receiver, receiver.transform.position);
         }
     }
     public override void OnAfterDamageTaken()
@@ -27,8 +34,7 @@ public class BarbedWireEffect : StatusEffect
 
     public override void OnApplyStatusEffect()
     {
-        receiver.CharControl.MaxStableMoveSpeed = MovespeedWhileSlowed;
-        receiver.CharControl.MaxAirMoveSpeed = MovespeedWhileSlowed;
+        receiver.AddMovementModifier(movementSlow);
     }
 
     public override int OnBeforeDamageTaken(int damage)
@@ -73,7 +79,7 @@ public class BarbedWireEffect : StatusEffect
 
     public override void OnUnapplyStatusEffect()
     {
-        receiver.CalculateMovementValues();
+        receiver.RemoveMovementModifier(movementSlow);
     }
 
 }

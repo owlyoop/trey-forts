@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using KinematicCharacterController;
-using Photon.Pun;
 
 namespace KinematicCharacterController.Owly
 {
-	public class MyPlayer : MonoBehaviourPunCallbacks
+	public class MyPlayer : MonoBehaviour
 	{
 		public MyCharacterController Character;
 		public MyCamera CharacterCamera;
@@ -19,12 +18,6 @@ namespace KinematicCharacterController.Owly
 
 		private void Start()
 		{
-			if (!photonView.IsMine)
-			{
-				CharacterCamera.enabled = false;
-				CharacterCamera.Camera.enabled = false;
-				return;
-			}
 
 			Cursor.lockState = CursorLockMode.Locked;
 
@@ -38,12 +31,6 @@ namespace KinematicCharacterController.Owly
 
 		private void Update()
 		{
-			if (!photonView.IsMine)
-			{
-				CharacterCamera.enabled = false;
-				CharacterCamera.Camera.enabled = false;
-				return;
-			}
 				
 			HandleCameraInput();
 			HandleCharacterInput();

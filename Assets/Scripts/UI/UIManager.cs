@@ -3,92 +3,85 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using KinematicCharacterController.Examples;
-using Photon.Pun;
 
-public class UIManager : MonoBehaviourPunCallbacks
+public class UIManager : MonoBehaviour
 {
 	public PlayerInput player;
 	public PlayerStats _playerStats;
 
-	public PropSpawnMenu propMenu;
-	public ClassSelectMenu classMenu;
+	public PropSpawnMenu PropMenu;
+	public ClassSelectMenu ClassMenu;
 
-	public Canvas mainUICanvas;
+	public Canvas MainUICanvas;
 
-	public GameObject propSpawnMenu;
-	public GameObject teamSelectMenu;
-	public GameObject classSelectMenu;
+	public GameObject PropSpawnMenu;
+	public GameObject TeamSelectMenu;
+	public GameObject ClassSelectMenu;
 
 	public GameObject MainHud;
 
-	public Text healthText;
-	public Text currencyAmount;
-	public Text ammoInClip;
-	public Text ammoAmount;
-	public Text dollar;
-    public RadialReload radialReload;
+	public Text HealthText;
+	public Text CurrencyAmount;
+	public Text AmmoInClip;
+	public Text AmmoAmount;
+	public Text DollarSign;
 
+    public RadialReload RadialReload;
 
+    public GameObject DamageIndicators;
+    public GameObject DamageIndicatorPrefab;
 
-	public RectTransform healthBar;
-	public RectTransform healthBarBackground;
+	public RectTransform HealthBar;
+	public RectTransform HealthBarBackground;
 
-	public GameObject currentWeaponSlots;
-    public GameObject currentAbilitySlots;
+	public GameObject CurrentWeaponSlots;
+    public GameObject CurrentAbilitySlots;
 
-	public bool hasUnlockedMouseUIEnabled;
+	public bool HasUnlockedMouseUIEnabled;
 
-	public bool canOpenPropMenu = true;
-	public bool canOpenTeamSelectMenu = true;
-	public bool canOpenClassSelectMenu = true;
+	public bool CanOpenPropMenu = true;
+	public bool CanOpenTeamSelectMenu = true;
+	public bool CanOpenClassSelectMenu = true;
 
-	public Text timerMinutes;
-	public Text timerSeconds;
+	public Text TimerMinutes;
+	public Text TimerSeconds;
 
-	public Image flagRadialBlue;
-	public Image flagRadialRed;
+	public Image FlagRadialBlue;
+	public Image FlagRadialRed;
 
-	public Text bluScore;
-	public Text redScore;
-	public Text gameStatusText;
+	public Text BlueScore;
+	public Text RedScore;
+	public Text GameStatusText;
 
-	public List<Text> respawnText = new List<Text>();
-	public Text respawnTimer;
+	public List<Text> RespawnText = new List<Text>();
+	public Text RespawnTimer;
 
-	public GamePhases serverTimer;
+	public GamePhases ServerTimer;
 
-	public bool isSlotUIOpen;
+	public bool IsSlotUIOpen;
 	private float slotTimer;
 	
 
 	private void Start()
 	{
 		slotTimer = 0f;
-		if (!photonView.IsMine)
-		{
-			mainUICanvas.enabled = false;
-			
-			return;
-		}
-		serverTimer = GameObject.Find("Game Manager").GetComponent<GamePhases>();
+		ServerTimer = GameObject.Find("Game Manager").GetComponent<GamePhases>();
 		
-		if (photonView.IsMine)
-		{
-			hasUnlockedMouseUIEnabled = false;
-			propSpawnMenu.SetActive(false);
-			classSelectMenu.SetActive(false);
-			TeamSelectMenuSetActive(true);
-			currentWeaponSlots.SetActive(false);
-			SetActiveMainHud(false);
-		}
+		HasUnlockedMouseUIEnabled = false;
+		PropSpawnMenu.SetActive(false);
+		ClassSelectMenu.SetActive(false);
+		TeamSelectMenuSetActive(true);
+		CurrentWeaponSlots.SetActive(false);
+		SetActiveMainHud(false);
+
 		EventManager.onWaitingForPlayersEnd += WaitingForPlayersEnd;
 		EventManager.onBuildPhaseStart += BuildPhaseBegin;
 		EventManager.onBuildPhaseEnd += BuildPhaseEnd;
 		EventManager.onCombatPhaseStart += CombatPhaseBegin;
 		EventManager.onCombatPhaseEnd += CombatPhaseEnd;
 
-		bluScore.text = player.playerStats._gameManager.BlueTeamScore.ToString();
-		redScore.text = player.playerStats._gameManager.RedTeamScore.ToString();
+		BlueScore.text = player.playerStats._gameManager.BlueTeamScore.ToString();
+		RedScore.text = player.playerStats._gameManager.RedTeamScore.ToString();
 	}
 
 	private void OnDisable()
@@ -107,7 +100,7 @@ public class UIManager : MonoBehaviourPunCallbacks
 
 	void BuildPhaseBegin()
 	{
-		gameStatusText.text = "Build Phase";
+		GameStatusText.text = "Build Phase";
 	}
 
 	void BuildPhaseEnd()
@@ -117,7 +110,7 @@ public class UIManager : MonoBehaviourPunCallbacks
 
 	void CombatPhaseBegin()
 	{
-		gameStatusText.text = "Combat Phase";
+		GameStatusText.text = "Combat Phase";
 	}
 
 	void CombatPhaseEnd()
@@ -128,81 +121,77 @@ public class UIManager : MonoBehaviourPunCallbacks
 
 	private void Update()
 	{
-		if (!photonView.IsMine)
+		if (ServerTimer != null && ServerTimer.isWaitingForPlayers)
 		{
-			return;
-		}
-		if (serverTimer != null && serverTimer.isWaitingForPlayers)
-		{
-			var min = (int)serverTimer.WaitingForPlayersLength / 60;
-			timerMinutes.text = min.ToString();
-			var secs = (int)serverTimer.WaitingForPlayersLength % 60;
-			timerSeconds.text = secs.ToString();
+			var min = (int)ServerTimer.WaitingForPlayersLength / 60;
+			TimerMinutes.text = min.ToString();
+			var secs = (int)ServerTimer.WaitingForPlayersLength % 60;
+			TimerSeconds.text = secs.ToString();
 		}
 
-		if (serverTimer != null && serverTimer.isInBuildPhase)
+		if (ServerTimer != null && ServerTimer.isInBuildPhase)
 		{
-			var min = (int)serverTimer.BuildPhaseTimeLength / 60;
-			timerMinutes.text = min.ToString();
-			var secs = (int)serverTimer.BuildPhaseTimeLength % 60;
-			timerSeconds.text = secs.ToString();
+			var min = (int)ServerTimer.BuildPhaseTimeLength / 60;
+			TimerMinutes.text = min.ToString();
+			var secs = (int)ServerTimer.BuildPhaseTimeLength % 60;
+			TimerSeconds.text = secs.ToString();
 
 			
 		}
 		
-		if (isSlotUIOpen)
+		if (IsSlotUIOpen)
 		{
 			if (Time.time > slotTimer + 2f)
 			{
-				isSlotUIOpen = false;
-				currentWeaponSlots.SetActive(false);
+				IsSlotUIOpen = false;
+				CurrentWeaponSlots.SetActive(false);
 			}
 		}
 
 		// rotate flag arrow ui to point at the flags
-		if (flagRadialBlue.isActiveAndEnabled)
+		if (FlagRadialBlue.isActiveAndEnabled)
 		{
 			var targetPosLocal = player.cam.transform.InverseTransformPoint(_playerStats._gameManager.blueFlag.transform.position);
 			var targetAngle = -Mathf.Atan2(targetPosLocal.x, targetPosLocal.z) * Mathf.Rad2Deg;
-			flagRadialBlue.rectTransform.eulerAngles = new Vector3(0,0,targetAngle);
+			FlagRadialBlue.rectTransform.eulerAngles = new Vector3(0,0,targetAngle);
 		}
 
-		if (flagRadialRed.isActiveAndEnabled)
+		if (FlagRadialRed.isActiveAndEnabled)
 		{
 			var targetPosLocal = player.cam.transform.InverseTransformPoint(_playerStats._gameManager.redFlag.transform.position);
 			var targetAngle = -Mathf.Atan2(targetPosLocal.x, targetPosLocal.z) * Mathf.Rad2Deg;
-			flagRadialRed.rectTransform.eulerAngles = new Vector3(0, 0, targetAngle);
+			FlagRadialRed.rectTransform.eulerAngles = new Vector3(0, 0, targetAngle);
 		}
 	}
 
 	public void ShowWepSlotUI()
 	{
-		isSlotUIOpen = true;
+		IsSlotUIOpen = true;
 		slotTimer = Time.time;
-		currentWeaponSlots.SetActive(true);
+		CurrentWeaponSlots.SetActive(true);
 	}
 
 	public void PropSpawnMenuSetActive(bool choice)
 	{
-		if (canOpenPropMenu && _playerStats.playerClass.className != "Spectator")
+		if (CanOpenPropMenu && _playerStats.CurrentClass.className != "Spectator")
 		{
 			if (choice == true)
 			{
-				propSpawnMenu.SetActive(true);
+				PropSpawnMenu.SetActive(true);
 				Cursor.lockState = CursorLockMode.None;
-				hasUnlockedMouseUIEnabled = true;
+				HasUnlockedMouseUIEnabled = true;
 				//player.GetComponentInChildren<OrbitCamera>().viewLocked = true;
-				canOpenTeamSelectMenu = false;
-				canOpenClassSelectMenu = false;
+				CanOpenTeamSelectMenu = false;
+				CanOpenClassSelectMenu = false;
 			}
 			else
 			{
-				propSpawnMenu.SetActive(false);
+				PropSpawnMenu.SetActive(false);
 				Cursor.lockState = CursorLockMode.Locked;
-				hasUnlockedMouseUIEnabled = false;
+				HasUnlockedMouseUIEnabled = false;
 				//player.GetComponentInChildren<OrbitCamera>().viewLocked = false;
-				canOpenTeamSelectMenu = true;
-				canOpenClassSelectMenu = true;
+				CanOpenTeamSelectMenu = true;
+				CanOpenClassSelectMenu = true;
 			}
 		}
 
@@ -210,24 +199,24 @@ public class UIManager : MonoBehaviourPunCallbacks
 
 	public void TeamSelectMenuSetActive(bool choice)
 	{
-		if (canOpenTeamSelectMenu)
+		if (CanOpenTeamSelectMenu)
 		{
 			if (choice == true)
 			{
-				teamSelectMenu.SetActive(true);
+				TeamSelectMenu.SetActive(true);
 				Cursor.lockState = CursorLockMode.None;
-				hasUnlockedMouseUIEnabled = true;
-				canOpenPropMenu = false;
-				canOpenClassSelectMenu = false;
+				HasUnlockedMouseUIEnabled = true;
+				CanOpenPropMenu = false;
+				CanOpenClassSelectMenu = false;
 				SetActiveMainHud(false);
 			}
 			else
 			{
-				teamSelectMenu.SetActive(false);
+				TeamSelectMenu.SetActive(false);
 				Cursor.lockState = CursorLockMode.Locked;
-				hasUnlockedMouseUIEnabled = false;
-				canOpenPropMenu = true;
-				canOpenClassSelectMenu = true;
+				HasUnlockedMouseUIEnabled = false;
+				CanOpenPropMenu = true;
+				CanOpenClassSelectMenu = true;
 			}
 		}
 
@@ -235,25 +224,26 @@ public class UIManager : MonoBehaviourPunCallbacks
 
 	public void ClassSelectMenuSetActive(bool choice)
 	{
-		if (canOpenClassSelectMenu)
+		if (CanOpenClassSelectMenu)
 		{
-			if (_playerStats.playerClass.className != "Spectator" || classMenu.cameFromTeamMenu)
+			if (_playerStats.CurrentClass.className != "Spectator" || ClassMenu.cameFromTeamMenu)
 			{
 				if (choice == true)
 				{
-					classSelectMenu.SetActive(true);
+					ClassSelectMenu.SetActive(true);
 					Cursor.lockState = CursorLockMode.None;
-					hasUnlockedMouseUIEnabled = true;
-					canOpenPropMenu = false;
-					canOpenTeamSelectMenu = false;
+					HasUnlockedMouseUIEnabled = true;
+					CanOpenPropMenu = false;
+					CanOpenTeamSelectMenu = false;
+                    ClassMenu.CurrentCurrency.text = _playerStats.CurrentCurrency.ToString();
 				}
 				else
 				{
-					classSelectMenu.SetActive(false);
+					ClassSelectMenu.SetActive(false);
 					Cursor.lockState = CursorLockMode.Locked;
-					hasUnlockedMouseUIEnabled = false;
-					canOpenPropMenu = true;
-					canOpenTeamSelectMenu = true;
+					HasUnlockedMouseUIEnabled = false;
+					CanOpenPropMenu = true;
+					CanOpenTeamSelectMenu = true;
 
 				}
 			}
@@ -263,33 +253,20 @@ public class UIManager : MonoBehaviourPunCallbacks
 
 	public void SetActiveMainHud(bool choice)
 	{
-		if (_playerStats.playerClass.className != "Spectator")
+		if (_playerStats.CurrentClass.className != "Spectator")
 		{
 			if (choice)
 			{
-				currentWeaponSlots.SetActive(true);
-				currentWeaponSlots.GetComponent<CurrentWeaponSlotsUI>().AddSlots();
-                currentAbilitySlots.GetComponent<CurrentAbilitiesUI>().AddSlots();
-				healthBar.gameObject.SetActive(true);
-				healthBarBackground.gameObject.SetActive(true);
-				healthText.enabled = true;
-				currencyAmount.enabled = true;
-				ammoAmount.enabled = true;
-				ammoInClip.enabled = true;
-				dollar.enabled = true;
+                MainHud.SetActive(true);
+				CurrentWeaponSlots.SetActive(true);
+				CurrentWeaponSlots.GetComponent<CurrentWeaponSlotsUI>().AddSlots();
+                CurrentAbilitySlots.GetComponent<CurrentAbilitiesUI>().AddSlots();
 				ShowWepSlotUI();
 
 			}
 			else
 			{
-				currentWeaponSlots.SetActive(false);
-				healthBar.gameObject.SetActive(false);
-				healthBarBackground.gameObject.SetActive(false);
-				healthText.enabled = false;
-				currencyAmount.enabled = false;
-				ammoAmount.enabled = false;
-				ammoInClip.enabled = false;
-				dollar.enabled = false;
+                MainHud.SetActive(false);
 			}
 		}
 	}
@@ -300,21 +277,21 @@ public class UIManager : MonoBehaviourPunCallbacks
 	{
 		if (choice == true)
 		{
-			for (int i = 0; i < respawnText.Count; i++)
+			for (int i = 0; i < RespawnText.Count; i++)
 			{
-				respawnText[i].enabled = true;
+				RespawnText[i].enabled = true;
 			}
-			respawnTimer.enabled = true;
+			RespawnTimer.enabled = true;
             PropSpawnMenuSetActive(false);
 		}
 
 		if (choice == false)
 		{
-			for (int i = 0; i < respawnText.Count; i++)
+			for (int i = 0; i < RespawnText.Count; i++)
 			{
-				respawnText[i].enabled = false;
+				RespawnText[i].enabled = false;
 			}
-			respawnTimer.enabled = false;
+			RespawnTimer.enabled = false;
 		}
 	}
 

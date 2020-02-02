@@ -7,7 +7,10 @@ public abstract class StatusEffect : MonoBehaviour
 	public PlayerStats giver;
 	public PlayerStats receiver;
 
-	public bool isPassive;
+    public bool AllowDuplicates;
+
+    public int CurrentStacks;
+    public int MaxStacks;
 
 	public float duration;
 
