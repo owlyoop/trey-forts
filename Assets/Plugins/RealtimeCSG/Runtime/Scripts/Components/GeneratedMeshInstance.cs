@@ -9,7 +9,7 @@ using RealtimeCSG.Foundation;
 
 namespace InternalRealtimeCSG
 {
-#if UNITY_EDITOR || EVALUATION
+#if UNITY_EDITOR
 	public struct MeshInstanceKey : IEqualityComparer<MeshInstanceKey>, IEquatable<MeshInstanceKey> 
 	{
 		public static MeshInstanceKey GenerateKey(GeneratedMeshDescription meshDescription)
@@ -28,8 +28,13 @@ namespace InternalRealtimeCSG
 		public int			 SurfaceParameter;
 		public readonly MeshQuery MeshType;
 
-		#region Comparison
-		public override int GetHashCode()
+        public override string ToString()
+        {
+            return string.Format("({0} {1} {2})", SubMeshIndex, SurfaceParameter, MeshType);
+        }
+
+        #region Comparison
+        public override int GetHashCode()
 		{
 			var hash1 = SubMeshIndex     .GetHashCode();
 			var hash2 = SurfaceParameter .GetHashCode();
@@ -112,7 +117,6 @@ namespace InternalRealtimeCSG
 
 	[DisallowMultipleComponent]
 	[ExecuteInEditMode]
-	[System.Reflection.Obfuscation(Exclude = true)]
 	public sealed class GeneratedMeshInstance : MonoBehaviour
 	{
 		[HideInInspector] public float Version = 1.00f;
@@ -123,10 +127,10 @@ namespace InternalRealtimeCSG
 		public RenderSurfaceType	RenderSurfaceType = (RenderSurfaceType)999;
 
 		public GeneratedMeshDescription MeshDescription;
-		public GeneratedMeshContents	GeneratedMeshContents;
 
 		[HideInInspector] public bool   HasGeneratedNormals = false;
 		[HideInInspector] public bool	HasUV2				= false;
+        [NonSerialized]
 		[HideInInspector] public float	ResetUVTime			= float.PositiveInfinity;
 		[HideInInspector] public Int64	LightingHashValue;
 
@@ -136,6 +140,24 @@ namespace InternalRealtimeCSG
 		[NonSerialized] [HideInInspector] public MeshRenderer	CachedMeshRenderer;
 		[NonSerialized] [HideInInspector] public System.Object	CachedMeshRendererSO;
 
+        public void Reset()
+        {
+		    RenderMaterial          = null;
+		    PhysicsMaterial         = null;
+		    RenderSurfaceType       = (RenderSurfaceType)999;
+        
+		    HasGeneratedNormals     = false;
+		    HasUV2				    = false;
+            ResetUVTime			    = float.PositiveInfinity;
+		    LightingHashValue       = 0;
+
+		    Dirty	                = true;
+
+		    CachedMeshCollider      = null;
+		    CachedMeshFilter        = null;
+		    CachedMeshRenderer      = null;
+		    CachedMeshRendererSO    = null;
+        }
 
 		public MeshInstanceKey GenerateKey()
 		{
@@ -147,17 +169,20 @@ namespace InternalRealtimeCSG
 			if ((!PhysicsMaterial || PhysicsMaterial.GetInstanceID() != 0) &&
 				(!RenderMaterial  || RenderMaterial .GetInstanceID() != 0))
 			{
-				if (SharedMesh)
-				{
-					if (SharedMesh.vertexCount < 0)
-						return false;
-				} else
-				if (SharedMesh.GetInstanceID() != 0)
-					return false;
+                if (SharedMesh)
+                {
+                    if (SharedMesh.vertexCount < 0)
+                        return false;
+                } else
+                if (!ReferenceEquals(SharedMesh, null) &&
+                    SharedMesh.GetInstanceID() != 0)
+                    return false;
 				return true;
 			}
 			return false;
 		}
+
+        static readonly List<Vector2> sUVList = new List<Vector2>();
 
 		internal void Awake()
 		{
@@ -175,8 +200,15 @@ namespace InternalRealtimeCSG
 			// InstanceIDs are not properly remembered across domain reloads,
 			//	this causes issues on, for instance, first startup of Unity. 
 			//	So we need to refresh the instanceIDs
-			if      (!ReferenceEquals(RenderMaterial,  null)) { if (RenderMaterial)  MeshDescription.surfaceParameter = RenderMaterial .GetInstanceID(); }
-			else if (!ReferenceEquals(PhysicsMaterial, null)) { if (PhysicsMaterial) MeshDescription.surfaceParameter = PhysicsMaterial.GetInstanceID(); }
+            if (RenderSurfaceType == RenderSurfaceType.Collider ||
+                RenderSurfaceType == RenderSurfaceType.Trigger)
+            {
+                if (!ReferenceEquals(PhysicsMaterial, null)) { if (PhysicsMaterial) MeshDescription.surfaceParameter = PhysicsMaterial.GetInstanceID(); }
+            } else
+            { 
+			    if      (!ReferenceEquals(RenderMaterial,  null)) { if (RenderMaterial)  MeshDescription.surfaceParameter = RenderMaterial .GetInstanceID(); }
+			    else if (!ReferenceEquals(PhysicsMaterial, null)) { if (PhysicsMaterial) MeshDescription.surfaceParameter = PhysicsMaterial.GetInstanceID(); }
+            }
 		}
 
 		internal void OnEnable()
@@ -214,9 +246,31 @@ namespace InternalRealtimeCSG
 					}
 				}
 			}
+
+            if (SharedMesh)
+            {
+                SharedMesh.GetUVs(1, sUVList);
+                HasUV2 = sUVList != null && sUVList.Count == SharedMesh.vertexCount;
+            } else
+                HasUV2 = false;
 		}
+        
+        public void FindMissingSharedMesh()
+        {
+            MeshCollider meshCollider;
+            if (this.TryGetComponent(out meshCollider))
+            {
+                SharedMesh = meshCollider.sharedMesh;
+                return;
+            }
+            MeshFilter meshFilter;
+            if (this.TryGetComponent(out meshFilter))
+            {
+                SharedMesh = meshFilter.sharedMesh;
+            }
+        }
 #else
-		void Awake() 
+        void Awake() 
 		{
 			this.hideFlags = HideFlags.DontSaveInBuild;
 		}

@@ -1544,12 +1544,12 @@ namespace RealtimeCSG
                             // possibilities:
                             //    
                             //       outside
-                            //       0
-                            //        \
-                            //  .......\......... intersect
-                            //          \
-                            //           1
-                            //        inside
+                            //            0
+                            //           /      
+                            //  ......../....... intersect
+                            //         /    
+                            //        1
+                            //       inside
                             var vector	= vertex1 - vertex0;
                             var length	= intersections[i0].Traversal1.Side.Distance - intersections[i0].Traversal0.Side.Distance;
                             var delta	= intersections[i0].Traversal1.Side.Distance / length;

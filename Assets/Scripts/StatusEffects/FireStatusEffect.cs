@@ -27,7 +27,7 @@ public class FireStatusEffect : StatusEffect
             //receiver.TakeDamage(receiver.photonView.ViewID, DamagePerTick, Damager.DamageTypes.Physical);
         }
 
-        if (Time.time > timeApplied + duration)
+        if (Time.time > timeApplied + Duration)
         {
             receiver.StatusEffectManager.RemoveStatusEffect(this.GetComponent<FireStatusEffect>());
         }

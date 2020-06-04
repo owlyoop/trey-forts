@@ -12,6 +12,8 @@ public class ProjectileRocket : Projectile
 
     Rigidbody rb;
 
+    int safeguard = 1;
+
 
     private void Start()
     {
@@ -48,9 +50,10 @@ public class ProjectileRocket : Projectile
                     isValid = false;
                 }
 
-                if (isValid)
+                if (isValid && safeguard == 1)
                 {
                     player.GetComponent<PlayerRpcCalls>().SpawnExplosion(player, transform.position, baseDamage, damageType);
+                    safeguard++;
                     Kill();
                 }
             }

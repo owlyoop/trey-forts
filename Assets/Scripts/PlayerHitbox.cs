@@ -21,9 +21,9 @@ public class PlayerHitbox : MonoBehaviour, IDamagable
     }
 
     //Should only call takedamage from the hitbox with things that will only damage 1 thing. ex. Explosions, i dont want to use this because it would deal damage for every single hitbox.
-    public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
+    public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation, PlayerStats.DamageIndicatorType uiType)
     {
-        player.TakeDamage(damageTaken, damageType, giver, damageSourceLocation);
+        player.TakeDamage(damageTaken, damageType, giver, damageSourceLocation, PlayerStats.DamageIndicatorType.Directional);
     }
 
     public void OnDeath()

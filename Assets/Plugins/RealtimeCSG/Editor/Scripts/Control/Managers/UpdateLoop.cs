@@ -7,6 +7,7 @@ using System.Collections;
 using System.Reflection;
 using System.Linq;
 using UnityEngine.SceneManagement;
+using RealtimeCSG.Components;
 
 namespace RealtimeCSG
 {
@@ -56,20 +57,33 @@ namespace RealtimeCSG
 
 #if UNITY_2018_1_OR_NEWER
 			EditorApplication.hierarchyChanged	-= OnHierarchyWindowChanged;
-			EditorApplication.hierarchyChanged	+= OnHierarchyWindowChanged;
+            EditorApplication.hierarchyChanged += OnHierarchyWindowChanged;
+
 #else
 			EditorApplication.hierarchyWindowChanged	-= OnHierarchyWindowChanged;
 			EditorApplication.hierarchyWindowChanged	+= OnHierarchyWindowChanged;
 #endif
 
-			EditorApplication.hierarchyWindowItemOnGUI	-= HierarchyWindowItemGUI.OnHierarchyWindowItemOnGUI;
+#if UNITY_2018_3_OR_NEWER
+            UnityEditor.Experimental.SceneManagement.PrefabStage.prefabSaving += OnPrefabSaving;
+
+#endif
+
+            EditorApplication.hierarchyWindowItemOnGUI	-= HierarchyWindowItemGUI.OnHierarchyWindowItemOnGUI;
 			EditorApplication.hierarchyWindowItemOnGUI	+= HierarchyWindowItemGUI.OnHierarchyWindowItemOnGUI;
 			
 			UnityCompilerDefineManager.UpdateUnityDefines();
 		}
-		
 
-		void Shutdown(bool finalizing = false)
+#if UNITY_2018_3_OR_NEWER
+        private void OnPrefabSaving(GameObject obj)
+        {
+            ModelTraits.OnPrefabSaving(obj);
+        }
+#endif
+
+
+        void Shutdown(bool finalizing = false)
 		{
 			if (editor != this)
 				return;

@@ -33,8 +33,6 @@ public class FloatingTextController : MonoBehaviour
 
 		instance.transform.SetParent(canvas.transform, false);
 		instance.transform.position = screenPosition;
-		
-		Debug.Log("dmg num");
 	}
 
     public void CreateMoneyText(string text, Transform _location)

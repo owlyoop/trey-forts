@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class PlayerStats : MonoBehaviour, IDamagable
 {
-	// 0 spectator, 1 blue, 2 red
-	public int playerTeam; // 0 spectator, 1 blue, 2 red
 
     public enum PlayerTeam
     {
@@ -16,7 +14,18 @@ public class PlayerStats : MonoBehaviour, IDamagable
         Red
     }
 
-	[Header("Stats")]
+    public enum DamageIndicatorType
+    {
+        Directional,
+        Generic,
+        None
+    }
+    [Header("Network Info")]
+    public string Username;
+    public PlayerTeam playerTeam;
+    public int ping = 0;
+
+    [Header("Character Stats")]
 	public CharacterStat maxHealth;
 	int maxHealthValue;
 
@@ -27,6 +36,8 @@ public class PlayerStats : MonoBehaviour, IDamagable
         get { return currentHealth; }
         private set { currentHealth = value; }
     }
+
+	public bool isAlive;
 
     [SerializeField]
     private int currentCurrency;
@@ -42,7 +53,6 @@ public class PlayerStats : MonoBehaviour, IDamagable
 	int currentAmmoReserves;
 	
 	public bool canPickUpFlag;
-	public bool isAlive;
 	public bool hasFlag;
     public bool HasPreviouslyPlayed = false;
 
@@ -81,6 +91,12 @@ public class PlayerStats : MonoBehaviour, IDamagable
     public CharacterStat JumpForce;
 	float baseJumpForce = 7.24f;
     StatModifier ClassJumpforceMultiplier;
+
+    [Header("Ingame Score")]
+    public int score = 0;
+    public int kills = 0;
+    public int assists = 0;
+    public int deaths = 0;
 
     [Header("Status Effects")]
 	public StatusEffectReceiver StatusEffectManager;
@@ -168,8 +184,6 @@ public class PlayerStats : MonoBehaviour, IDamagable
 		ui.SetActivateDeathUI(false);
 		hasFlag = false;
 
-
-
 		StatusEffectManager.AddPassiveStatusEffects();
 		EventManager.onWaitingForPlayersEnd += WaitingForPlayersEnd;
         
@@ -205,7 +219,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
 		}
 		GetComponent<MyCharacterController>().TransitionToState(CharacterState.Spectator);
         SetCollidersActive(false);
-        RpcRespawn();
+        RespawnAndInitialize();
 	}
 
     public void AddMaxHealthModifier(StatModifier mod)
@@ -301,7 +315,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
 		_respawnTimer = _gameManager.respawnTime;
 		StartCoroutine(RespawnCountdownTimer());
 		ui.SetActivateDeathUI(true);
-
+        StatusEffectManager.ClearAllStatusEffects();
 		
 		if (_flagref != null)
 		{
@@ -354,11 +368,13 @@ public class PlayerStats : MonoBehaviour, IDamagable
         
         EnableOwnHitbox(false);
         ragdoll.colliderCollection[1].attachedRigidbody.AddForce(ragdollForceDirection.normalized * ragdollForceToAdd, ForceMode.Impulse);
-        if (playerTeam == 1)
+        Debug.Log(ragdollForceToAdd.ToString());
+        Debug.Log(ragdollForceDirection.ToString());
+        if (playerTeam == PlayerTeam.Blue)
         {
             ragdoll.SetRagdollMaterials(bodyMaterialBlue, jointsMaterialBlue);
         }
-        else if (playerTeam == 2)
+        else if (playerTeam == PlayerTeam.Red)
         {
             ragdoll.SetRagdollMaterials(bodyMaterialRed, jointsMaterialRed);
         }
@@ -366,24 +382,19 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
 	public void RespawnAndInitialize()
 	{
-		RpcRespawn();
-	}
-
-	private void RpcRespawn()
-	{
         //Move player to a spawnpoint
 		if (_gameManager == null)
 		{
 			_gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
 		}
 
-		if (playerTeam == 1)
+		if (playerTeam == PlayerTeam.Blue)
 		{
 			Vector3 spawnPoint;
 			spawnPoint = _gameManager.teamOneSpawnPoints[Random.Range(0, _gameManager.teamOneSpawnPoints.Length)].transform.position;
 			GetComponent<KinematicCharacterMotor>().SetPosition(spawnPoint);
 		}
-		if (playerTeam == 2)
+		if (playerTeam == PlayerTeam.Red)
 		{
 			Vector3 spawnPoint;
 			spawnPoint = _gameManager.teamTwoSpawnPoints[Random.Range(0, _gameManager.teamTwoSpawnPoints.Length)].transform.position;
@@ -420,12 +431,12 @@ public class PlayerStats : MonoBehaviour, IDamagable
 		}
 		if (_respawnTimer <= 0)
 		{
-			RpcRespawn();
+			RespawnAndInitialize();
 		}
 
 	}
 
-	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
+	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation, DamageIndicatorType uiType)
 	{
 		if (isAlive)
 		{
@@ -439,7 +450,6 @@ public class PlayerStats : MonoBehaviour, IDamagable
     {
 
     }
-
 
     void RpcTakeDamage(int dmg, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
 	{
@@ -457,14 +467,14 @@ public class PlayerStats : MonoBehaviour, IDamagable
         float alpha = (float)dmg / (float)maxHealthValue;
         alpha = Mathf.Lerp(indicator.MinAlpha, indicator.MaxAlpha, alpha);
         indicator.Indicator.color = new Color(1,0,0,alpha);
-
         
 		if (currentHealth <= 0 && isAlive)
 		{
+            ragdollForceToAdd = dmg * 2f;
+            ragdollForceDirection = this.transform.position - damageSourceLocation;
 			currentHealth = 0;
 			OnDeath();
-            ragdollForceToAdd = dmg * 2f;
-            //ragdollForceDirection = PhotonView.Find(GiverPunID).GetComponent<PlayerStats>().transform.position - this.transform.position;
+            Debug.Log("rpctakedamage");
 
             isAlive = false;
 		}
@@ -513,7 +523,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
         ui.CurrencyAmount.text = currentCurrency.ToString();
     }
 	
-	void HideOwnPlayerModel(bool choice)
+	public void HideOwnPlayerModel(bool choice)
 	{
 		if (choice == true)
 		{
@@ -530,7 +540,6 @@ public class PlayerStats : MonoBehaviour, IDamagable
     //Here because weapon raycasts can hit the player's self. All the hitboxes of everyone are on the same layer so we cant make the raycast ignore a layer.
     void EnableOwnHitbox(bool choice)
     {
-        Debug.Log("hb enable");
         if (choice)
         {
             foreach (PlayerHitbox hb in hitboxCollection)
@@ -547,18 +556,18 @@ public class PlayerStats : MonoBehaviour, IDamagable
         }
     }
 
-	public void SetTeam(int team)
+	public void SetTeam(PlayerTeam team)
 	{
 		HideOwnPlayerModel(false);
 		playerTeam = team;
 		if (bodyToColor.enabled == true && jointsToColor.enabled == true)
 		{
-			if (team == 1)
+			if (team == PlayerTeam.Blue)
 			{
 				bodyToColor.material = bodyMaterialBlue;
 				jointsToColor.material = jointsMaterialBlue;
 			}
-			if (team == 2)
+			if (team == PlayerTeam.Red)
 			{
 				bodyToColor.material = bodyMaterialRed;
 				jointsToColor.material = jointsMaterialRed;
@@ -582,7 +591,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
 		CaptureFlag flag = other.GetComponentInParent<CaptureFlag>();
 		if (flag != null && flag.isBeingHeld == false)
 		{
-			if ((flag.team == CaptureFlag.Team.Blue && playerTeam == 2) || (flag.team == CaptureFlag.Team.Red && playerTeam == 1))
+			if ((flag.team == CaptureFlag.Team.Blue && playerTeam == PlayerTeam.Red) || (flag.team == CaptureFlag.Team.Red && playerTeam == PlayerTeam.Blue))
 			{
 				flag.transform.parent = flagAttachParent.transform;
 				flag.transform.localPosition = new Vector3(0, 0, 0);
@@ -619,14 +628,14 @@ public class PlayerStats : MonoBehaviour, IDamagable
 	{
 		if (team == 1)
 		{
-			_gameManager.BlueTeamScore += 1;
-			ui.BlueScore.text = _gameManager.BlueTeamScore.ToString();
+			_gameManager.blueTeamFlagCaptures += 1;
+			ui.BlueScore.text = _gameManager.blueTeamFlagCaptures.ToString();
 		}
 
 		if (team == 2)
 		{
-			_gameManager.RedTeamScore += 1;
-			ui.RedScore.text = _gameManager.RedTeamScore.ToString();
+			_gameManager.redTeamFlagCaptures += 1;
+			ui.RedScore.text = _gameManager.redTeamFlagCaptures.ToString();
 		}
 	}
 

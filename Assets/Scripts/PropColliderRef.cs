@@ -12,8 +12,9 @@ public class PropColliderRef : MonoBehaviour, IDamagable
         
     }
 
-    public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
+    public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation, PlayerStats.DamageIndicatorType uiType)
     {
-        PropRigidbody.GetComponent<FortwarsProp>().TakeDamage(damageTaken, damageType, giver, damageSourceLocation);
+        PropRigidbody.GetComponent<FortwarsProp>().TakeDamage(damageTaken, damageType, giver, damageSourceLocation, uiType);
     }
+
 }

@@ -6,7 +6,7 @@ using InternalRealtimeCSG;
 
 namespace RealtimeCSG
 {
-	public static class MaterialUtility
+    public static class MaterialUtility
 	{
 		internal const string ShaderNameRoot						= "Hidden/CSG/internal/";
 		internal const string SpecialSurfaceShaderName				= "specialSurface";
@@ -93,12 +93,7 @@ namespace RealtimeCSG
 			};
 			if (textureName != null)
 			{
-				string filename;
-#if EVALUATION
-				filename = "Assets/Plugins/RealtimeCSG-Evaluation/Editor/Resources/Textures/" + textureName + ".png";
-#else
-				filename = "Assets/Plugins/RealtimeCSG/Editor/Resources/Textures/" + textureName + ".png";
-#endif
+				string filename = "Assets/Plugins/RealtimeCSG/Editor/Resources/Textures/" + textureName + ".png";
 				material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(filename);
 				if (!material.mainTexture)
 					Debug.LogWarning("Could not find internal texture: " + filename);
@@ -148,13 +143,8 @@ namespace RealtimeCSG
 		}
 
 		
-#if EVALUATION
-		const string DefaultMaterialPath = "Assets/Plugins/RealtimeCSG-EVALUATION/Runtime/Materials/";
-		const string DefaultTexturePath = "Assets/Plugins/RealtimeCSG-EVALUATION/Runtime/Textures/";
-#else
 		const string DefaultMaterialPath = "Assets/Plugins/RealtimeCSG/Runtime/Materials/";
 		const string DefaultTexturePath = "Assets/Plugins/RealtimeCSG/Runtime/Textures/";
-#endif
 		
 		internal static void CreateRenderPipelineVersionOfDefaultMaterial(Material defaultMaterial, string materialName)
 		{
@@ -272,9 +262,16 @@ namespace RealtimeCSG
 			
 			return AssetDatabase.LoadAssetAtPath<Material>(materialFilename);
 		}
-		
 
-		private static Material _defaultMaterial;
+
+        internal static PhysicMaterial GetRuntimePhysicMaterial(string materialName)
+        {
+            var defaultFilename = string.Format("{0}{1}.physicMaterial", DefaultMaterialPath, materialName);
+            return AssetDatabase.LoadAssetAtPath<PhysicMaterial>(defaultFilename);
+        }
+
+
+        private static Material _defaultMaterial;
 		public static Material DefaultMaterial
 		{
 			get
@@ -297,10 +294,24 @@ namespace RealtimeCSG
 				}
 				return _defaultMaterial;
 			}
-		}			
+		}
 
-
-		private static readonly Dictionary<Color,Material> ColorMaterials = new Dictionary<Color, Material>();
+        private static PhysicMaterial _defaultPhysicsMaterial;
+        public static PhysicMaterial DefaultPhysicsMaterial
+        {
+            get
+            {
+                if (!_defaultPhysicsMaterial)
+                {
+                    _defaultPhysicsMaterial = GetRuntimePhysicMaterial("Default");
+                    if (!_defaultPhysicsMaterial)
+                        Debug.LogError("Default physics material is missing");
+                }
+                return _defaultPhysicsMaterial;
+            }
+        }
+         
+        private static readonly Dictionary<Color,Material> ColorMaterials = new Dictionary<Color, Material>();
 		internal static Material GetColorMaterial(Color color)
 		{
 			Material material;

@@ -49,7 +49,6 @@ public class Explosion : Damager
 				wishDirection = transform.position - playerPos;
 				velocityToAdd = -wishDirection.normalized * force;
 
-                Debug.Log("poop");
 				player.AddVelocity(velocityToAdd);
 			}
 
@@ -70,15 +69,14 @@ public class Explosion : Damager
 		}
         foreach (IDamagable targets in uniqueTargets)
         {
-            Debug.Log(targets.ToString());
-            targets.TakeDamage(baseDamage, damageType, player, this.transform.position);
+            targets.TakeDamage(baseDamage, damageType, player, this.transform.position, PlayerStats.DamageIndicatorType.Directional);
         }
 		Invoke("Kill", 1);
 	}
 
 	public override void DamageTarget(IDamagable target)
 	{
-		target.TakeDamage(baseDamage, DamageTypes.Physical, player, this.transform.position);
+		target.TakeDamage(baseDamage, DamageTypes.Physical, player, this.transform.position, PlayerStats.DamageIndicatorType.Directional);
 	}
 
 	Vector3 GetVelocityToAdd(GameObject go, float _force)

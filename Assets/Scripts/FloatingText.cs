@@ -44,7 +44,5 @@ public class FloatingText : MonoBehaviour
 			Vector3 screenPosition = cam.WorldToScreenPoint(worldPos);
 			transform.position = screenPosition + offset;
 		}
-
 	}
-
 }

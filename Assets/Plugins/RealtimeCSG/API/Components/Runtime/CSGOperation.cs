@@ -12,11 +12,11 @@ namespace RealtimeCSG.Components
 	/// <remarks>The CSG branch that defines a CSGOperation is defined by its child [UnityEngine.GameObject](https://docs.unity3d.com/ScriptReference/GameObject.html)s.</remarks>
 #if UNITY_EDITOR
 	[AddComponentMenu("CSG/Operation")]
-    [ExecuteInEditMode, DisallowMultipleComponent, System.Reflection.Obfuscation(Exclude = true)]
+    [ExecuteInEditMode, DisallowMultipleComponent]
 #endif
 	public sealed class CSGOperation : CSGNode
 	{
-		public const float CurrentVersion = 1.0f;
+		public const float CurrentVersion = 1.1f;
 		/// <value>The version number of this instance of a <see cref="CSGOperation" /></value>
 		[HideInInspector] public float Version = CurrentVersion;
 
@@ -81,7 +81,6 @@ namespace RealtimeCSG.Components
 		{
 			// cannot change visibility since this might have an effect on exporter
 			this.hideFlags |= HideFlags.DontSaveInBuild;
-			this.gameObject.tag = "EditorOnly";
 			ComponentUpgrader.UpgradeWhenNecessary(this); ;
 			if (CSGSceneManagerRedirector.Interface != null) CSGSceneManagerRedirector.Interface.OnCreated(this);
 		}

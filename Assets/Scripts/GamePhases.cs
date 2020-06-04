@@ -1,59 +1,57 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
-public class GamePhases : MonoBehaviour
+public class GamePhases : NetworkBehaviour
 {
-	
-	public float WaitingForPlayersLength = 30f;
+    [Header("Game Rules")]
+    public float WaitingForPlayersLength = 30f;
 	public bool isWaitingForPlayers;
-
-	
 	public float BuildPhaseFreezeTime = 3f; //after waiting for players end, teleport players to spawnpoints and freeze their movement
 	public float BuildPhaseTimeLength = 180f; //length in seconds
 	public bool isInBuildPhase;
-	
 	public float CombatPhaseTimeLength = 600f; // length in seconds
 	public bool isInCombatPhase;
-	
 	public bool isInEndGamePhase;
-
 	public float respawnTime = 8.0f;
-	
-	public int BlueTeamScore;
+    public List<WeaponSet> classList = new List<WeaponSet>();
+    public List<FortwarsPropData> buildPhaseProps = new List<FortwarsPropData>();
+    public List<FortwarsPropData> combatPhaseProps = new List<FortwarsPropData>();
 
-	public int RedTeamScore;
-	
+    [Header("Current Game Info")]
+    public int blueTeamFlagCaptures;
+	public int redTeamFlagCaptures;
 
-	public List<WeaponSet> classList = new List<WeaponSet>();
+    public List<PlayerStats> blueTeamPlayers = new List<PlayerStats>();
+    public List<PlayerStats> redTeamPlayers = new List<PlayerStats>();
+    public List<PlayerStats> spectatorTeamPlayers = new List<PlayerStats>();
 
-	public List<FortwarsPropData> buildPhaseProps = new List<FortwarsPropData>();
-	public List<FortwarsPropData> combatPhaseProps = new List<FortwarsPropData>();
+    public int blueTeamKills;
+    public int blueTeamScore;
+    public int redTeamKills;
+    public int redTeamScore;
 
-	public GameObject BuildPhaseGeometry;
-
+    [Header("Map Elements")]
+    public GameObject BuildPhaseGeometry;
 	public Spawnpoint[] teamSpectatorSpawnPoints;
 	public Spawnpoint[] teamOneSpawnPoints;
 	public Spawnpoint[] teamTwoSpawnPoints;
-
 	public Collider blueCaptureZone;
 	public Collider redCaptureZone;
-
 	public CaptureFlag blueFlag;
 	public CaptureFlag redFlag;
 
 	EventManager _eventManager;
 
-    public GameObject playerPrefab;
 
 
 	private void Start()
 	{
 		_eventManager = GetComponent<EventManager>();
 		isWaitingForPlayers = true;
-		BlueTeamScore = 0;
-		RedTeamScore = 0;
-        //PhotonNetwork.Instantiate(this.playerPrefab.name, new Vector3(0f, 2f, 0f), Quaternion.identity, 0);
+		blueTeamFlagCaptures = 0;
+		redTeamFlagCaptures = 0;
     }
 
 	private void Update()

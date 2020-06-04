@@ -22,7 +22,7 @@ public class DamageIndicator : MonoBehaviour
 
     private void Update()
     {
-        var targetLocal = ui.player.cam.transform.InverseTransformPoint(damageSourcePosition);
+        var targetLocal = ui.playerInput.cam.transform.InverseTransformPoint(damageSourcePosition);
         var targetAngle = -Mathf.Atan2(targetLocal.x, targetLocal.z) * Mathf.Rad2Deg + 180f;
         Indicator.rectTransform.eulerAngles = new Vector3(0, 0, targetAngle);
     }

@@ -98,7 +98,7 @@ public class PropSpawner : WeaponMotor
 
 				ghostProp.transform.position = new Vector3(ghostProp.transform.position.x + (shot.normal.x * theProp.snapPositionRight.transform.localPosition.x),
 											ghostProp.transform.position.y + (shot.normal.y * -theProp.snapPositionBottom.transform.localPosition.y),
-											ghostProp.transform.position.z + (shot.normal.z * theProp.snapPositionFront.transform.localPosition.z));
+											ghostProp.transform.position.z + (shot.normal.z * theProp.snapPositionRight.transform.localPosition.x));
 				
 				if (angleOffsetX == 45f || angleOffsetX == 135f)
 				{
@@ -180,7 +180,6 @@ public class PropSpawner : WeaponMotor
 	{
 		if (ghostProp != null && isPlacingObject && canPlaceProp)
 		{
-			
 			angleOffsetX += 45f;
 			if (angleOffsetX == 360)
 				angleOffsetX = 0;
@@ -197,7 +196,8 @@ public class PropSpawner : WeaponMotor
 
 	public override void OnSwitchAwayFromWeapon()
 	{
-        playerUI.PropSpawnMenuSetActive(false);
+        if (playerUI.CurrentUIState == PlayerUIState.PropMenu)
+            playerUI.TransitionToState(PlayerUIState.None);
 		GameObject.Destroy(ghostProp);
 	}
 

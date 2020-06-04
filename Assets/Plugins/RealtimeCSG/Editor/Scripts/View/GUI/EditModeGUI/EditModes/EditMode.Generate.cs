@@ -253,12 +253,12 @@ namespace RealtimeCSG
 		int lastLineMeshGeneration = -1;
 
 
-		public void HandleEvents(Rect sceneRect)
+		public void HandleEvents(SceneView sceneView, Rect sceneRect)
 		{
 			if (CurrentGenerator == null)
 				return;
 
-			CurrentGenerator.HandleEvents(sceneRect); 
+			CurrentGenerator.HandleEvents(sceneView, sceneRect); 
 			switch (Event.current.type)
 			{
 				case EventType.ValidateCommand:
@@ -266,7 +266,7 @@ namespace RealtimeCSG
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedAdditiveKey    .IsKeyPressed()) { Event.current.Use(); break; }
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedSubtractiveKey .IsKeyPressed()) { Event.current.Use(); break; }
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedIntersectingKey.IsKeyPressed()) { Event.current.Use(); break; }
-					if (!EditorGUIUtility.editingTextField && Keys.CancelActionKey             .IsKeyPressed()) { Event.current.Use(); break; }
+					if (!EditorGUIUtility.editingTextField && Keys.CancelActionKey            .IsKeyPressed()) { Event.current.Use(); break; }
 					if (Keys.HandleSceneValidate(EditModeManager.CurrentTool, false)) { Event.current.Use(); HandleUtility.Repaint(); break; }
 					break;
 				}
@@ -276,7 +276,7 @@ namespace RealtimeCSG
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedAdditiveKey    .IsKeyPressed()) { Event.current.Use(); break; }
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedSubtractiveKey .IsKeyPressed()) { Event.current.Use(); break; }
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedIntersectingKey.IsKeyPressed()) { Event.current.Use(); break; }
-					if (!EditorGUIUtility.editingTextField && Keys.CancelActionKey             .IsKeyPressed()) { Event.current.Use(); break; }
+					if (!EditorGUIUtility.editingTextField && Keys.CancelActionKey            .IsKeyPressed()) { Event.current.Use(); break; }
 					if (Keys.HandleSceneKeyDown(EditModeManager.CurrentTool, false)) { Event.current.Use(); HandleUtility.Repaint(); break; }
 					break;
 				}
@@ -286,7 +286,7 @@ namespace RealtimeCSG
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedAdditiveKey    .IsKeyPressed()) { SetOperationType(CSGOperationType.Additive);     Event.current.Use(); break; }
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedSubtractiveKey .IsKeyPressed()) { SetOperationType(CSGOperationType.Subtractive);  Event.current.Use(); break; }
 					if (!EditorGUIUtility.editingTextField && Keys.MakeSelectedIntersectingKey.IsKeyPressed()) { SetOperationType(CSGOperationType.Intersecting); Event.current.Use(); break; }
-					if (!EditorGUIUtility.editingTextField && Keys.CancelActionKey.IsKeyPressed()) { CurrentGenerator.PerformDeselectAll(); Event.current.Use(); break; }
+					if (!EditorGUIUtility.editingTextField && Keys.CancelActionKey            .IsKeyPressed()) { CurrentGenerator.PerformDeselectAll(); Event.current.Use(); break; }
 					if (Keys.HandleSceneKeyUp(EditModeManager.CurrentTool, false)) { Event.current.Use(); HandleUtility.Repaint(); break; }
 					break;
 				}
@@ -346,10 +346,10 @@ namespace RealtimeCSG
 			return EditModeGenerateGUI.OnSceneGUI(windowRect, this);
 		}
 
-		public void GenerateFromPolygon(CSGBrush brush, CSGPlane plane, Vector3 direction, Vector3[] meshVertices, int[] indices, uint[] smoothingGroups, bool drag, CSGOperationType forceDragSource, bool autoCommitExtrusion)
+		public void GenerateFromPolygon(Camera camera, CSGBrush brush, CSGPlane plane, Vector3 direction, Vector3[] meshVertices, int[] indices, uint[] smoothingGroups, bool drag, CSGOperationType forceDragSource, bool autoCommitExtrusion)
 		{
 			BuilderMode = ShapeMode.FreeDraw;
-			freedrawGenerator.GenerateFromPolygon(brush, plane, direction, meshVertices, indices, smoothingGroups, drag, forceDragSource, autoCommitExtrusion);
+			freedrawGenerator.GenerateFromPolygon(camera, brush, plane, direction, meshVertices, indices, smoothingGroups, drag, forceDragSource, autoCommitExtrusion);
 		}
 	}
 }

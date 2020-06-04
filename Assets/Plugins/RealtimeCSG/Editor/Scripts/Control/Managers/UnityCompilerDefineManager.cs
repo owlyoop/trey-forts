@@ -14,7 +14,6 @@ namespace RealtimeCSG
 	{
 		const string RealTimeCSGDefine			= "RealtimeCSG";
 
-#if !EVALUATION
         static bool IsObsolete(Enum value)
         {
             var fi = value.GetType().GetField(value.ToString());
@@ -22,20 +21,14 @@ namespace RealtimeCSG
                 fi.GetCustomAttributes(typeof(ObsoleteAttribute), false);
             return (attributes != null && attributes.Length > 0);
         }
-#endif
 
         public static void UpdateUnityDefines()
 		{
-#if !EVALUATION
             var requiredDefines = new List<string>();
 
 			requiredDefines.Add(RealTimeCSGDefine);
 
-#if TEST_ENABLED
-			string	v						= RealtimeCSG.Foundation.Versioning.PrevPluginVersion;
-#else
 			string	v						= RealtimeCSG.Foundation.Versioning.PluginVersion;
-#endif
 			int		index					= v.IndexOfAny(new char[] { '_', '.' });
 			string	release_version_part	= v.Remove(index);
 			string	lower_part				= v.Substring(index + 1);
@@ -118,7 +111,6 @@ namespace RealtimeCSG
 				if (newSymbolString != symbol_string)
 					PlayerSettings.SetScriptingDefineSymbolsForGroup(targetGroup, newSymbolString);
 			}
-#endif
 		}
 	}
 }

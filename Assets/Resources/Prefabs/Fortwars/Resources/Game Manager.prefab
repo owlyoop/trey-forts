@@ -43,10 +43,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 659cfbaf94d84714e99676ea7e657863, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WaitingForPlayersLength: 30
+  syncMode: 0
+  syncInterval: 0.1
+  WaitingForPlayersLength: 1
   isWaitingForPlayers: 0
   BuildPhaseFreezeTime: 3
-  BuildPhaseTimeLength: 180
+  BuildPhaseTimeLength: 3
   isInBuildPhase: 0
   CombatPhaseTimeLength: 600
   isInCombatPhase: 0
@@ -65,12 +67,14 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 822946cfd60222c438bea39c3a880f04, type: 2}
   - {fileID: 11400000, guid: ce335a6c306c49d4698eb3751ef9f8d5, type: 2}
   - {fileID: 11400000, guid: 3e74a75e88b29d742a41b7834ae77126, type: 2}
-  - {fileID: 11400000, guid: 5ea589e81ad5c0448b7b792ab006550d, type: 2}
+  - {fileID: 11400000, guid: d9ff41849c1cbbb478947af3d5aa25da, type: 2}
   - {fileID: 11400000, guid: 803b69c934442b84cab418ef57460638, type: 2}
   - {fileID: 11400000, guid: 28476dc9af98add46a0d696d3b687978, type: 2}
   - {fileID: 11400000, guid: a3351e06aa1eda940956b35793843a60, type: 2}
   - {fileID: 11400000, guid: 1bf6086aeb3efdb41958243be4480669, type: 2}
-  combatPhaseProps: []
+  - {fileID: 11400000, guid: 1760b05c98f925440b04632c5b1cdd45, type: 2}
+  combatPhaseProps:
+  - {fileID: 11400000, guid: 3f14489251357f44c9b0b4c891a84d50, type: 2}
   BuildPhaseGeometry: {fileID: 0}
   teamSpectatorSpawnPoints: []
   teamOneSpawnPoints:

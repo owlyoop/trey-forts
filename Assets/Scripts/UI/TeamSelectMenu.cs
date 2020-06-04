@@ -24,59 +24,38 @@ public class TeamSelectMenu : MonoBehaviour
 	{
 		if (player.CurrentClass.className != "Spectator")
 		{
-			player.SetTeam(1);
-            //player.TakeDamage(player.photonView.ViewID, 50000, Damager.DamageTypes.Physical);
-			CloseUI();
-			OpenClassMenu();
+			player.SetTeam(PlayerStats.PlayerTeam.Blue);
+            player.ui.TransitionToState(PlayerUIState.ClassSelectMenu);
 		}
 		else
 		{
 			// player is spectator, we dont want to spawn them until they pick a class
-			player.GetComponent<PlayerInput>().mainUI.ClassMenu.QueuedTeam = 1;
-			player.GetComponent<PlayerInput>().mainUI.ClassMenu.cameFromTeamMenu = true;
-			CloseUI();
-			OpenClassMenu();
-		}
+			player.ui.ClassMenu.QueuedTeam = PlayerStats.PlayerTeam.Blue;
+            player.ui.TransitionToState(PlayerUIState.ClassSelectMenu);
+        }
 	}
 
 	public void OnClickRedTeamButton()
 	{
 		if (player.CurrentClass.className != "Spectator")
 		{
-			player.SetTeam(2);
-            //player.TakeDamage(player.photonView.ViewID, 50000, Damager.DamageTypes.Physical);
-			CloseUI();
-			OpenClassMenu();
-		}
+			player.SetTeam(PlayerStats.PlayerTeam.Red);
+            player.ui.TransitionToState(PlayerUIState.ClassSelectMenu);
+        }
 		else
 		{
-			player.GetComponent<PlayerInput>().mainUI.ClassMenu.QueuedTeam = 2;
-			player.GetComponent<PlayerInput>().mainUI.ClassMenu.cameFromTeamMenu = true;
-			CloseUI();
-			OpenClassMenu();
-			
-		}
+			player.GetComponent<PlayerInput>().mainUI.ClassMenu.QueuedTeam = PlayerStats.PlayerTeam.Red;
+            player.ui.TransitionToState(PlayerUIState.ClassSelectMenu);
+        }
 
 	}
 
 	public void OnClickSpectateTeamButton()
 	{
-		player.SetTeam(0);
+		player.SetTeam(PlayerStats.PlayerTeam.Spectator);
 		player.ChangeToSpectator();
-		CloseUI();
+        player.ui.TransitionToState(PlayerUIState.None);
 	}
 
-	void OpenClassMenu()
-	{
-		player.GetComponent<PlayerInput>().mainUI.TeamSelectMenuSetActive(false);
-		player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(true);
-	}
-
-	void CloseUI()
-	{
-		Cursor.lockState = CursorLockMode.Locked;
-		//player.GetComponentInChildren<OrbitCamera>().viewLocked = false;
-		player.GetComponent<PlayerInput>().mainUI.TeamSelectMenuSetActive(false);
-	}
 	
 }

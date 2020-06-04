@@ -19,7 +19,6 @@ namespace RealtimeCSG.Components
 
 			if (model.Version == 1.0f)
 			{
-#if !EVALUATION
 #if !PACKAGE_GENERATOR_ACTIVE
 				UnityEditor.UnwrapParam uvGenerationSettings;
 				UnityEditor.UnwrapParam.SetDefaults(out uvGenerationSettings);
@@ -27,7 +26,6 @@ namespace RealtimeCSG.Components
 				model.areaError		= uvGenerationSettings.areaError;
 				model.hardAngle		= uvGenerationSettings.hardAngle;
 				model.packMargin	= uvGenerationSettings.packMargin;
-#endif
 #endif
 				model.Version = 1.1f;
 			}
@@ -84,9 +82,14 @@ namespace RealtimeCSG.Components
 					}
 				}
 
-			}
+            }
+            if (brush.Version == 2.0f)
+            {
+                if (brush.CompareTag("EditorOnly"))
+                    brush.tag = "Untagged";
+            }
 
-			brush.Version = CSGBrush.CurrentVersion;
+            brush.Version = CSGBrush.CurrentVersion;
 		}
 
 		public static void UpgradeWhenNecessary(CSGOperation operation)
@@ -96,6 +99,12 @@ namespace RealtimeCSG.Components
 
 			if (operation.Version < 1.0f)
 				operation.Version = 1.0f;
+
+            if (operation.Version == 1.0f)
+            {
+                if (operation.CompareTag("EditorOnly"))
+                    operation.tag = "Untagged";
+            }
 
 			operation.Version = CSGOperation.CurrentVersion;
 		}

@@ -43,10 +43,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0505837df64f4684a8661c797376d7ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  icon: {fileID: 21300000, guid: ea3724cd9c7a60148ba822c5b14a6b4a, type: 3}
+  IsUrgentEffect: 0
+  UrgentText: 
+  ActiveIcon: {fileID: 0}
   giver: {fileID: 0}
   receiver: {fileID: 0}
-  isPassive: 0
-  duration: 5
+  AllowStacking: 0
+  UsesDuration: 0
+  CurrentStacks: 0
+  MaxStacks: 99
+  Duration: 0
   DamagePerTick: 3
   TickDelay: 0.4
   FireParticlesPrefab: {fileID: 6882566040449365484, guid: a692e785a7fbe9145a657944d8af6778,

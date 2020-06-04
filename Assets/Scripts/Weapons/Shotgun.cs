@@ -91,7 +91,7 @@ public class Shotgun : WeaponMotor
 
             foreach(IDamagable target in targets)
             {
-                target.TakeDamage(damagePerPellet, Damager.DamageTypes.Physical, player, player.transform.position);
+                target.TakeDamage(damagePerPellet, Damager.DamageTypes.Physical, player, player.transform.position, PlayerStats.DamageIndicatorType.Directional);
             }
 			lastFireTime = Time.time;
 			CurrentAmmoInClip = CurrentAmmoInClip - 1;

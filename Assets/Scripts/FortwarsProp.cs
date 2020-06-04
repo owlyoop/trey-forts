@@ -13,6 +13,7 @@ public class FortwarsProp : MonoBehaviour, IDamagable
     float HealthTickDelay = 0.2f;
     float nextTickTime = 0f;
     int HealthPerTick = 10;
+    int BuildPhaseHealthPerTick = 100;
 
     bool isHealing; // Prop starts at 1hp and heals over time when it is built.
     bool isBuilding; // Prop starts off with colliders disabled
@@ -82,8 +83,17 @@ public class FortwarsProp : MonoBehaviour, IDamagable
                 if (Time.time > nextTickTime)
                 {
                     nextTickTime = Time.time + HealthTickDelay;
-                    remainingBuildHealth -= HealthPerTick;
-                    currentHealth += HealthPerTick;
+                    if (player._gameManager.isInBuildPhase)
+                    {
+                        remainingBuildHealth -= BuildPhaseHealthPerTick;
+                        currentHealth += BuildPhaseHealthPerTick;
+                    }
+                    else
+                    {
+                        remainingBuildHealth -= HealthPerTick;
+                        currentHealth += HealthPerTick;
+                    }
+
                     Color newColor = new Color(1, 1, 1, Mathf.Lerp(0.0f, 1f, (float)currentHealth/(float)maxHealth));
                     rend.material.color = newColor;
                 }
@@ -112,7 +122,7 @@ public class FortwarsProp : MonoBehaviour, IDamagable
 		Destroy(gameObject);
 	}
 
-	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
+	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation, PlayerStats.DamageIndicatorType uiType)
 	{
 		currentHealth = currentHealth - damageTaken;
         player.dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);

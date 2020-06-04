@@ -35,14 +35,14 @@ public class ClassSelectMenu : MonoBehaviour
     public Text dollarSign;
     public Text moneyText;
 
-	public int QueuedTeam;
-
-	public bool cameFromTeamMenu = false;
+	public PlayerStats.PlayerTeam QueuedTeam;
 
 	private void Start()
 	{
 		ClassSelectButton.interactable = false;
         EliteClassButton.interactable = false;
+
+        EventManager.onCombatPhaseStart += EnableEliteBuyButton;
 		
 		for (int i = 0; i < classListDataAll.Count; i++)
 		{
@@ -74,7 +74,12 @@ public class ClassSelectMenu : MonoBehaviour
         {
             CurrentCurrency.text = "";
         }
-        
+    }
+
+    //Do this whenever combat phase begins
+    public void EnableEliteBuyButton()
+    {
+        EliteClassButton.interactable = true;
     }
 
 	public void OnClickSelectButton()
@@ -96,10 +101,7 @@ public class ClassSelectMenu : MonoBehaviour
             player.OnChangeCurrencyAmount(player.startingCurrency);
         }
         player.HasPreviouslyPlayed = true;
-
-		player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(false);
-
-		cameFromTeamMenu = false;
+        player.ui.TransitionToState(PlayerUIState.None);
 	}
 
     public void OnClickBuyEliteButton()
@@ -117,28 +119,15 @@ public class ClassSelectMenu : MonoBehaviour
             player.EliteClassLivesLeft = 1;
         }
 
-        player.GetComponent<PlayerInput>().mainUI.ClassSelectMenuSetActive(false);
-
-        cameFromTeamMenu = false;
+        player.ui.TransitionToState(PlayerUIState.None);
     }
 
-	public void SetTeamIfWasSpectator(int team)
+	public void SetTeamIfWasSpectator(PlayerStats.PlayerTeam team)
 	{
 		player.SetTeam(team);
         player.SetQueuedClass(selectedClass);
         player.RespawnAndInitialize();
 	}
-
-	public void UpdateUI()
-	{
-		
-	}
-
-	public void SelectClass(WeaponSet _class)
-	{
-
-	}
-
 }
 
 

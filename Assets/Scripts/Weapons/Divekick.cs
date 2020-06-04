@@ -14,6 +14,9 @@ public class Divekick : Damager
 
     public int iter = 0;
 
+    private float _divekickExpireTime;
+    public float DivekickLifetime = 1.5f;
+
     public IDamagable _target;
     private void Start()
     {
@@ -23,13 +26,25 @@ public class Divekick : Damager
         }
     }
 
+    private void Update()
+    {
+        if (isDivekickActive)
+        {
+            if (Time.time > _divekickExpireTime)
+            {
+                player.CharControl.TransitionToState(player.CurrentClass.defaultState);
+                DeactivateDivekick();
+            }
+        }
+    }
 
     public void ActivateDivekick()
     {
         this.gameObject.SetActive(true);
         isDivekickActive = true;
         iter = 0;
-        //Debug.Log("activate divekick");
+        _divekickExpireTime = Time.time + DivekickLifetime;
+        player.HideOwnPlayerModel(false);
     }
 
     public void DeactivateDivekick()
@@ -37,7 +52,7 @@ public class Divekick : Damager
         isValidDamageTarget = false;
         isDivekickActive = false;
         _target = null;
-        
+        player.HideOwnPlayerModel(true);
         this.gameObject.SetActive(false);
         
     }
@@ -111,7 +126,7 @@ public class Divekick : Damager
         if (player.CharControl.CurrentCharacterState == KinematicCharacterController.Owly.CharacterState.Divekick)
         {
             iter++;
-            target.TakeDamage(baseDamage, DamageTypes.Physical, player, player.transform.position);
+            target.TakeDamage(baseDamage, DamageTypes.Physical, player, player.transform.position, PlayerStats.DamageIndicatorType.Directional);
             player.CharControl.TransitionToState(player.CurrentClass.defaultState);
             
         }

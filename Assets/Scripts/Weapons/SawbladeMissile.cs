@@ -89,7 +89,7 @@ public class SawbladeMissile : Projectile
 			if (Time.time > nextActionTime)
 			{
 				nextActionTime = Time.time + TickDelay;
-				target.TakeDamage(DamagePerTick, damageType, player, this.transform.position);
+				target.TakeDamage(DamagePerTick, damageType, player, this.transform.position, PlayerStats.DamageIndicatorType.Directional);
 			}
 		}
 	}
@@ -102,7 +102,7 @@ public class SawbladeMissile : Projectile
             {
                 IDamagable target = col.GetComponent<IDamagable>();
 
-                target.TakeDamage(baseDamage, damageType, player, this.transform.position);
+                target.TakeDamage(baseDamage, damageType, player, this.transform.position, PlayerStats.DamageIndicatorType.Directional);
             }
 
         }

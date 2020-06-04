@@ -54,19 +54,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 381acc58dcd8125458e232d75e75b78a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   WeaponSwitchAwayTime: 0
   WeaponSwitchToTime: 0
   MaxAmmo: 32
+  CurrentAmmo: 0
+  ClipSize: 0
+  CurrentAmmoInClip: 0
   numPellets: 8
   randomSpread: 0.04
   damageType: 0
   damagePerPellet: 4
   shotsPerSecond: 3
   clipSize: 100
-  currentAmmoInClip: 0
-  currentAmmoReserves: 0
   cam: {fileID: 0}
-  player: {fileID: 0}
   shotPoint: {x: 0, y: 0, z: 0}
   gunEnd: {fileID: 7337207677107986145}
   layermask:
@@ -81,7 +82,7 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2854000010531467}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1

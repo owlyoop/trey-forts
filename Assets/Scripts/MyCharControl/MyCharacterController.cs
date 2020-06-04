@@ -157,7 +157,6 @@ namespace KinematicCharacterController.Owly
 						_divekickDirection = new Vector3(_divekickDirection.x, 0, _divekickDirection.z);
                         AddVelocity(_divekickDirection.normalized * DivekickSpeed);
                         player.divekickHitbox.ActivateDivekick();
-                        StartCoroutine(DivekickExpireTimer());
 						break;
 					}
 
@@ -188,7 +187,6 @@ namespace KinematicCharacterController.Owly
                         {
                             player.wepSlots.SwitchActiveWeaponSlot(player.wepSlots.activeWeaponIndex);
                         }
-                        StopCoroutine(DivekickExpireTimer());
                         player.divekickHitbox.DeactivateDivekick();
                         break;
 					}
@@ -714,15 +712,6 @@ namespace KinematicCharacterController.Owly
 			return currentVelocity;
 		}
 
-        IEnumerator DivekickExpireTimer()
-        {
-            yield return new WaitForSeconds(2f);
-            if (CurrentCharacterState == CharacterState.Divekick)
-            {
-                if (player.CurrentHealth > 0)
-                    TransitionToState(player.CurrentClass.defaultState);
-            }
-        }
 
 		/// <summary>
 		/// (Called by KinematicCharacterMotor during its update cycle)

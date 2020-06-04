@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -430,11 +430,7 @@ namespace RealtimeCSG
                                 {
                                     if (EditModeCommonGUI.IndentableButton(ExportToButtonLabel) && ExportType.HasValue)
                                     {
-#if !EVALUATION
                                         MeshInstanceManager.Export(models[0], ExportType.Value, ExportColliders ?? true);
-#else
-                                        Debug.LogWarning("Export is disabled in evaluation version");
-#endif
                                     }
                                 }
                                 EditorGUI.EndDisabledGroup();
@@ -551,6 +547,8 @@ namespace RealtimeCSG
                             }
                             if (EditorGUI.EndChangeCheck())
                             {
+                                if (!defaultPhysicsMaterial)
+                                    defaultPhysicsMaterial = MaterialUtility.DefaultPhysicsMaterial;
                                 for (int i = 0; i < models.Length; i++)
                                 {
                                     models[i].DefaultPhysicsMaterial = defaultPhysicsMaterial;
@@ -1267,7 +1265,7 @@ namespace RealtimeCSG
                         
 
                             var materialMeshes = new Dictionary<Material, List<MeshData>>();
-                            foreach (var instance in meshContainer.meshInstanceLookup.Values)
+                            foreach (var instance in meshContainer.MeshInstances)
                             {
                                 var mesh				= instance.SharedMesh;
                                 if (!mesh || !MeshInstanceManager.HasVisibleMeshRenderer(instance))
@@ -1285,8 +1283,8 @@ namespace RealtimeCSG
                                         { 
                                             switch (meshDescription.meshQuery.LayerParameterIndex)
                                             {
-                                                case LayerParameterIndex.LayerParameter1: { instance.RenderMaterial		= obj as Material;       break; }
-                                                case LayerParameterIndex.LayerParameter2: { instance.PhysicsMaterial	= obj as PhysicMaterial; break; }
+                                                case LayerParameterIndex.LayerParameter1: { instance.RenderMaterial	 = obj as Material;       break; }
+                                                case LayerParameterIndex.LayerParameter2: { instance.PhysicsMaterial = obj as PhysicMaterial; break; }
                                             }
                                         }
                                     }

@@ -19,9 +19,6 @@ MonoBehaviour:
   jumpHeightPercentAdd: 0
   weaponList:
   - {fileID: 11400000, guid: b99812d663e3a9c4db0f37957a58b6ec, type: 2}
-  - {fileID: 11400000, guid: 314c9e3079787ca4ab1b3427005a87e4, type: 2}
-  - {fileID: 11400000, guid: 25f92035fd603cf40a1b230c71373216, type: 2}
-  - {fileID: 11400000, guid: 573e374d206bb204d8363fcb3bec802b, type: 2}
   abilityList:
   - {fileID: 11400000, guid: e4f847c80751f9b4b8d8d5fe869b00e2, type: 2}
   PassiveEffects: []

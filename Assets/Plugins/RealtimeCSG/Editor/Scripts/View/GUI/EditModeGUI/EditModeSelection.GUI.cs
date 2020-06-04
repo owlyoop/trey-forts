@@ -23,7 +23,7 @@ namespace RealtimeCSG
 			if (EditorGUI.EndChangeCheck())
 			{
 				EditModeManager.EditMode = newEditMode;
-				CSG_EditorGUIUtility.UpdateSceneViews();
+				CSG_EditorGUIUtility.RepaintAll();
 			}
 			GUILayout.Space(editModeBounds.height);
 				
@@ -44,7 +44,7 @@ namespace RealtimeCSG
 
 		static void HandleSceneGUI(int id)
 		{
-			var sceneView = SceneView.lastActiveSceneView;
+			var sceneView = SceneView.currentDrawingSceneView;
 			TooltipUtility.InitToolTip(sceneView);
 			var originalSkin = GUI.skin;
 			{
@@ -120,7 +120,7 @@ namespace RealtimeCSG
 
 				float topBarSize = 20;
 #if UNITY_2018_3_OR_NEWER
-				if (UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null)
+                if (CSGPrefabUtility.AreInPrefabMode())
 					topBarSize += 25;
 #endif
 
@@ -139,7 +139,7 @@ namespace RealtimeCSG
 					if (EditorGUI.EndChangeCheck())
 					{
 						EditModeManager.EditMode = newEditMode;
-						CSG_EditorGUIUtility.UpdateSceneViews();
+						CSG_EditorGUIUtility.RepaintAll();
 					}
 				
 					var buttonArea = bounds;
@@ -190,17 +190,6 @@ namespace RealtimeCSG
 					return allCameras[0];
 
 				return null;
-			}
-		}
-		
-		static RenderingPath SceneViewRenderingPath
-		{
-			get
-			{
-				var mainCamera = MainCamera;
-				if (mainCamera != null)
-					return mainCamera.renderingPath;
-				return RenderingPath.UsePlayerSettings;
 			}
 		}
 

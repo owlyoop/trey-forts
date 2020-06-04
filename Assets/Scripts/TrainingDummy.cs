@@ -19,7 +19,7 @@ public class TrainingDummy : MonoBehaviour, IDamagable
 
 	}
 
-	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
+	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation, PlayerStats.DamageIndicatorType uiType)
 	{
         Debug.Log(giver.ToString());
 		giver.dmgText.CreateFloatingText(damageTaken.ToString(), this.transform);
@@ -29,4 +29,5 @@ public class TrainingDummy : MonoBehaviour, IDamagable
 			CurrentHealth = 0;
 		}
 	}
+
 }

@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class AbilityMotor : MonoBehaviour
 {
+    [Header("UI")]
+    public Sprite icon;
 
     public AbilityData baseAbility;
     public enum AbilityType { Normal, Toggle, Charges, Channel }
@@ -15,7 +17,7 @@ public class AbilityMotor : MonoBehaviour
 
     public bool AbilityPressDisablesWeapon = false;
 
-    public Sprite icon;
+    
     public PlayerStats owner;
 
     public int AbilitySlot;

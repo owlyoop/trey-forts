@@ -1,3 +1,17 @@
+Source code can be found at https://github.com/LogicalError/realtime-CSG-for-unity
+
+Version 1.559 - 31 Jan 2020
+- Fixed lightmap UV generation
+- Removed evaluation version specific code
+- Modified license to MIT
+- Fixed helper surfaces not showing up correctly
+- Fixed selection not working well when other meshes are behind mouse
+- Lots of (nested) prefab related fixes
+- Fixed non csg child objects of csg brushes/operations/models being removed when they shouldn't
+- Fixed selection issues when two editor windows overlapped
+- Added simple in-scene stats window that can be turned on/off in Settings/Realtime-CSG/Show Scene Info (created by Daniel Cornelius)
+
+
 Version 1.558 - 2 Sept 2019
 - Workaround for Unity font bug in Unity 2019.3
 - Realtime CSG preferences are now in Project Settings menu in Unity 2018.4 and beyond, removes warnings about preferencewindow being deprecated
@@ -5,7 +19,6 @@ Version 1.558 - 2 Sept 2019
 - Added option to set default for Preserve Uvs from within preference/project setting window
 - Added option to set to receive GI from lightmaps or lightprobes on model in Unity 2019.2 and beyond
 - Added option to snap to a relative distance instead of the grid. (there are some places where this is not implemented yet, this will be fixed in the future)
-
 
 Version 1.557 - 12 Aug 2019
 - Workaround so Realtime CSG works in Unity 2019.2 because of Unity bug where Unity can't handle native dlls with periods in their name

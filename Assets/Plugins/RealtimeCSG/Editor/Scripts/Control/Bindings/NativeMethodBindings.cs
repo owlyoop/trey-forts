@@ -10,47 +10,58 @@ using RealtimeCSG.Components;
 
 namespace RealtimeCSG
 {
+	/// <summary>
+	/// This class defines an intersection into a specific surface of a brush
+	/// </summary>
+	[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
+	public struct CSGSurfaceIntersection
+	{
+		public Plane		localPlane;
+		public Plane		modelPlane;
+		public Plane		worldPlane;
+
+		public Vector3      worldIntersection;
+		public Vector2      surfaceIntersection;
+
+		public float        distance;
+
+        public readonly static CSGSurfaceIntersection None = new CSGSurfaceIntersection()
+        {
+            localPlane          = new Plane(Vector3.zero, 0),
+            modelPlane          = new Plane(Vector3.zero, 0),
+            worldPlane          = new Plane(Vector3.zero, 0),
+            worldIntersection   = Vector3.zero,
+            surfaceIntersection = Vector2.zero,
+            distance            = float.PositiveInfinity
+        };
+    };
+
+	/// <summary>
+	/// This class defines an intersection into a specific brush
+	/// </summary>
+	[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
+	public struct CSGTreeBrushIntersection
+	{
+		public CSGTree		tree;
+		public CSGTreeBrush	brush;
+		public Int32        surfaceID;
+		public Int32        brushUserID;
+
+		public CSGSurfaceIntersection intersection;
+
+        public readonly static CSGTreeBrushIntersection None = new CSGTreeBrushIntersection()
+        {
+            tree			= (CSGTree)CSGTreeNode.InvalidNode,
+            brush			= (CSGTreeBrush)CSGTreeNode.InvalidNode,
+            brushUserID		= 0,
+            surfaceID	    = -1,
+            intersection    = CSGSurfaceIntersection.None
+        };
+	};
+
 	internal static class NativeMethodBindings
 	{
 		const string NativePluginName =  CSGManager.NativePluginName;
-	
-		/// <summary>
-		/// This class defines an intersection into a specific surface of a brush
-		/// </summary>
-		[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
-		public struct CSGSurfaceIntersection
-		{
-			public Plane		localPlane;
-			public Plane		modelPlane;
-			public Plane		worldPlane;
-
-			public Vector3      worldIntersection;
-			public Vector2      surfaceIntersection;
-
-			public float        distance;
-		};
-	
-		/// <summary>
-		/// This class defines an intersection into a specific brush
-		/// </summary>
-		[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
-		public struct CSGTreeBrushIntersection
-		{
-			public CSGTree		tree;
-			public CSGTreeBrush	brush;
-			public Int32        surfaceID;
-			public Int32        brushUserID;
-
-			public CSGSurfaceIntersection intersection;
-		};
-
-#if EVALUATION
-		[DllImport(NativePluginName, CallingConvention = CallingConvention.Cdecl)]
-		internal static extern int GetBrushLimit();
-
-		[DllImport(NativePluginName, CallingConvention=CallingConvention.Cdecl)]
-		internal static extern int BrushesAvailable();
-#endif
 
 		#region Functionality to allow C# methods to be called from C++
 		public delegate float   GetFloatAction();
@@ -222,7 +233,7 @@ namespace RealtimeCSG
 												  CSGBrush[]				ignoreBrushes = null)
 		{
 			var visibleLayers = Tools.visibleLayers;
-			if (!model || ((1 << model.gameObject.layer) & visibleLayers) == 0)
+            if (!ModelTraits.IsModelSelectable(model))
 			{
 				intersections = null;
 				return false;
@@ -561,7 +572,7 @@ namespace RealtimeCSG
 											  HashSet<GameObject>	gameObjects)
 		{
 			var visibleLayers = Tools.visibleLayers;
-			if (!model || ((1 << model.gameObject.layer) & visibleLayers) == 0)
+            if (!ModelTraits.IsModelSelectable(model))
 			{
 				return false;
 			}
@@ -837,9 +848,9 @@ namespace RealtimeCSG
 			
 			if (meshDescriptionCount != meshDescriptions.Length)
 				meshDescriptions = new Foundation.GeneratedMeshDescription[meshDescriptionCount];
-			
-			if (meshDescriptionCount == 0)
-				return true;
+
+            if (meshDescriptionCount == 0)
+                return true;
 
 			var meshDescriptionsHandle	= GCHandle.Alloc(meshDescriptions, GCHandleType.Pinned);
 			var meshDescriptionsPtr		= meshDescriptionsHandle.AddrOfPinnedObject();

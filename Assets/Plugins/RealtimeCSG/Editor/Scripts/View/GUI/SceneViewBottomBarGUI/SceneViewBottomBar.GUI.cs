@@ -188,7 +188,6 @@ namespace RealtimeCSG
                         if (GUI.changed)
                         {
                             snapMode = newValue ? SnapMode.GridSnapping : SnapMode.RelativeSnapping;
-                            //Debug.Log($"SnapMode.GridSnapping {snapMode}");
                         }
                         //(x:97.00, y:0.00, width:27.00, height:18.00)
                         TooltipUtility.SetToolTip(gridSnapModeTooltip, currentRect);
@@ -200,7 +199,6 @@ namespace RealtimeCSG
                         if (GUI.changed)
                         {
                             snapMode = newValue ? SnapMode.RelativeSnapping : SnapMode.None;
-                            //Debug.Log($"SnapMode.RelativeSnapping {snapMode}");
                         }
                         //(x:97.00, y:0.00, width:27.00, height:18.00)
                         TooltipUtility.SetToolTip(relativeSnapModeTooltip, currentRect);
@@ -213,7 +211,6 @@ namespace RealtimeCSG
                         if (GUI.changed)
                         {
                             snapMode = newValue ? SnapMode.GridSnapping : SnapMode.None;
-                            //Debug.Log($"SnapMode.None {snapMode}");
                         }
                         //(x:97.00, y:0.00, width:27.00, height:18.00)
                         TooltipUtility.SetToolTip(noSnappingModeTooltip, currentRect);
@@ -622,9 +619,6 @@ namespace RealtimeCSG
 				foreach(var model in InternalCSGModelManager.Models)
 					scenes.Add(model.gameObject.scene);
 
-				foreach (var scene in scenes)
-					UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
-				
 				text.AppendFormat(CultureInfo.InvariantCulture, "{0} brushes. ", Foundation.CSGManager.TreeBrushCount);
 				
 				Debug.Log(text.ToString());
@@ -652,7 +646,7 @@ namespace RealtimeCSG
 					layoutX -= currentRect.width;
 					currentRect.x		= layoutX;
 
-					SurfaceVisibilityPopup.Button(currentRect);
+					SurfaceVisibilityPopup.Button(sceneView, currentRect);
 					
 					//(x:1267.00, y:2.00, width:165.00, height:16.00)
 					TooltipUtility.SetToolTip(helperSurfacesTooltip, currentRect);
@@ -746,7 +740,7 @@ namespace RealtimeCSG
 				GUI.changed = true;
 				RealtimeCSG.CSGSettings.UpdateSnapSettings();
 				RealtimeCSG.CSGSettings.Save();
-				CSG_EditorGUIUtility.UpdateSceneViews();
+				CSG_EditorGUIUtility.RepaintAll();
 			}
 			#endregion
 		}

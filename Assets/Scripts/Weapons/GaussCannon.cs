@@ -96,7 +96,7 @@ public class GaussCannon : WeaponMotor
         if (target != null)
         {
             int RealDamage = charge + StartingDamage;
-            target.TakeDamage(RealDamage, Damager.DamageTypes.Physical, player, player.transform.position);
+            target.TakeDamage(RealDamage, Damager.DamageTypes.Physical, player, player.transform.position, PlayerStats.DamageIndicatorType.Directional);
         }
 
         charge = 0;

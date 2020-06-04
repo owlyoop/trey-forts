@@ -1,38 +1,45 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public abstract class StatusEffect : MonoBehaviour
 {
+
+    [Header("UI")]
+    public Sprite icon;
+    public bool IsUrgentEffect;
+    public string UrgentText;
+    public StatusEffectIcon ActiveIcon;
+
+
 	public PlayerStats giver;
 	public PlayerStats receiver;
 
-    public bool AllowDuplicates;
+    public bool AllowStacking;
+    public bool UsesDuration;
+    
+    public int CurrentStacks = 0;
+    public int MaxStacks = 99;
 
-    public int CurrentStacks;
-    public int MaxStacks;
+	public float Duration;
 
-	public float duration;
 
-	public abstract void OnApplyStatusEffect();
-
-	public abstract void OnUnapplyStatusEffect();
-
-	public abstract int OnBeforeDamageTaken(int damage);
-
-	public abstract void OnAfterDamageTaken();
-
-	public abstract void OnPlayerDealsDamage();
-
-	public abstract void OnPlayerIsMoving(float moveSpeed);
-
-	public abstract void OnPlayerJump();
-
-	public abstract void OnPlayerFiresWeapon();
-
-	public abstract void OnPlayerGetsKill();
-
-	public abstract void OnPlayerDeath();
-
-	public abstract void OnPlayerTakesFatalDamage();
+    private void Start()
+    {
+        
+    }
+    public virtual void OnApplyStatusEffect() { }
+    public virtual void OnUnapplyStatusEffect() { }
+    public virtual int OnBeforeDamageTaken(int damage) { return damage; }
+    public virtual void OnAfterDamageTaken() { }
+    public virtual void OnPlayerDealsDamage() { }
+    public virtual void OnPlayerIsMoving(float moveSpeed) { }
+    public virtual void OnPlayerJump() { }
+    public virtual void OnPlayerFiresWeapon() { }
+    public virtual void OnPlayerGetsKill() { }
+    public virtual void OnPlayerDeath() { }
+    public virtual void OnPlayerTakesFatalDamage() { }
+    public virtual void OnAddStack() { }
+    public virtual void OnRemoveStack() { }
 }

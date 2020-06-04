@@ -10,7 +10,6 @@ using RealtimeCSG.Foundation;
 
 namespace RealtimeCSG
 {
-	[System.Reflection.Obfuscation(Exclude = true)]
 	internal sealed class EditModeManager : ScriptableObject
 	{
 		static EditModeManager instance = null;
@@ -49,7 +48,7 @@ namespace RealtimeCSG
 				RealtimeCSG.CSGSettings.Save();
 
 				if (ActiveTool != null)
-					CSG_EditorGUIUtility.UpdateSceneViews();
+					CSG_EditorGUIUtility.RepaintAll();
 			}
 		}
 
@@ -230,7 +229,7 @@ namespace RealtimeCSG
 			if (EditorApplication.isPlayingOrWillChangePlaymode)
 				return;
 
-			CSG_EditorGUIUtility.UpdateSceneViews();
+			CSG_EditorGUIUtility.RepaintAll();
 		}
 		
 		static bool GetTargetSelection(ref HashSet<CSGNode> nodes, ref HashSet<Transform> others)
@@ -321,7 +320,7 @@ namespace RealtimeCSG
 			Tools.hidden = false;
 		}
 		
-		public static Vector3 SnapPointToGrid(Vector3 point, CSGPlane plane, ref List<Vector3> snappingEdges, out CSGBrush snappedOnBrush, CSGBrush[] ignoreBrushes, bool ignoreAllBrushes = false)
+		public static Vector3 SnapPointToGrid(Camera camera, Vector3 point, CSGPlane plane, ref List<Vector3> snappingEdges, out CSGBrush snappedOnBrush, CSGBrush[] ignoreBrushes, bool ignoreAllBrushes = false)
 		{
 			snappedOnBrush = null;
             // Note: relative snapping wouldn't make sense here since it's a single point that's being snapped and there is no relative movement
@@ -333,15 +332,15 @@ namespace RealtimeCSG
                 case SnapMode.RelativeSnapping: // TODO: fixme
                 case SnapMode.GridSnapping:
 			    {
-				    snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(MathConstants.zeroVector3, snappedPoint);
-				    snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
+				    snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(camera, MathConstants.zeroVector3, snappedPoint);
+				    snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(camera, RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
 
 				    // snap twice to get rid of some tiny movements caused by the projection in depth	
-				    snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(MathConstants.zeroVector3, snappedPoint);
-				    snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
+				    snappedPoint = snappedPoint + RealtimeCSG.CSGGrid.ForceSnapDeltaToGrid(camera, MathConstants.zeroVector3, snappedPoint);
+				    snappedPoint = RealtimeCSG.CSGGrid.PointFromGridSpace(RealtimeCSG.CSGGrid.CubeProject(camera, RealtimeCSG.CSGGrid.PlaneToGridSpace(plane), RealtimeCSG.CSGGrid.PointToGridSpace(snappedPoint)));
 
                     if (!ignoreAllBrushes)
-                        return GridUtility.SnapToWorld(plane, point, snappedPoint, ref snappingEdges, out snappedOnBrush, ignoreBrushes);
+                        return GridUtility.SnapToWorld(camera, plane, point, snappedPoint, ref snappingEdges, out snappedOnBrush, ignoreBrushes);
 
                     return snappedPoint;
                 }
@@ -354,7 +353,7 @@ namespace RealtimeCSG
             }
 		}
 
-		public static Vector3 SnapPointToRay(Vector3 point, Ray ray, ref List<Vector3> snappingEdges, out CSGBrush snappedOnBrush)
+		public static Vector3 SnapPointToRay(Camera camera, Vector3 point, Ray ray, ref List<Vector3> snappingEdges, out CSGBrush snappedOnBrush)
 		{
 			snappedOnBrush = null;
 			
@@ -365,7 +364,7 @@ namespace RealtimeCSG
             var doGridSnapping	= RealtimeCSG.CSGSettings.ActiveSnappingMode != SnapMode.None;
 			if (doGridSnapping)
 			{
-				var delta = RealtimeCSG.CSGGrid.ForceSnapDeltaToRay(ray, MathConstants.zeroVector3, snappedPoint);
+				var delta = RealtimeCSG.CSGGrid.ForceSnapDeltaToRay(camera, ray, MathConstants.zeroVector3, snappedPoint);
 				snappedPoint = snappedPoint + delta;
 			}
 			return snappedPoint;
@@ -521,7 +520,9 @@ namespace RealtimeCSG
 						var sceneSize = sceneView.position.size;
 						var sceneRect = new Rect(0, 0, sceneSize.x, sceneSize.y - ((CSG_GUIStyleUtility.BottomToolBarHeight + 4) + 17));
 						
-						instance.activeTool.HandleEvents(sceneRect);
+                        // This helps prevent weird issues with overlapping sceneviews + avoid some performance issues with multiple sceneviews open
+                        if (EditorWindow.mouseOverWindow == sceneView || (Event.current.type != EventType.MouseMove && Event.current.type != EventType.Layout))
+                            instance.activeTool.HandleEvents(sceneView, sceneRect);
 					} else
 					{
 						if (Event.current.type == EventType.Repaint)
@@ -599,12 +600,12 @@ namespace RealtimeCSG
 		}
 
 
-		public static void GenerateFromSurface(CSGBrush cSGBrush, CSGPlane polygonPlane, Vector3 direction, Vector3[] points, int[] pointIndices, uint[] smoothingGroups, bool drag, CSGOperationType forceDragSource, bool autoCommitExtrusion)
+		public static void GenerateFromSurface(Camera camera, CSGBrush cSGBrush, CSGPlane polygonPlane, Vector3 direction, Vector3[] points, int[] pointIndices, uint[] smoothingGroups, bool drag, CSGOperationType forceDragSource, bool autoCommitExtrusion)
 		{
 			EditModeManager.EditMode = ToolEditMode.Generate;
 			UpdateTool();
 			var generateBrushTool = brushTools[(int)ToolEditMode.Generate] as EditModeGenerate;
-			generateBrushTool.GenerateFromPolygon(cSGBrush, polygonPlane, direction, points, pointIndices, smoothingGroups, drag, forceDragSource, autoCommitExtrusion);
+			generateBrushTool.GenerateFromPolygon(camera, cSGBrush, polygonPlane, direction, points, pointIndices, smoothingGroups, drag, forceDragSource, autoCommitExtrusion);
 		}
 
 		public delegate void SetTransformation(Transform newTransform, Transform originalTransform);

@@ -16,11 +16,11 @@ namespace RealtimeCSG.Components
 	/// <summary>Holds a CSG tree brush</summary>
 #if UNITY_EDITOR
 	[AddComponentMenu("CSG/Brush")]
-	[ExecuteInEditMode, System.Reflection.Obfuscation(Exclude = true)]
+	[ExecuteInEditMode]
 #endif
 	public sealed partial class CSGBrush : CSGNode
 	{
-		public const float CurrentVersion = 2.0f;
+		public const float CurrentVersion = 2.1f;
 		/// <value>The version number of this instance of a <see cref="CSGBrush" /></value>
 		[HideInInspector] public float Version = CurrentVersion;
 
@@ -50,7 +50,6 @@ namespace RealtimeCSG.Components
 
 		#region Cached values
 #if UNITY_EDITOR
-		//#if !TEST_ENABLED
 		[HideInInspector][NonSerialized] public Int32		brushNodeID  = CSGNode.InvalidNodeID;
 		[HideInInspector][NonSerialized] public Color?		outlineColor;
         [HideInInspector][NonSerialized] public readonly ChildNodeData			ChildData				= new ChildNodeData();
@@ -85,7 +84,6 @@ namespace RealtimeCSG.Components
 		{
 			// cannot change visibility since this might have an effect on exporter
 			this.hideFlags |= HideFlags.DontSaveInBuild;
-			this.gameObject.tag = "EditorOnly";
 			this.brushNodeID = CSGNode.InvalidNodeID;
 			ComponentUpgrader.UpgradeWhenNecessary(this);
 			if (CSGSceneManagerRedirector.Interface != null)

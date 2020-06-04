@@ -36,7 +36,10 @@ public struct PlayerActionInputs
 
 	public bool OpenTeamSelectMenu; // default 0
 	public bool OpenClassSelectMenu; // default 9
+    public bool OpenMainMenu; // default escape key
+    public bool OpenScoreboard; //default tab
 
+    public bool HelpText; // default F2
     
 
 }
@@ -106,16 +109,21 @@ public class PlayerInput : MonoBehaviour
 
         playerInputs.OpenTeamSelectMenu = Input.GetKeyDown(KeyCode.Alpha9);
         playerInputs.OpenClassSelectMenu = Input.GetKeyDown(KeyCode.Alpha0);
+        playerInputs.OpenMainMenu = Input.GetKeyDown(KeyCode.Escape);
+        playerInputs.OpenScoreboard = Input.GetKeyDown(KeyCode.Tab);
+
+        playerInputs.HelpText = Input.GetKeyDown(KeyCode.F2);
     }
 
     void SwitchWeapon(int ToIndex)
     {
-        mainUI.PropSpawnMenuSetActive(false);
+        mainUI.PropSpawnMenu.SetActive(false);
         if (playerWeapons.propWepSlots[1].activeSelf)
             playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
 
         if (playerWeapons.propWepSlots[0].activeSelf)
             playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+
         playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
         playerWeapons.SwitchActiveWeaponSlot(ToIndex);
         CmdActiveWeaponIndex(ToIndex);
@@ -138,8 +146,6 @@ public class PlayerInput : MonoBehaviour
 				if (wep != null && wep.activeSelf && playerStats.isAlive)
 				{
 					wep.GetComponent<WeaponMotor>().PrimaryFire();
-
-					Debug.Log("primary fire");
 					
 				}
 
@@ -153,7 +159,6 @@ public class PlayerInput : MonoBehaviour
 				}
 			}
 		}
-
 
 		if (playerInputs.PrimaryFireUp)
 		{
@@ -186,7 +191,6 @@ public class PlayerInput : MonoBehaviour
             }
         }
 
-
 		if (playerInputs.SecondaryFire)
 		{
 			if (!mainUI.HasUnlockedMouseUIEnabled && playerWeapons.weaponSlots.Count > 0)
@@ -206,9 +210,6 @@ public class PlayerInput : MonoBehaviour
 			}
 		}
 
-
-
-
 		if (playerInputs.Weapon1)
 		{
 			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 0)
@@ -217,7 +218,6 @@ public class PlayerInput : MonoBehaviour
 			}
 
 		}
-
 
 		if (playerInputs.Weapon2)
 		{
@@ -228,7 +228,6 @@ public class PlayerInput : MonoBehaviour
 
 		}
 
-
 		if (playerInputs.Weapon3)
 		{
 			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 2)
@@ -237,20 +236,19 @@ public class PlayerInput : MonoBehaviour
 			}
 		}
 
-
 		if (playerInputs.PropSpawner)
 		{
 			if (wep != null && playerStats.isAlive)
 			{
                 if (playerWeapons.propWepSlots[0].activeSelf)
                 {
-                    if (mainUI.PropSpawnMenu.activeSelf)
+                    if (mainUI.CurrentUIState == PlayerUIState.None)
                     {
-                        mainUI.PropSpawnMenuSetActive(false);
+                        mainUI.TransitionToState(PlayerUIState.PropMenu);
                     }
-                    else
+                    else if (mainUI.CurrentUIState == PlayerUIState.PropMenu)
                     {
-                        mainUI.PropSpawnMenuSetActive(true);
+                        mainUI.TransitionToState(PlayerUIState.None);
                     }
                 }
                 else
@@ -263,7 +261,6 @@ public class PlayerInput : MonoBehaviour
 			}
 		}
 
-
 		if (playerInputs.PropMover)
 		{
 			if (wep != null && playerStats.isAlive)
@@ -273,7 +270,6 @@ public class PlayerInput : MonoBehaviour
 				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchToWeapon();
 			}
 		}
-
 
 		if (playerInputs.Ability1)
 		{
@@ -298,34 +294,50 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.OpenTeamSelectMenu)
 		{
-			if (mainUI.TeamSelectMenu.activeSelf)
-			{
-				mainUI.TeamSelectMenuSetActive(false);
-			}
-			else
-			{
-				mainUI.TeamSelectMenuSetActive(true);
-			}
+            if (mainUI.CurrentUIState == PlayerUIState.TeamSelectMenu)
+            {
+                mainUI.TransitionToState(PlayerUIState.None);
+            }
+            else if (mainUI.CurrentUIState != PlayerUIState.MainMenu)
+            {
+                mainUI.TransitionToState(PlayerUIState.TeamSelectMenu);
+            }
 		}
 
 		if (playerInputs.OpenClassSelectMenu)
 		{
-			if (playerStats.isAlive)
+			if (mainUI.CurrentUIState == PlayerUIState.ClassSelectMenu)
 			{
-				if (mainUI.ClassSelectMenu.activeSelf)
-				{
-					mainUI.ClassSelectMenuSetActive(false);
-				}
-				else
-				{
-					mainUI.ClassSelectMenuSetActive(true);
-				}
+                mainUI.TransitionToState(PlayerUIState.None);
+		    }
+		    else if (mainUI.CurrentUIState != PlayerUIState.MainMenu)
+			{
+                mainUI.TransitionToState(PlayerUIState.ClassSelectMenu);
 			}
 		}
 
-        if (Input.GetKeyDown(KeyCode.L))
+        if (playerInputs.OpenMainMenu)
         {
-            //PhotonNetwork.Instantiate("Character", new Vector3(0f, 2f, 0f), Quaternion.identity, 0);
+            if (mainUI.CurrentUIState == PlayerUIState.MainMenu)
+            {
+                mainUI.TransitionToState(PlayerUIState.None);
+            }
+            else
+            {
+                mainUI.TransitionToState(PlayerUIState.MainMenu);
+            }
+        }
+
+        if (playerInputs.OpenScoreboard)
+        {
+            if (mainUI.CurrentUIState == PlayerUIState.Scoreboard)
+            {
+                mainUI.TransitionToState(PlayerUIState.None);
+            }
+            else
+            {
+                mainUI.TransitionToState(PlayerUIState.Scoreboard);
+            }
         }
 
 		if (playerInputs.MouseScroll > 0f)
@@ -350,7 +362,7 @@ public class PlayerInput : MonoBehaviour
 		{
 			if (playerStats.isAlive)
 			{
-				if (!mainUI.HasUnlockedMouseUIEnabled)
+				if (!mainUI.HasUnlockedMouseUIEnabled && !playerWeapons.propWepSlots[0].activeSelf)
 				{
 					playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ReloadButton();
 				}
@@ -382,17 +394,23 @@ public class PlayerInput : MonoBehaviour
 			}
 		}
 
+        if (playerInputs.HelpText)
+        {
+            if (mainUI.isActiveAndEnabled)
+            {
+                if (mainUI.HelpText.gameObject.activeSelf)
+                {
+                    mainUI.HelpText.gameObject.SetActive(false);
+                }
+                else
+                {
+                    mainUI.HelpText.gameObject.SetActive(true);
+                }
+            }
+        }
 	}
 
-	void GetLook()
-	{
-		if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>() != null && playerStats.isAlive)
-		{
-			lookat = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<ProjectileLauncher>().shotPoint;
-		}
-		
-	}
-	
+
 	public void CmdActiveWeaponIndex(int index)
 	{
 		playerWeapons.SwitchActiveWeaponSlot(index);

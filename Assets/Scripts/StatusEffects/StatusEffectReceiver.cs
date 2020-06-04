@@ -44,6 +44,7 @@ public class StatusEffectReceiver : MonoBehaviour
             }
         }
 
+        //target doesnt have this status effect on them.
         if (!alreadyAffected)
         {
             StatusEffect s = Instantiate(effect, this.transform);
@@ -51,11 +52,23 @@ public class StatusEffectReceiver : MonoBehaviour
             CurrentStatusEffectsOnPlayer.Add(s);
             s.CurrentStacks = 1;
             s.OnApplyStatusEffect();
+            s.ActiveIcon = s.receiver.ui.AddStatusEffectIcon(s);
+            s.receiver.ui.UpdateStatusEffectIcon(s);
+            existingEffect = s;
         }
 
-        if (existingEffect != null && effect.AllowDuplicates)
+        if (existingEffect != null)
         {
-            existingEffect.CurrentStacks++;
+            if (effect.AllowStacking)
+            {
+                existingEffect.CurrentStacks++;
+                existingEffect.receiver.ui.UpdateStatusEffectIcon(existingEffect);
+            }
+            else
+            {
+
+            }
+
         }
 	}
 
@@ -74,6 +87,11 @@ public class StatusEffectReceiver : MonoBehaviour
 
         if (foundEffect)
         {
+            if (effect.ActiveIcon != null)
+            {
+                player.ui.RemoveStatusEffectIcon(effect);
+            }
+
             CurrentStatusEffectsOnPlayer[index].OnUnapplyStatusEffect();
             Destroy(CurrentStatusEffectsOnPlayer[index].gameObject);
             CurrentStatusEffectsOnPlayer.RemoveAt(index);
@@ -82,7 +100,14 @@ public class StatusEffectReceiver : MonoBehaviour
 
 	public void ClearAllStatusEffects()
 	{
+        foreach (StatusEffect s in CurrentStatusEffectsOnPlayer)
+        {
+            s.OnUnapplyStatusEffect();
+            Destroy(s.ActiveIcon);
+            Destroy(s.gameObject);
+        }
 
+        CurrentStatusEffectsOnPlayer.Clear();
 	}
 
 	public int OnBeforeDamageTaken(int damage)

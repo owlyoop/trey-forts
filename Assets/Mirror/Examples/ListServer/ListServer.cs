@@ -12,13 +12,15 @@ namespace Mirror.Examples.ListServer
     public class ServerStatus
     {
         public string ip;
-        //public ushort port; // <- not all transports use a port. assume default port. feel free to also send a port if needed.
+        // not all transports use a port. assume default port. feel free to also send a port if needed.
+        //public ushort port;
         public string title;
         public ushort players;
         public ushort capacity;
 
         public int lastLatency = -1;
-#if !UNITY_WEBGL // Ping isn't known in WebGL builds
+#if !UNITY_WEBGL
+        // Ping isn't known in WebGL builds
         public Ping ping;
 #endif
         public ServerStatus(string ip, /*ushort port,*/ string title, ushort players, ushort capacity)
@@ -28,7 +30,8 @@ namespace Mirror.Examples.ListServer
             this.title = title;
             this.players = players;
             this.capacity = capacity;
-#if !UNITY_WEBGL // Ping isn't known in WebGL builds
+#if !UNITY_WEBGL
+            // Ping isn't known in WebGL builds
             ping = new Ping(ip);
 #endif
         }
@@ -200,11 +203,12 @@ namespace Mirror.Examples.ListServer
                         else if (message.eventType == Telepathy.EventType.Data)
                             ParseMessage(message.data);
                         // disconnected?
-                        else if (message.eventType == Telepathy.EventType.Connected)
+                        else if (message.eventType == Telepathy.EventType.Disconnected)
                             Debug.Log("[List Server] Client disconnected.");
                     }
 
-#if !UNITY_WEBGL // Ping isn't known in WebGL builds
+#if !UNITY_WEBGL
+                    // Ping isn't known in WebGL builds
                     // ping again if previous ping finished
                     foreach (ServerStatus server in list.Values)
                     {
@@ -246,7 +250,7 @@ namespace Mirror.Examples.ListServer
 
             // delete everything that's too much
             // (backwards loop because Destroy changes childCount)
-            for (int i = parent.childCount-1; i >= amount; --i)
+            for (int i = parent.childCount - 1; i >= amount; --i)
                 Destroy(parent.GetChild(i).gameObject);
         }
 
@@ -289,7 +293,8 @@ namespace Mirror.Examples.ListServer
                     slot.joinButton.interactable = !IsConnecting();
                     slot.joinButton.gameObject.SetActive(server.players < server.capacity);
                     slot.joinButton.onClick.RemoveAllListeners();
-                    slot.joinButton.onClick.AddListener(() => {
+                    slot.joinButton.onClick.AddListener(() =>
+                    {
                         NetworkManager.singleton.networkAddress = server.ip;
                         NetworkManager.singleton.StartClient();
                     });
@@ -298,13 +303,15 @@ namespace Mirror.Examples.ListServer
                 // server buttons
                 serverAndPlayButton.interactable = !IsConnecting();
                 serverAndPlayButton.onClick.RemoveAllListeners();
-                serverAndPlayButton.onClick.AddListener(() => {
+                serverAndPlayButton.onClick.AddListener(() =>
+                {
                     NetworkManager.singleton.StartHost();
                 });
 
                 serverOnlyButton.interactable = !IsConnecting();
                 serverOnlyButton.onClick.RemoveAllListeners();
-                serverOnlyButton.onClick.AddListener(() => {
+                serverOnlyButton.onClick.AddListener(() =>
+                {
                     NetworkManager.singleton.StartServer();
                 });
             }
