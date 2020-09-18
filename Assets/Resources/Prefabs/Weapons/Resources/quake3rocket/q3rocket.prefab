@@ -54,6 +54,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -162,6 +163,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -236,27 +238,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  WeaponSwitchAwayTime: 0
-  WeaponSwitchToTime: 0
-  MaxAmmo: 0
-  CurrentAmmo: 0
-  ClipSize: 0
-  CurrentAmmoInClip: 0
-  projectilePrefab: {fileID: 1182533768651048, guid: 551da3741c9108d45b612c1bfa4b2ba6,
-    type: 3}
-  gunEnd: {fileID: 4061076240319424}
-  shotsPerSecond: 2
-  projectileSpeed: 14
-  projectileLife: 5
-  baseDamage: 50
-  clipSize: 4
   cam: {fileID: 0}
-  rayOrigin: {x: 0, y: 0, z: 0}
-  shootDirection: {x: 0, y: 0, z: 0}
-  shotPoint: {x: 0, y: 0, z: 0}
+  baseDamage: 50
+  shotsPerSecond: 2
+  maxAmmo: 24
+  currentAmmo: 0
+  clipSize: 4
+  currentAmmoInClip: 0
+  reloadTime: 0.36
+  numAmmoPerReload: 1
+  weaponSwitchAwayTime: 0
+  weaponSwitchToTime: 0
+  gunEnd: {fileID: 4061076240319424}
   layermask:
     serializedVersion: 2
     m_Bits: 136193
+  projectilePrefab: {fileID: 1182533768651048, guid: 551da3741c9108d45b612c1bfa4b2ba6,
+    type: 3}
+  projectileSpeed: 14
+  projectileLife: 5
 --- !u!120 &120049004531385274
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -264,13 +264,14 @@ LineRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1989580033591802}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_MotionVectors: 0
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:

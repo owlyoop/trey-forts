@@ -3,10 +3,11 @@ using KinematicCharacterController.Owly;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
+using UnityEngine.Rendering.PostProcessing;
 
-public class PlayerStats : MonoBehaviour, IDamagable
+public class PlayerStats : NetworkBehaviour, IDamagable
 {
-
     public enum PlayerTeam
     {
         Spectator,
@@ -20,54 +21,60 @@ public class PlayerStats : MonoBehaviour, IDamagable
         Generic,
         None
     }
+
     [Header("Network Info")]
-    public string Username;
-    public PlayerTeam playerTeam;
     public int ping = 0;
+    public string Username;
+    [SyncVar]
+    public PlayerTeam playerTeam;
+
+    public WeaponSet currentClass;
+    [SyncVar]
+    public string currentClassName;
+
+    public bool HasPreviouslyPlayed = false;
 
     [Header("Character Stats")]
 	public CharacterStat maxHealth;
-	int maxHealthValue;
+    [SyncVar]
+	int finalMaxHealthValue;
 
-    [SerializeField]
-    private int currentHealth;
-    public int CurrentHealth
-    {
-        get { return currentHealth; }
-        private set { currentHealth = value; }
-    }
+    [SyncVar]
+    public int currentHealth;
 
-	public bool isAlive;
+    [SyncVar]
+    public bool isAlive;
 
-    [SerializeField]
-    private int currentCurrency;
-    public int CurrentCurrency
-    {
-        get { return currentCurrency; }
-        private set { currentCurrency = value; }
-    }
+    [SyncVar]
+    public int currentCurrency;
 
-	public int startingCurrency = 1000;
-
+    //for UI. probably should move this to the UIManager
 	int currentAmmoInClip;
 	int currentAmmoReserves;
-	
-	public bool canPickUpFlag;
-	public bool hasFlag;
-    public bool HasPreviouslyPlayed = false;
+
+    [SyncVar]
+    public bool canPickUpFlag;
+    [SyncVar]
+    public bool hasFlag;
+
+    public CharacterStat MovementSpeed;
+	const float BaseMoveSpeed = 6.2f;
+    StatModifier ClassMovespeedMultiplier;
+
+    public CharacterStat JumpForce;
+	const float BaseJumpForce = 7.24f;
+    StatModifier ClassJumpforceMultiplier;
 
     [SerializeField]
-    WeaponSet currentClass;
-
-    public WeaponSet CurrentClass
+    PlayerTeam queuedTeam;
+    public PlayerTeam QueuedTeam
     {
-        get { return currentClass;  }
-        private set { currentClass = value;  }
+        get { return queuedTeam; }
+        private set { queuedTeam = value; }
     }
 
     [SerializeField]
     WeaponSet queuedClass;
-
     public WeaponSet QueuedClass
     {
         get { return queuedClass; }
@@ -82,15 +89,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
         private set { previousClass = value; }
     }
 
-    public int EliteClassLivesLeft = 0;
-
-    public CharacterStat MovementSpeed;
-	float baseMoveSpeed = 6.2f;
-    StatModifier ClassMovespeedMultiplier;
-
-    public CharacterStat JumpForce;
-	float baseJumpForce = 7.24f;
-    StatModifier ClassJumpforceMultiplier;
+    public Dictionary<string, int> eliteClassLives = new Dictionary<string, int>();
 
     [Header("Ingame Score")]
     public int score = 0;
@@ -104,7 +103,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
 	[Header("References")]
 	public UIManager ui;
 	public WeaponSlots wepSlots;
-	public GamePhases _gameManager;
+	public GamePhases gameManager;
 	public FloatingTextController dmgText;
 	public MyCharacterController CharControl;
     public Divekick divekickHitbox;
@@ -146,13 +145,31 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
 	CaptureFlag _flagref;
 	public Animator anim;
-
 	public CapsuleCollider charControlCollider;
-	
 
+    private void Awake()
+    {
+        CharControl = GetComponent<MyCharacterController>();
+        gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GamePhases>();
+    }
 
-	private void Start()
+    private void Start()
 	{
+        if (!netIdentity.isLocalPlayer)
+        {
+            CharControl.enabled = false;
+            GetComponent<KinematicCharacterMotor>().enabled = false;
+            cam.enabled = false;
+            cam.GetComponent<FlareLayer>().enabled = false;
+            cam.GetComponent<AudioListener>().enabled = false;
+            cam.GetComponent<MyCamera>().enabled = false;
+            cam.GetComponent<PostProcessLayer>().enabled = false;
+            cam.GetComponentInChildren<Camera>().gameObject.SetActive(false);
+            GetComponent<PlayerInput>().enabled = false;
+            ui.MainUICanvas.gameObject.SetActive(false);
+            return;
+        }
+
         hitboxCollection.Add(headHitbox);
         hitboxCollection.Add(spineHitbox);
         hitboxCollection.Add(hipsHitbox);
@@ -164,8 +181,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
         hitboxCollection.Add(leftForearmHitbox);
         hitboxCollection.Add(rightArmHitbox);
         hitboxCollection.Add(rightForearmHitbox);
-        CharControl = GetComponent<MyCharacterController>();
-        _gameManager = GameObject.FindGameObjectWithTag("Game Manager").GetComponent<GamePhases>();
+
         divekickHitbox.gameObject.SetActive(false);
 
         EnableOwnHitbox(false);
@@ -179,7 +195,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
 		SetTeam(playerTeam);
 
-		currentCurrency = startingCurrency;
+        currentCurrency = gameManager.buildPhaseStartingMoney;
 		OnChangeHealth(currentHealth);
 		ui.SetActivateDeathUI(false);
 		hasFlag = false;
@@ -196,43 +212,33 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
 	void WaitingForPlayersEnd()
 	{
-		RespawnAndInitialize();
-	}
-
-	void Update()
-	{
+        RespawnPlayer();
 	}
 
 	public void ChangeToSpectator()
-	{
-		for (int i = 0; i < _gameManager.classList.Count; i++)
-		{
-			if (_gameManager.classList[i].className == "Spectator")
-			{
-                SetQueuedClass(_gameManager.classList[i]);
-                //player first connects, the class is null for some reason
-                if (currentClass == null)
-                {
-                    SwitchPlayerClass(_gameManager.classList[i]);
-                }
-			}
-		}
+    {
+        //SetTeam(PlayerTeam.Spectator);
+        SetQueuedTeam(PlayerTeam.Spectator);
+        SetQueuedClass(gameManager.gameData.spectatorClass);
+        SwitchPlayerClass(gameManager.gameData.spectatorClass);
+
 		GetComponent<MyCharacterController>().TransitionToState(CharacterState.Spectator);
         SetCollidersActive(false);
-        RespawnAndInitialize();
+        StopCoroutine(RespawnCountdownTimer());
+        RespawnPlayer();
 	}
 
     public void AddMaxHealthModifier(StatModifier mod)
     {
         maxHealth.AddModifier(mod);
-        OnChangeHealth(CurrentHealth);
+        OnChangeHealth(currentHealth);
 
     }
 
     public void RemoveMaxHealthModifier(StatModifier mod)
     {
         maxHealth.RemoveModifier(mod);
-        OnChangeHealth(CurrentHealth);
+        OnChangeHealth(currentHealth);
     }
 
     public void AddMovementModifier(StatModifier mod)
@@ -262,15 +268,15 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
 	//called at the end of rpcrespawn
 	public void InitializeValues()
-	{
-		if (currentClass.className != "Spectator")
+    {
+        if (currentClass.className != "Spectator")
 		{
 			ui.SetActiveMainHud(true);
 			ui.HealthBar.gameObject.SetActive(true);
 			ui.HealthBarBackground.gameObject.SetActive(true);
 			maxHealth.BaseValue = currentClass.maxHealth;
-			maxHealthValue = Mathf.RoundToInt(maxHealth.Value);
-			currentHealth = maxHealthValue;
+			finalMaxHealthValue = Mathf.RoundToInt(maxHealth.Value);
+			currentHealth = finalMaxHealthValue;
 			ui.DollarSign.enabled = true;
 			ui.AmmoInClip.text = "";
 			ui.AmmoAmount.text = "";
@@ -281,38 +287,45 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
 			StatusEffectManager.AddPassiveStatusEffects();
 
-            MovementSpeed.BaseValue = baseMoveSpeed;
+            MovementSpeed.BaseValue = BaseMoveSpeed;
             ClassMovespeedMultiplier = new StatModifier(currentClass.moveSpeedPercentAdd, StatModType.PercentAdd);
             MovementSpeed.RemoveAllModifiersFromSource(this);
             MovementSpeed.AddModifier(ClassMovespeedMultiplier);
             CharControl.MaxStableMoveSpeed = MovementSpeed.Value;
 
-            JumpForce.BaseValue = baseJumpForce;
+            JumpForce.BaseValue = BaseJumpForce;
             ClassJumpforceMultiplier = new StatModifier(currentClass.jumpHeightPercentAdd, StatModType.PercentAdd);
             JumpForce.RemoveAllModifiersFromSource(this);
             JumpForce.AddModifier(ClassJumpforceMultiplier);
             CharControl.JumpSpeed = JumpForce.Value;
+
+            GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
         }
 		else
 		{
 			ui.DollarSign.enabled = false;
 			ui.HealthBar.gameObject.SetActive(false);
 			ui.HealthBarBackground.gameObject.SetActive(false);
-            
-            
 		}
-
 	}
 
 	public void OnDeath()
-	{
+    {
         if (currentClass.isElite)
-            EliteClassLivesLeft = EliteClassLivesLeft - 1;
+        {
+            RemoveEliteClassLife(currentClass);
+            eliteClassLives.TryGetValue(currentClass.className, out int lives);
+            if (lives <= 0)
+            {
+                eliteClassLives[currentClass.className] = 0;
+                SetQueuedClass(previousClass);
+            }
+        }
 
         Debug.Log("player died");
         SpawnRagdoll(hitboxCollection);
 		isAlive = false;
-		_respawnTimer = _gameManager.respawnTime;
+		_respawnTimer = gameManager.respawnTime;
 		StartCoroutine(RespawnCountdownTimer());
 		ui.SetActivateDeathUI(true);
         StatusEffectManager.ClearAllStatusEffects();
@@ -328,13 +341,65 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
         if (currentClass != null)
 		{
-			this.GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
+            GetComponent<PlayerInput>().CmdActiveWeaponIndex(0);
+            GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
 			GetComponent<PlayerInput>().playerWeapons.DecactivateAllWeapons();
 		}
 	}
 
+    public void RespawnPlayer()
+    {
+        //Move player to a spawnpoint
+        if (gameManager == null)
+        {
+            gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
+        }
+
+        if (QueuedTeam != playerTeam)
+            SetTeam(QueuedTeam);
+
+        if (playerTeam == PlayerTeam.Blue)
+        {
+            Vector3 spawnPoint;
+            spawnPoint = gameManager.teamBlueSpawnPoints[Random.Range(0, gameManager.teamBlueSpawnPoints.Count)].transform.position;
+            GetComponent<KinematicCharacterMotor>().SetPosition(spawnPoint);
+        }
+        if (playerTeam == PlayerTeam.Red)
+        {
+            Vector3 spawnPoint;
+            spawnPoint = gameManager.teamRedSpawnPoints[Random.Range(0, gameManager.teamRedSpawnPoints.Count)].transform.position;
+
+            GetComponent<KinematicCharacterMotor>().SetPosition(spawnPoint);
+        }
+
+
+        isAlive = true;
+
+        canPickUpFlag = true;
+        ui.SetActivateDeathUI(false);
+        ui.SetActiveMainHud(true);
+        EnableOwnHitbox(false);
+
+        SwitchPlayerClass(queuedClass);
+
+        GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
+        GetComponent<MyCharacterController>().TransitionToState(currentClass.defaultState);
+        if (currentClass.className == "Spectator")
+        {
+            SetCollidersActive(false);
+        }
+        else
+        {
+            SetCollidersActive(true);
+        }
+        InitializeValues();
+
+    }
+
     public void SetCollidersActive(bool choice)
     {
+        if (!netIdentity.isLocalPlayer)
+            return;
         if (choice)
         {
             CharControl.Motor.SetCapsuleCollisionsActivation(true);
@@ -357,6 +422,8 @@ public class PlayerStats : MonoBehaviour, IDamagable
 
     public void SpawnRagdoll(List<PlayerHitbox> hitboxes)
     {
+        if (!netIdentity.isLocalPlayer)
+            return;
         EnableOwnHitbox(true);
         ragdoll = Instantiate(ragdollPrefab, this.transform.position, this.transform.rotation);
 
@@ -380,80 +447,47 @@ public class PlayerStats : MonoBehaviour, IDamagable
         }
     }
 
-	public void RespawnAndInitialize()
-	{
-        //Move player to a spawnpoint
-		if (_gameManager == null)
-		{
-			_gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
-		}
-
-		if (playerTeam == PlayerTeam.Blue)
-		{
-			Vector3 spawnPoint;
-			spawnPoint = _gameManager.teamOneSpawnPoints[Random.Range(0, _gameManager.teamOneSpawnPoints.Length)].transform.position;
-			GetComponent<KinematicCharacterMotor>().SetPosition(spawnPoint);
-		}
-		if (playerTeam == PlayerTeam.Red)
-		{
-			Vector3 spawnPoint;
-			spawnPoint = _gameManager.teamTwoSpawnPoints[Random.Range(0, _gameManager.teamTwoSpawnPoints.Length)].transform.position;
-
-			GetComponent<KinematicCharacterMotor>().SetPosition(spawnPoint);
-		}
-
-
-		isAlive = true;
-        SetCollidersActive(true);
-		canPickUpFlag = true;
-		ui.SetActivateDeathUI(false);
-        ui.SetActiveMainHud(true);
-
-        SwitchPlayerClass(queuedClass);
-
-		GetComponent<PlayerInput>().playerWeapons.InitializeWeapons();
-		if (currentClass.className != "Spectator")
-		{
-			GetComponent<MyCharacterController>().TransitionToState(currentClass.defaultState);
-		}
-		InitializeValues();
-
-	}
-
 	public IEnumerator RespawnCountdownTimer()
-	{
-		ui.RespawnTimer.text = _respawnTimer.ToString();
+    {
+        ui.RespawnTimer.text = _respawnTimer.ToString();
 		while (_respawnTimer > 0)
 		{
+            ui.SetActiveYouWillSpawnAsText(true);
 			yield return new WaitForSeconds(1.0f);
 			_respawnTimer = _respawnTimer - 1f;
 			ui.RespawnTimer.text = _respawnTimer.ToString();
 		}
 		if (_respawnTimer <= 0)
 		{
-			RespawnAndInitialize();
+            ui.SetActiveYouWillSpawnAsText(false);
+			RespawnPlayer();
 		}
 
 	}
 
 	public void TakeDamage(int damageTaken, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation, DamageIndicatorType uiType)
-	{
-		if (isAlive)
+    {
+        if (isAlive)
 		{
-			if (currentClass.name == "Spectator")
+			if (currentClass == gameManager.gameData.spectatorClass)
 				return;
-            RpcTakeDamage(damageTaken, damageType, giver, damageSourceLocation);
+
+            CmdTakeDamage(damageTaken, damageType, giver.netIdentity, damageSourceLocation);
 		}
 	}
 
     public void TakeHeal(int healTaken, Damager.DamageTypes damageType)
     {
-
+        if (!netIdentity.isLocalPlayer)
+            return;
     }
 
-    void RpcTakeDamage(int dmg, Damager.DamageTypes damageType, PlayerStats giver, Vector3 damageSourceLocation)
-	{
-		dmg = StatusEffectManager.OnBeforeDamageTaken(dmg);
+    
+    [Command]
+    void CmdTakeDamage(int dmg, Damager.DamageTypes damageType, NetworkIdentity giverID, Vector3 damageSourceLocation)
+    {
+        var giver = giverID.GetComponent<PlayerStats>();
+        dmg = StatusEffectManager.OnBeforeDamageTaken(dmg);
 		currentHealth = currentHealth - dmg;
 		OnChangeHealth(currentHealth);
 
@@ -464,7 +498,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
         DamageIndicator indicator = dmgUi.GetComponent<DamageIndicator>();
         indicator.damageSourcePosition = damageSourceLocation;
         indicator.ui = ui;
-        float alpha = (float)dmg / (float)maxHealthValue;
+        float alpha = (float)dmg / (float)finalMaxHealthValue;
         alpha = Mathf.Lerp(indicator.MinAlpha, indicator.MaxAlpha, alpha);
         indicator.Indicator.color = new Color(1,0,0,alpha);
         
@@ -481,41 +515,51 @@ public class PlayerStats : MonoBehaviour, IDamagable
 	}
 
 	public void OnChangeAmmoReservesAmount(int newCurrentAmmoReserves)
-	{
-		currentAmmoReserves = newCurrentAmmoReserves;
+    {
+        if (!netIdentity.isLocalPlayer)
+            return;
+        currentAmmoReserves = newCurrentAmmoReserves;
 		ui.AmmoAmount.text = currentAmmoReserves.ToString();
 	}
 
 	public void OnChangeAmmoInClip(int newCurrentAmmoInClip)
-	{
-		currentAmmoInClip = newCurrentAmmoInClip;
+    {
+        currentAmmoInClip = newCurrentAmmoInClip;
 		ui.AmmoInClip.text = currentAmmoInClip.ToString();
 	}
 
 	void OnChangeHealth (int currentHealth)
-	{
-		ui.HealthBar.sizeDelta = new Vector2(((float)currentHealth / (float)maxHealthValue) * ui.HealthBarBackground.sizeDelta.x, 32);
+    {
+        ui.HealthBar.sizeDelta = new Vector2(((float)currentHealth / (float)finalMaxHealthValue) * ui.HealthBarBackground.sizeDelta.x, 32);
 		ui.HealthText.text = currentHealth.ToString();
 	}
 
     public void OnHealthPickup(float percentAdd)
     {
-        int HpToAdd = (int)((percentAdd/100) * maxHealthValue);
-        if (HpToAdd + CurrentHealth > maxHealthValue)
+        int HpToAdd = (int)((percentAdd/100) * finalMaxHealthValue);
+        if (HpToAdd + currentHealth > finalMaxHealthValue)
         {
-            HpToAdd = (HpToAdd + CurrentHealth) - maxHealthValue;
+            HpToAdd = (HpToAdd + currentHealth) - finalMaxHealthValue;
         }
         //TakeDamage(photonView.ViewID, -HpToAdd, Damager.DamageTypes.Physical);
     }
 
-	public void OnChangeCurrencyAmount(int newMoney)
-	{
+	public void SetCurrencyAmount(int newMoney)
+    {
         int difference = newMoney - currentCurrency;
         string diftext = difference.ToString();
 		currentCurrency = newMoney;
 		ui.CurrencyAmount.text = currentCurrency.ToString();
         dmgText.CreateMoneyText(diftext, dmgText.moneyParent);
+
+        if (ui.CurrentUIState == PlayerUIState.ClassSelectMenu)
+            ui.ClassMenu.UpdateClassSelectMenu();
 	}
+
+    public void AddCurrency(int currencyToAdd)
+    {
+        SetCurrencyAmount(currentCurrency + currencyToAdd);
+    }
 
     public void OnChangeCurrencyAmountNoUI(int newMoney)
     {
@@ -523,9 +567,23 @@ public class PlayerStats : MonoBehaviour, IDamagable
         ui.CurrencyAmount.text = currentCurrency.ToString();
     }
 	
+    public void AddEliteClassLife(WeaponSet eliteClass)
+    {
+        eliteClassLives[eliteClass.className] += 1;
+        ui.ClassSelectMenu.GetComponent<ClassSelectMenu>().UpdateEliteClassSlots();
+    }
+
+    public void RemoveEliteClassLife(WeaponSet eliteClass)
+    {
+        eliteClassLives[eliteClass.className] -= 1;
+        ui.ClassSelectMenu.GetComponent<ClassSelectMenu>().UpdateEliteClassSlots();
+    }
+
 	public void HideOwnPlayerModel(bool choice)
-	{
-		if (choice == true)
+    {
+        if (!netIdentity.isLocalPlayer)
+            return;
+        if (choice == true)
 		{
 			bodyToColor.enabled = false;
 			jointsToColor.enabled = false;
@@ -540,6 +598,8 @@ public class PlayerStats : MonoBehaviour, IDamagable
     //Here because weapon raycasts can hit the player's self. All the hitboxes of everyone are on the same layer so we cant make the raycast ignore a layer.
     void EnableOwnHitbox(bool choice)
     {
+        if (!netIdentity.isLocalPlayer)
+            return;
         if (choice)
         {
             foreach (PlayerHitbox hb in hitboxCollection)
@@ -557,9 +617,39 @@ public class PlayerStats : MonoBehaviour, IDamagable
     }
 
 	public void SetTeam(PlayerTeam team)
-	{
-		HideOwnPlayerModel(false);
+    {
+        PlayerTeam previousTeam = playerTeam;
+        PlayerStats player = this.GetComponent<PlayerStats>();
+
+        switch(previousTeam)
+        {
+            case PlayerTeam.Blue:
+                gameManager.blueTeamPlayers.Remove(player);
+                break;
+            case PlayerTeam.Red:
+                gameManager.redTeamPlayers.Remove(player);
+                break;
+            case PlayerTeam.Spectator:
+                gameManager.spectatorTeamPlayers.Remove(player);
+                break;
+        }
+
 		playerTeam = team;
+
+        switch(team)
+        {
+            case PlayerTeam.Blue:
+                gameManager.blueTeamPlayers.Add(player);
+                break;
+            case PlayerTeam.Red:
+                gameManager.redTeamPlayers.Add(player);
+                break;
+            case PlayerTeam.Spectator:
+                gameManager.spectatorTeamPlayers.Add(player);
+                break;
+        }
+
+		HideOwnPlayerModel(false);
 		if (bodyToColor.enabled == true && jointsToColor.enabled == true)
 		{
 			if (team == PlayerTeam.Blue)
@@ -574,11 +664,13 @@ public class PlayerStats : MonoBehaviour, IDamagable
 			}
 		}
 		HideOwnPlayerModel(true);
+
+
 	}
 
 	public bool CheckIfCanPickupFlag()
-	{
-		if (playerTeam == 0)
+    {
+        if (playerTeam == 0)
 		{
 			canPickUpFlag = false;
 		}
@@ -587,8 +679,10 @@ public class PlayerStats : MonoBehaviour, IDamagable
 	}
 
 	private void OnTriggerEnter(Collider other)
-	{
-		CaptureFlag flag = other.GetComponentInParent<CaptureFlag>();
+    {
+        if (!netIdentity.isLocalPlayer)
+            return;
+        CaptureFlag flag = other.GetComponentInParent<CaptureFlag>();
 		if (flag != null && flag.isBeingHeld == false)
 		{
 			if ((flag.team == CaptureFlag.Team.Blue && playerTeam == PlayerTeam.Red) || (flag.team == CaptureFlag.Team.Red && playerTeam == PlayerTeam.Blue))
@@ -602,11 +696,11 @@ public class PlayerStats : MonoBehaviour, IDamagable
 		}
 
 
-		if (_gameManager == null)
+		if (gameManager == null)
 		{
-			_gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
+			gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
 		}
-		if (_gameManager != null && other == _gameManager.blueCaptureZone && hasFlag)
+		if (gameManager != null && other == gameManager.blueCaptureTrigger && hasFlag)
 		{
 			_flagref.transform.parent = null;
 			_flagref.transform.position = _flagref.flagSpawn;
@@ -614,7 +708,7 @@ public class PlayerStats : MonoBehaviour, IDamagable
 			hasFlag = false;
 			RpcAddTeamScore(1);
 		}
-		if (_gameManager != null && other == _gameManager.redCaptureZone && hasFlag)
+		if (gameManager != null && other == gameManager.redCaptureTrigger && hasFlag)
 		{
 			_flagref.transform.parent = null;
 			_flagref.transform.position = _flagref.flagSpawn;
@@ -625,28 +719,40 @@ public class PlayerStats : MonoBehaviour, IDamagable
 	}
 	
 	public void RpcAddTeamScore(int team)
-	{
-		if (team == 1)
+    {
+        if (team == 1)
 		{
-			_gameManager.blueTeamFlagCaptures += 1;
-			ui.BlueScore.text = _gameManager.blueTeamFlagCaptures.ToString();
+			gameManager.blueTeamFlagCaptures += 1;
+			ui.BlueScore.text = gameManager.blueTeamFlagCaptures.ToString();
 		}
 
 		if (team == 2)
 		{
-			_gameManager.redTeamFlagCaptures += 1;
-			ui.RedScore.text = _gameManager.redTeamFlagCaptures.ToString();
+			gameManager.redTeamFlagCaptures += 1;
+			ui.RedScore.text = gameManager.redTeamFlagCaptures.ToString();
 		}
 	}
 
     public void SwitchPlayerClass(WeaponSet newClass)
     {
+        if (!currentClass.isElite)
+            previousClass = currentClass;
+
         currentClass = newClass;
-        previousClass = currentClass;
+
+        if (previousClass == null || previousClass.className == "Spectator")
+            previousClass = currentClass;
     }
 
     public void SetQueuedClass(WeaponSet nextClass)
     {
+        ui.spawnAlertTimer = ui.spawnAlertTextDuration;
+        ui.StartCoroutine(ui.ShowYouWillSpawnAsText());
         queuedClass = nextClass;
+    }
+
+    public void SetQueuedTeam(PlayerTeam nextTeam)
+    {
+        queuedTeam = nextTeam;
     }
 }

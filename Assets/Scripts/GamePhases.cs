@@ -5,19 +5,19 @@ using Mirror;
 
 public class GamePhases : NetworkBehaviour
 {
+    public GameData gameData;
+
     [Header("Game Rules")]
-    public float WaitingForPlayersLength = 30f;
-	public bool isWaitingForPlayers;
-	public float BuildPhaseFreezeTime = 3f; //after waiting for players end, teleport players to spawnpoints and freeze their movement
-	public float BuildPhaseTimeLength = 180f; //length in seconds
-	public bool isInBuildPhase;
-	public float CombatPhaseTimeLength = 600f; // length in seconds
-	public bool isInCombatPhase;
-	public bool isInEndGamePhase;
+    public float waitingForPlayersLength = 30f;
+	public float buildPhaseFreezeTime = 3f; //after waiting for players end, teleport players to spawnpoints and freeze their movement
+	public float buildPhaseTimeLength = 180f; //length in seconds
+	public float combatPhaseTimeLength = 600f; // length in seconds
+    public int buildPhaseStartingMoney = 1000;
+    public enum GameState { WaitingForPlayers, BuildPhase, CombatPhase, Overtime, EndGamePhase }
+
+    public GameState currentGameState;
+
 	public float respawnTime = 8.0f;
-    public List<WeaponSet> classList = new List<WeaponSet>();
-    public List<FortwarsPropData> buildPhaseProps = new List<FortwarsPropData>();
-    public List<FortwarsPropData> combatPhaseProps = new List<FortwarsPropData>();
 
     [Header("Current Game Info")]
     public int blueTeamFlagCaptures;
@@ -27,88 +27,95 @@ public class GamePhases : NetworkBehaviour
     public List<PlayerStats> redTeamPlayers = new List<PlayerStats>();
     public List<PlayerStats> spectatorTeamPlayers = new List<PlayerStats>();
 
-    public int blueTeamKills;
     public int blueTeamScore;
-    public int redTeamKills;
     public int redTeamScore;
+    public int blueTeamKills;
+    public int redTeamKills;
 
     [Header("Map Elements")]
     public GameObject BuildPhaseGeometry;
-	public Spawnpoint[] teamSpectatorSpawnPoints;
-	public Spawnpoint[] teamOneSpawnPoints;
-	public Spawnpoint[] teamTwoSpawnPoints;
-	public Collider blueCaptureZone;
-	public Collider redCaptureZone;
+    public List<Spawnpoint> teamSpectatorSpawnPoints = new List<Spawnpoint>();
+	public List<Spawnpoint> teamBlueSpawnPoints = new List<Spawnpoint>();
+    public List<Spawnpoint> teamRedSpawnPoints = new List<Spawnpoint>();
+    public CaptureFlagZone blueCaptureZone;
+    public CaptureFlagZone redCaptureZone;
+	public Collider blueCaptureTrigger;
+	public Collider redCaptureTrigger;
 	public CaptureFlag blueFlag;
 	public CaptureFlag redFlag;
 
 	EventManager _eventManager;
 
-
-
 	private void Start()
 	{
 		_eventManager = GetComponent<EventManager>();
-		isWaitingForPlayers = true;
+        currentGameState = GameState.WaitingForPlayers;
 		blueTeamFlagCaptures = 0;
 		redTeamFlagCaptures = 0;
     }
 
 	private void Update()
 	{
-		if (isWaitingForPlayers)
+		if (currentGameState == GameState.WaitingForPlayers)
 		{
-			WaitingForPlayersLength -= Time.deltaTime;
-			if (WaitingForPlayersLength < 0)
+			waitingForPlayersLength -= Time.deltaTime;
+			if (waitingForPlayersLength < 0)
 			{
 				EventManager.RaiseOnWaitingForPlayersEnd();
 				BeginBuildPhase();
 			}
 		}
-		if (isInBuildPhase)
+		if (currentGameState == GameState.BuildPhase)
 		{
-			BuildPhaseTimeLength -= Time.deltaTime;
-			if (BuildPhaseTimeLength < 0)
+			buildPhaseTimeLength -= Time.deltaTime;
+			if (buildPhaseTimeLength < 0)
 			{
 				EndBuildPhase();
 				BeginCombatPhase();
 			}
 		}
-		if (isInCombatPhase)
+		if (currentGameState == GameState.CombatPhase)
 		{
-			CombatPhaseTimeLength -= Time.deltaTime;
-			if (CombatPhaseTimeLength < 0)
+			combatPhaseTimeLength -= Time.deltaTime;
+			if (combatPhaseTimeLength < 0)
 			{
 				EndCombatPhase();
 			}
 		}
 	}
 
-
-
 	public void BeginBuildPhase()
 	{
-		isWaitingForPlayers = false;
-		isInBuildPhase = true;
+        currentGameState = GameState.BuildPhase;
 		EventManager.RaiseOnBuildPhaseStart();
-		
 	}
 
 	public void EndBuildPhase()
 	{
 		EventManager.RaiseOnBuildPhaseEnd();
 		BuildPhaseGeometry.SetActive(false);
-		isInBuildPhase = false;
-		isInCombatPhase = true;
+        currentGameState = GameState.CombatPhase;
 	}
+
+	public void BeginCombatPhase()
+	{
+		EventManager.RaiseOnCombatPhaseStart();
+        foreach(PlayerStats player in blueTeamPlayers)
+        {
+            player.SetCurrencyAmount(500);
+        }
+
+        foreach (PlayerStats player in redTeamPlayers)
+        {
+            player.SetCurrencyAmount(500);
+        }
+    }
 
 	public void EndCombatPhase()
 	{
 		EventManager.RaiseOnCombatPhaseEnd();
 	}
 
-	public void BeginCombatPhase()
-	{
-		EventManager.RaiseOnCombatPhaseStart();
-	}
+    
+
 }

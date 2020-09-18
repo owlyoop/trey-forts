@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8064943032453915895}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -42.449825, y: 2.959889, z: 2.514245}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -45,36 +45,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
-  WaitingForPlayersLength: 1
-  isWaitingForPlayers: 0
-  BuildPhaseFreezeTime: 3
-  BuildPhaseTimeLength: 3
-  isInBuildPhase: 0
-  CombatPhaseTimeLength: 600
-  isInCombatPhase: 0
-  isInEndGamePhase: 0
+  gameData: {fileID: 11400000, guid: 278e21c141bf6924780551adc42caa8c, type: 2}
+  waitingForPlayersLength: 5
+  buildPhaseFreezeTime: 3
+  buildPhaseTimeLength: 5
+  combatPhaseTimeLength: 600
+  currentGameState: 0
   respawnTime: 8
-  BlueTeamScore: 0
-  RedTeamScore: 0
-  classList:
-  - {fileID: 11400000, guid: e7d6435076dcab948aefcb6d66dbfde2, type: 2}
-  - {fileID: 11400000, guid: f0b01cf2af4ae2a408081917204136d8, type: 2}
-  - {fileID: 11400000, guid: 3196f5d406a3a464dafdf9b9663c30eb, type: 2}
-  buildPhaseProps:
-  - {fileID: 11400000, guid: 3f14489251357f44c9b0b4c891a84d50, type: 2}
-  - {fileID: 11400000, guid: 7d1ea53210274fb4685ee6105e66796a, type: 2}
-  - {fileID: 11400000, guid: ff78b6e1ca4129348900d08e06f8f9c3, type: 2}
-  - {fileID: 11400000, guid: 822946cfd60222c438bea39c3a880f04, type: 2}
-  - {fileID: 11400000, guid: ce335a6c306c49d4698eb3751ef9f8d5, type: 2}
-  - {fileID: 11400000, guid: 3e74a75e88b29d742a41b7834ae77126, type: 2}
-  - {fileID: 11400000, guid: d9ff41849c1cbbb478947af3d5aa25da, type: 2}
-  - {fileID: 11400000, guid: 803b69c934442b84cab418ef57460638, type: 2}
-  - {fileID: 11400000, guid: 28476dc9af98add46a0d696d3b687978, type: 2}
-  - {fileID: 11400000, guid: a3351e06aa1eda940956b35793843a60, type: 2}
-  - {fileID: 11400000, guid: 1bf6086aeb3efdb41958243be4480669, type: 2}
-  - {fileID: 11400000, guid: 1760b05c98f925440b04632c5b1cdd45, type: 2}
-  combatPhaseProps:
-  - {fileID: 11400000, guid: 3f14489251357f44c9b0b4c891a84d50, type: 2}
+  blueTeamFlagCaptures: 0
+  redTeamFlagCaptures: 0
+  blueTeamPlayers: []
+  redTeamPlayers: []
+  spectatorTeamPlayers: []
+  blueTeamKills: 0
+  blueTeamScore: 0
+  redTeamKills: 0
+  redTeamScore: 0
   BuildPhaseGeometry: {fileID: 0}
   teamSpectatorSpawnPoints: []
   teamOneSpawnPoints:

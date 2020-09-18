@@ -64,7 +64,7 @@ MonoBehaviour:
   showDebugMessages: 0
   serverTickRate: 30
   offlineScene: 
-  onlineScene: Assets/Scenes/mainphoton.unity
+  onlineScene: 
   transport: {fileID: 8527344898933112431}
   networkAddress: localhost
   maxConnections: 4

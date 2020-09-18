@@ -6,10 +6,7 @@ public class ObjectMover : WeaponMotor
 {
 
 	float distance;
-	public Camera cam;
-	public Transform gunEnd;
 	
-	private Vector3 shootDirection;
 	private LineRenderer laserLine;
 	public bool isHoldingObject;
 	public bool isRotatingObject;
@@ -22,17 +19,12 @@ public class ObjectMover : WeaponMotor
 	public float allowedRange = 12f;
 
 	public float rotationSpeed = 100f;
-
-    public LayerMask layersHit;
 	
 	public string debugID;
 
 
 	private void Start()
 	{
-		
-		//cam = GetComponentInParent<WeaponSlots>().GetComponentInParent<Camera>();
-		player = cam.GetComponentInParent<PlayerStats>();
 		laserLine = GetComponent<LineRenderer>();
 		isHoldingObject = false;
 		isRotatingObject = false;
@@ -43,7 +35,7 @@ public class ObjectMover : WeaponMotor
 	public override void PrimaryFire()
 	{
 		RaycastHit shot;
-		Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
+		rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 		shootDirection = cam.transform.forward;
 
 		int layermask = 1 << 9;
@@ -65,7 +57,6 @@ public class ObjectMover : WeaponMotor
 				theObject.freezeRotation = false;
 			}
         }
-		
 	}
 
 	private void FixedUpdate()
@@ -94,7 +85,7 @@ public class ObjectMover : WeaponMotor
 
 			if (isRotatingObject)
 			{
-				UseButtonHolding();
+				UseKeyHolding();
 
 				float rotY = Input.GetAxis("Mouse Y") * rotationSpeed * Mathf.Deg2Rad;
 				float rotX = Input.GetAxis("Mouse X") * rotationSpeed * Mathf.Deg2Rad;
@@ -148,10 +139,6 @@ public class ObjectMover : WeaponMotor
 					}
 				}
 			}
-			
-
-		
-			
 			//player.GetComponent<PhotonView>().RPC("UpdateFortwarsPropTransform", RpcTarget.AllViaServer,
 				//theObject.GetComponent<FortwarsProp>().idOfOwner, propIndex, theObject.transform.position, theObject.transform.rotation);
 
@@ -164,14 +151,14 @@ public class ObjectMover : WeaponMotor
 
 	}
 
-	public override void UseButtonHolding()
+	public override void UseKeyHolding()
 	{
 		isRotatingObject = true;
 		Cursor.lockState = CursorLockMode.None;
 
 	}
 
-	public override void UseButtonUp()
+	public override void UseKeyUp()
 	{
 		origRot = theObject.transform.rotation;
 		origCamRot = cam.transform.rotation;
@@ -230,18 +217,9 @@ public class ObjectMover : WeaponMotor
         
     }
 
-    public override void ReloadButton()
-    {
-        
-    }
-
     public override void GetWeaponStats(Weapon wep)
     {
         
     }
 
-    public override void GetWeaponStats(RangedProjectile wep)
-    {
-        
-    }
 }

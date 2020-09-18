@@ -47,7 +47,7 @@ public struct PlayerActionInputs
 public class PlayerInput : MonoBehaviour
 {
 	//public PlayerMove player;
-	public PlayerStats playerStats;
+	public PlayerStats player;
 	public WeaponSlots playerWeapons;
 	public Camera cam;
 	public UIManager mainUI;
@@ -61,24 +61,24 @@ public class PlayerInput : MonoBehaviour
 
 	private Vector3 lookat;
 
-
     private void Update()
 	{
-		HandlePlayerInput();
-		CheckForInput();
-		//GetLook();
-	}
+        if (!player.netIdentity.isLocalPlayer)
+            return;
 
+        HandlePlayerInput();
+        CheckForInput();
+    }
 
-
-	private void Start()
+    private void Start()
 	{
-		playerWeapons.DecactivateAllWeapons();
+        player = GetComponent<PlayerStats>();
+        playerWeapons = player.wepSlots;
+        playerWeapons.DecactivateAllWeapons();
 	}
 
 	void HandlePlayerInput()
 	{
-
 		playerInputs.PrimaryFire = Input.GetMouseButtonDown(0);
 		playerInputs.PrimaryFireUp = Input.GetMouseButtonUp(0);
         playerInputs.PrimaryFireHolding = Input.GetMouseButton(0);
@@ -134,26 +134,26 @@ public class PlayerInput : MonoBehaviour
 	void CheckForInput()
 	{
 		GameObject wep = null;
+        //TODO: optimize this
 		if (playerWeapons.weaponSlots.Count > 0)
 		{
 			wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex];
 		}
-		//var wep = playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex];
+
 		if (playerInputs.PrimaryFire)
 		{
 			if (!mainUI.HasUnlockedMouseUIEnabled)
 			{
-				if (wep != null && wep.activeSelf && playerStats.isAlive)
+				if (wep != null && wep.activeSelf && player.isAlive)
 				{
 					wep.GetComponent<WeaponMotor>().PrimaryFire();
-					
 				}
 
-				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				if (playerWeapons.propWepSlots[0].activeSelf && player.isAlive)
 				{
 					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().PrimaryFire();
 				}
-				if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+				if (playerWeapons.propWepSlots[1].activeSelf && player.isAlive)
 				{
 					playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().PrimaryFire();
 				}
@@ -165,15 +165,15 @@ public class PlayerInput : MonoBehaviour
 			
 			if (!mainUI.HasUnlockedMouseUIEnabled)
 			{
-				if (wep != null && wep.activeSelf && playerStats.isAlive)
+				if (wep != null && wep.activeSelf && player.isAlive)
 				{
 					wep.GetComponent<WeaponMotor>().PrimaryFireButtonUp();
 				}
-				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				if (playerWeapons.propWepSlots[0].activeSelf && player.isAlive)
 				{
 					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().PrimaryFireButtonUp();
 				}
-				if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+				if (playerWeapons.propWepSlots[1].activeSelf && player.isAlive)
 				{
 					playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().PrimaryFireButtonUp();
 				}
@@ -184,7 +184,7 @@ public class PlayerInput : MonoBehaviour
         {
             if (!mainUI.HasUnlockedMouseUIEnabled)
             {
-                if (wep != null && wep.activeSelf && playerStats.isAlive)
+                if (wep != null && wep.activeSelf && player.isAlive)
                 {
                     wep.GetComponent<WeaponMotor>().PrimaryFireHolding();
                 }
@@ -195,15 +195,15 @@ public class PlayerInput : MonoBehaviour
 		{
 			if (!mainUI.HasUnlockedMouseUIEnabled && playerWeapons.weaponSlots.Count > 0)
 			{
-				if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].activeSelf && playerStats.isAlive)
+				if (playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].activeSelf && player.isAlive)
 				{
 					playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().SecondaryFire();
 				}
-				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				if (playerWeapons.propWepSlots[0].activeSelf && player.isAlive)
 				{
 					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().SecondaryFire();
 				}
-				if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+				if (playerWeapons.propWepSlots[1].activeSelf && player.isAlive)
 				{
 					playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().SecondaryFire();
 				}
@@ -212,7 +212,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.Weapon1)
 		{
-			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 0)
+			if (player.isAlive && playerWeapons.weaponSlots.Count > 0)
 			{
                 SwitchWeapon(0);
 			}
@@ -221,7 +221,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.Weapon2)
 		{
-			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 1)
+			if (player.isAlive && playerWeapons.weaponSlots.Count > 1)
 			{
                 SwitchWeapon(1);
 			}
@@ -230,7 +230,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.Weapon3)
 		{
-			if (playerStats.isAlive && playerWeapons.weaponSlots.Count > 2)
+			if (player.isAlive && playerWeapons.weaponSlots.Count > 2)
 			{
                 SwitchWeapon(2);
 			}
@@ -238,7 +238,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.PropSpawner)
 		{
-			if (wep != null && playerStats.isAlive)
+			if (wep != null && player.isAlive)
 			{
                 if (playerWeapons.propWepSlots[0].activeSelf)
                 {
@@ -263,7 +263,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.PropMover)
 		{
-			if (wep != null && playerStats.isAlive)
+			if (wep != null && player.isAlive)
 			{
 				playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
 				playerWeapons.SwitchToPropMover();
@@ -273,7 +273,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.Ability1)
 		{
-			if (wep != null && playerStats.isAlive)
+			if (wep != null && player.isAlive)
 			{
                 playerWeapons.ActivateAbility(0);
 			}
@@ -281,9 +281,9 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.MeleeKick)
 		{
-			if (!playerStats.CharControl.Motor.GroundingStatus.FoundAnyGround && playerStats.CharControl.CurrentCharacterState != CharacterState.Divekick)
+			if (!player.CharControl.Motor.GroundingStatus.FoundAnyGround && player.CharControl.CurrentCharacterState != CharacterState.Divekick)
 			{
-                playerStats.CharControl.TransitionToState(CharacterState.Divekick);
+                player.CharControl.TransitionToState(CharacterState.Divekick);
             }
 			else
 			{
@@ -342,7 +342,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.MouseScroll > 0f)
 		{
-			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+			if (playerWeapons.propWepSlots[1].activeSelf && player.isAlive)
 			{
 				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().ScrollWheelUp();
 			}
@@ -351,7 +351,7 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.MouseScroll < 0f)
 		{
-			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive)
+			if (playerWeapons.propWepSlots[1].activeSelf && player.isAlive)
 			{
 				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().ScrollWheelDown();
 			}
@@ -360,15 +360,15 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.Reload)
 		{
-			if (playerStats.isAlive)
+			if (player.isAlive)
 			{
 				if (!mainUI.HasUnlockedMouseUIEnabled && !playerWeapons.propWepSlots[0].activeSelf)
 				{
-					playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ReloadButton();
+					playerWeapons.weaponSlots[playerWeapons.activeWeaponIndex].GetComponent<WeaponMotor>().ReloadKey();
 				}
-				if (playerWeapons.propWepSlots[0].activeSelf && playerStats.isAlive)
+				if (playerWeapons.propWepSlots[0].activeSelf && player.isAlive)
 				{
-					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().ReloadButton();
+					playerWeapons.propWepSlots[0].GetComponent<WeaponMotor>().ReloadKey();
 				}
 			}
 
@@ -380,17 +380,17 @@ public class PlayerInput : MonoBehaviour
 
 		if (playerInputs.InteractHeld)
 		{
-			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.HasUnlockedMouseUIEnabled)
+			if (playerWeapons.propWepSlots[1].activeSelf && player.isAlive && !mainUI.HasUnlockedMouseUIEnabled)
 			{
-				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseButtonHolding();
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseKeyHolding();
 			}
 		}
 
 		if (playerInputs.InteractUp)
 		{
-			if (playerWeapons.propWepSlots[1].activeSelf && playerStats.isAlive && !mainUI.HasUnlockedMouseUIEnabled)
+			if (playerWeapons.propWepSlots[1].activeSelf && player.isAlive && !mainUI.HasUnlockedMouseUIEnabled)
 			{
-				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseButtonUp();
+				playerWeapons.propWepSlots[1].GetComponent<WeaponMotor>().UseKeyUp();
 			}
 		}
 

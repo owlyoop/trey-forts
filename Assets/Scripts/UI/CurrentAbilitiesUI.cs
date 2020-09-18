@@ -25,11 +25,11 @@ public class CurrentAbilitiesUI : MonoBehaviour
             abilityList.Clear();
         }
 
-        for (int i = 0; i < mainUI.player.CurrentClass.abilityList.Count; i++)
+        for (int i = 0; i < mainUI.player.currentClass.abilityList.Count; i++)
         {
             GameObject slot = Instantiate(abilityIconPrefab, grid.transform);
             var ab = slot.GetComponent<AbilityIcon>();
-            ab.baseAbility = mainUI.player.CurrentClass.abilityList[i];
+            ab.baseAbility = mainUI.player.currentClass.abilityList[i];
             ab.InitializeValues();
             abilityList.Add(ab.gameObject);
         }

@@ -32,6 +32,6 @@ public class ScoreboardPlayerInfo : MonoBehaviour
         kills.text = player.kills.ToString();
         assists.text = player.assists.ToString();
         ping.text = player.ping.ToString();
-        classicon.sprite = player.CurrentClass.icon;
+        classicon.sprite = player.currentClass.icon;
     }
 }

@@ -32,11 +32,11 @@ public class CurrentWeaponSlotsUI : MonoBehaviour
 				Destroy(wepList[x].gameObject);
 			}
 		}
-		for (int i = 0; i < mainUI.player.CurrentClass.weaponList.Count; i++)
+		for (int i = 0; i < mainUI.player.currentClass.weaponList.Count; i++)
 		{
 
 			GameObject slot = Instantiate(slotPrefab, contentGrid.transform);
-			slot.GetComponent<CurrentWeaponsUI>().wep = mainUI.player.CurrentClass.weaponList[i];
+			slot.GetComponent<CurrentWeaponsUI>().wep = mainUI.player.currentClass.weaponList[i];
 			slot.GetComponent<CurrentWeaponsUI>().wepName.text = slot.GetComponent<CurrentWeaponsUI>().wep.weaponName;
 			wepList.Add(slot);
 		}

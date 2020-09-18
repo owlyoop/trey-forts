@@ -22,9 +22,9 @@ public class StatusEffectReceiver : MonoBehaviour
 
 	public void AddPassiveStatusEffects()
 	{
-		for (int i = 0; i < player.CurrentClass.PassiveEffects.Count; i++)
+		for (int i = 0; i < player.currentClass.PassiveEffects.Count; i++)
 		{
-			StatusEffect s = Instantiate(player.CurrentClass.PassiveEffects[i], this.transform);
+			StatusEffect s = Instantiate(player.currentClass.PassiveEffects[i], this.transform);
 			s.receiver = player;
 			CurrentStatusEffectsOnPlayer.Add(s);
 		}

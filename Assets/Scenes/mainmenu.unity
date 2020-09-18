@@ -434,6 +434,38 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8527344898933112430, guid: 0b3a1becf10f25742a22c82ccadc2149,
+        type: 3}
+      propertyPath: onlineScene
+      value: Assets/Scenes/dev_level.unity
+      objectReference: {fileID: 0}
+    - target: {fileID: 8527344898933112430, guid: 0b3a1becf10f25742a22c82ccadc2149,
+        type: 3}
+      propertyPath: showDebugMessages
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8527344898933112430, guid: 0b3a1becf10f25742a22c82ccadc2149,
+        type: 3}
+      propertyPath: serverTickRate
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 8527344898933112430, guid: 0b3a1becf10f25742a22c82ccadc2149,
+        type: 3}
+      propertyPath: maxConnections
+      value: 32
+      objectReference: {fileID: 0}
+    - target: {fileID: 8527344898933112430, guid: 0b3a1becf10f25742a22c82ccadc2149,
+        type: 3}
+      propertyPath: spawnPrefabs.Array.data[0]
+      value: 
+      objectReference: {fileID: 1182533768651048, guid: 551da3741c9108d45b612c1bfa4b2ba6,
+        type: 3}
+    - target: {fileID: 8527344898933112430, guid: 0b3a1becf10f25742a22c82ccadc2149,
+        type: 3}
+      propertyPath: spawnPrefabs.Array.data[1]
+      value: 
+      objectReference: {fileID: 1974840673454540, guid: a8953d32b547b1245972c18ae6cf999f,
+        type: 3}
     m_RemovedComponents:
     - {fileID: 8527344898933112429, guid: 0b3a1becf10f25742a22c82ccadc2149, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 0b3a1becf10f25742a22c82ccadc2149, type: 3}

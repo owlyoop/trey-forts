@@ -54,6 +54,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -124,10 +125,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae85ac339a8d5434989309943f2c37f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  WeaponSwitchAwayTime: 0
-  WeaponSwitchToTime: 0
   player: {fileID: 0}
-  playersStats: {fileID: 0}
+  cam: {fileID: 0}
+  baseDamage: 0
+  shotsPerSecond: 0
+  maxAmmo: 0
+  currentAmmo: 0
+  clipSize: 0
+  currentAmmoInClip: 0
+  reloadTime: 0
+  numAmmoPerReload: 0
+  weaponSwitchAwayTime: 0
+  weaponSwitchToTime: 0
+  gunEnd: {fileID: 0}
+  layermask:
+    serializedVersion: 2
+    m_Bits: 131073
+  playerInput: {fileID: 0}
   playerUI: {fileID: 0}
   propUI: {fileID: 0}
   wepSlots: {fileID: 0}
@@ -194,6 +208,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -272,6 +287,7 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:

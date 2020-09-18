@@ -6,7 +6,6 @@ public class GaussCannon : WeaponMotor
 {
     [Header("References")]
     public UIManager ui;
-    public Camera cam;
 
     public int StartingDamage = 20;
 
@@ -14,6 +13,7 @@ public class GaussCannon : WeaponMotor
     public int ChargePerSecond = 40;
     public int DamagePerCharge = 1;
 
+    //todo: make this use the weaponmotor version
     public float ShotDelay = 0.5f;
 
     public float MinPushBackForce = 1f;
@@ -21,17 +21,10 @@ public class GaussCannon : WeaponMotor
 
     public float MaxDistance = 100f;
 
-
-    Vector3 rayOrigin;
-    Vector3 shootDirection;
-    Vector3 shotPoint;
-
     float heldStartTime;
     float nextChargeTime = 0f;
     bool isCharging = false;
     int charge = 0;
-
-    public LayerMask layermask;
 
     int OwnerPunID;
 
@@ -62,7 +55,7 @@ public class GaussCannon : WeaponMotor
     public override void GetWeaponStats(Weapon wep)
     {
         base.GetWeaponStats(wep);
-        StartingDamage = wep.BaseDamage;
+        StartingDamage = wep.baseDamage;
     }
 
     public override void PrimaryFire()
@@ -137,17 +130,17 @@ public class GaussCannon : WeaponMotor
         
     }
 
-    public override void ReloadButton()
+    public override void ReloadKey()
     {
         
     }
 
-    public override void UseButtonHolding()
+    public override void UseKeyHolding()
     {
         
     }
 
-    public override void UseButtonUp()
+    public override void UseKeyUp()
     {
         
     }

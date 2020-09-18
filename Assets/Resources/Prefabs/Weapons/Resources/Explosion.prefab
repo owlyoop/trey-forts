@@ -4763,6 +4763,7 @@ ParticleSystemRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -9574,6 +9575,7 @@ ParticleSystemRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -14385,6 +14387,7 @@ ParticleSystemRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
@@ -14443,6 +14446,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4794205041978498}
   - component: {fileID: 114757542836678516}
+  - component: {fileID: 754671756535521402}
   m_Layer: 0
   m_Name: Explosion
   m_TagString: Untagged
@@ -14482,8 +14486,22 @@ MonoBehaviour:
   exRadius: 4
   force: 16
   damageThePlayer: 1
-  OwnerPunID: 0
+  OwnerID: 0
   player: {fileID: 0}
-  hitPlayers: []
   firePrefab: {fileID: 3016998685309753482, guid: 24d12b39695d1654f9dc456a3714a14d,
     type: 3}
+--- !u!114 &754671756535521402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1974840673454540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  serverOnly: 0
+  m_AssetId: 

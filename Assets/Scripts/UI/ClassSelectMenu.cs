@@ -6,22 +6,23 @@ using UnityEngine.UI;
 public class ClassSelectMenu : MonoBehaviour
 {
 
+    [Header("Current Selected Class")]
 	public WeaponSet selectedClass;
-	public PlayerStats player;
-
-	public Text selectedClassName;
-
-	public Button ClassSelectButton;
-    public Button EliteClassButton;
-
 	public List<GameObject> selectedClassWeapons = new List<GameObject>();
 	public List<Weapon> selectedClassWeaponData = new List<Weapon>();
 
-	public List<GameObject> classListUISlots = new List<GameObject>();
-	public List<WeaponSet> classListDataAll = new List<WeaponSet>();
+    [Header("Class Lists")]
+	public List<ClassSelectSlot> classListUISlots = new List<ClassSelectSlot>();
+    public List<ClassSelectSlot> eliteClassListUISlots = new List<ClassSelectSlot>();
 
-    public List<WeaponSet> eliteClassListDataAll = new List<WeaponSet>();
-    public List<GameObject> eliteClassListUISlots = new List<GameObject>();
+    [Header("References")]
+    public PlayerStats player;
+
+    public Text selectedClassName;
+
+    public Button ClassSelectButton;
+    public Button EliteClassButton;
+    public Button SpawnAsEliteButton;
 
     public GameObject classButtonPrefab;
     public GameObject eliteClassButtonPrefab;
@@ -35,39 +36,49 @@ public class ClassSelectMenu : MonoBehaviour
     public Text dollarSign;
     public Text moneyText;
 
-	public PlayerStats.PlayerTeam QueuedTeam;
+    GameData gameData;
 
 	private void Start()
 	{
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+        gameData = player.gameManager.gameData;
+
+        foreach(WeaponSet elite in gameData.eliteClassList)
+        {
+            player.eliteClassLives.Add(elite.className, 0);
+        }
+
 		ClassSelectButton.interactable = false;
         EliteClassButton.interactable = false;
+        SpawnAsEliteButton.interactable = false;
 
-        EventManager.onCombatPhaseStart += EnableEliteBuyButton;
 		
-		for (int i = 0; i < classListDataAll.Count; i++)
+		for (int i = 0; i < gameData.classList.Count; i++)
 		{
 			GameObject slot = Instantiate(classButtonPrefab, classGrid.transform);
             ClassSelectSlot slotcomp = slot.GetComponent<ClassSelectSlot>();
-            slotcomp._weaponSet = classListDataAll[i];
-			slotcomp.icon.sprite = classListDataAll[i].icon;
-			slotcomp.buttonText.text = classListDataAll[i].className;
+            slotcomp.weaponSet = gameData.classList[i];
+			slotcomp.icon.sprite = gameData.classList[i].icon;
+			slotcomp.buttonText.text = gameData.classList[i].className;
 
-			classListUISlots.Add(slot);
+			classListUISlots.Add(slotcomp);
 		}
 
-        for (int i = 0; i < eliteClassListDataAll.Count; i++)
+        for (int i = 0; i < gameData.eliteClassList.Count; i++)
         {
             GameObject slot = Instantiate(eliteClassButtonPrefab, eliteClassGrid.transform);
             ClassSelectSlot slotcomp = slot.GetComponent<ClassSelectSlot>();
-            slotcomp._weaponSet = eliteClassListDataAll[i];
+            slotcomp.weaponSet = gameData.eliteClassList[i];
             slotcomp.isElite = true;
             slotcomp.dollarSign.enabled = true;
             slotcomp.cost.enabled = true;
-            slotcomp.cost.text = eliteClassListDataAll[i].eliteMoneyCost.ToString();
-            slotcomp.icon.sprite = eliteClassListDataAll[i].icon;
-            slotcomp.buttonText.text = eliteClassListDataAll[i].className;
+            slotcomp.cost.text = gameData.eliteClassList[i].eliteMoneyCost.ToString();
+            slotcomp.icon.sprite = gameData.eliteClassList[i].icon;
+            slotcomp.buttonText.text = gameData.eliteClassList[i].className;
+            slotcomp.numberOfLives.text = player.eliteClassLives[slotcomp.weaponSet.className].ToString();
 
-            eliteClassListUISlots.Add(slot);
+            eliteClassListUISlots.Add(slotcomp);
         }
         
         if (!player.HasPreviouslyPlayed)
@@ -76,18 +87,27 @@ public class ClassSelectMenu : MonoBehaviour
         }
     }
 
-    //Do this whenever combat phase begins
-    public void EnableEliteBuyButton()
+    public void OnEnable()
     {
-        EliteClassButton.interactable = true;
+        UpdateEliteClassSlots();
+    }
+
+    //Incase the player's money changes which makes them able to afford an elite class
+    public void UpdateClassSelectMenu()
+    {
+        if (selectedClass.isElite && player.currentCurrency >= selectedClass.eliteMoneyCost)
+        {
+            EliteClassButton.interactable = true;
+        }
+        else EliteClassButton.interactable = false;
     }
 
 	public void OnClickSelectButton()
 	{
-		if (player.CurrentClass.className == "Spectator")
+		if (player.currentClass.className == "Spectator")
 		{
             player.SetQueuedClass(selectedClass);
-			SetTeamIfWasSpectator(QueuedTeam);
+			SetTeamIfWasSpectator(player.QueuedTeam);
 			player.ui.SetActiveMainHud(true);
 		}
 		else
@@ -98,7 +118,7 @@ public class ClassSelectMenu : MonoBehaviour
 
         if (!player.HasPreviouslyPlayed)
         {
-            player.OnChangeCurrencyAmount(player.startingCurrency);
+            player.SetCurrencyAmount(player.gameManager.buildPhaseStartingMoney);
         }
         player.HasPreviouslyPlayed = true;
         player.ui.TransitionToState(PlayerUIState.None);
@@ -106,28 +126,35 @@ public class ClassSelectMenu : MonoBehaviour
 
     public void OnClickBuyEliteButton()
     {
-        if (player.CurrentClass.className == "Spectator")
+        if (player.currentClass.className != "Spectator")
         {
-            player.SetQueuedClass(selectedClass);
-            SetTeamIfWasSpectator(QueuedTeam);
-            player.ui.SetActiveMainHud(true);
-        }
-        else
-        {
+            player.SetCurrencyAmount(player.currentCurrency - selectedClass.eliteMoneyCost);
             player.SetQueuedClass(selectedClass);
             player.ui.SetActiveMainHud(true);
-            player.EliteClassLivesLeft = 1;
+            player.AddEliteClassLife(selectedClass);
+            player.ui.TransitionToState(PlayerUIState.None);
         }
+    }
 
-        player.ui.TransitionToState(PlayerUIState.None);
+    public void OnClickSpawnAsEliteButton()
+    {
+        player.SetQueuedClass(selectedClass);
     }
 
 	public void SetTeamIfWasSpectator(PlayerStats.PlayerTeam team)
 	{
 		player.SetTeam(team);
         player.SetQueuedClass(selectedClass);
-        player.RespawnAndInitialize();
+        player.RespawnPlayer();
 	}
+
+    public void UpdateEliteClassSlots()
+    {
+        foreach(ClassSelectSlot slot in eliteClassListUISlots)
+        {
+            slot.UpdateLivesText();
+        }
+    }
 }
 
 

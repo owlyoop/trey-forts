@@ -68,6 +68,12 @@ public class UIManager : MonoBehaviour
 	public List<Text> RespawnText = new List<Text>();
 	public Text RespawnTimer;
 
+    public Text YouWillSpawnAsText;
+    public Text EliteLifeLostText;
+
+    public float spawnAlertTextDuration = 2f;
+    public float spawnAlertTimer;
+
     [Header("StatusEffects")]
     public GameObject StatusEffectIcons;
     public GameObject StatusEffectIconPrefab;
@@ -78,16 +84,17 @@ public class UIManager : MonoBehaviour
 
 	public bool HasUnlockedMouseUIEnabled;
 
-
 	public GamePhases ServerTimer;
 
 	public bool IsSlotUIOpen;
 	private float slotTimer;
-	
 
-	private void Start()
+
+    private void Start()
 	{
-		slotTimer = 0f;
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+        slotTimer = 0f;
 		ServerTimer = GameObject.Find("Game Manager").GetComponent<GamePhases>();
 		HasUnlockedMouseUIEnabled = false;
 		PropSpawnMenu.SetActive(false);
@@ -95,18 +102,21 @@ public class UIManager : MonoBehaviour
         TeamSelectMenu.SetActive(false);
 		CurrentWeaponSlots.SetActive(false);
 		SetActiveMainHud(false);
+        SetActiveYouWillSpawnAsText(false);
 
-		EventManager.onWaitingForPlayersEnd += WaitingForPlayersEnd;
+        EventManager.onWaitingForPlayersEnd += WaitingForPlayersEnd;
 		EventManager.onBuildPhaseStart += BuildPhaseBegin;
 		EventManager.onBuildPhaseEnd += BuildPhaseEnd;
 		EventManager.onCombatPhaseStart += CombatPhaseBegin;
 		EventManager.onCombatPhaseEnd += CombatPhaseEnd;
 
-		BlueScore.text = playerInput.playerStats._gameManager.blueTeamFlagCaptures.ToString();
-		RedScore.text = playerInput.playerStats._gameManager.redTeamFlagCaptures.ToString();
+		BlueScore.text = player.gameManager.blueTeamFlagCaptures.ToString();
+		RedScore.text = player.gameManager.redTeamFlagCaptures.ToString();
 
         Scoreboard.gameObject.SetActive(false);
         MainEscMenu.gameObject.SetActive(false);
+        spawnAlertTimer = spawnAlertTextDuration;
+        
 
         previousState = PlayerUIState.None;
         TransitionToState(PlayerUIState.None);
@@ -115,6 +125,8 @@ public class UIManager : MonoBehaviour
 
     public void OnStateEnter(PlayerUIState state, PlayerUIState fromState)
     {
+        if (!player.netIdentity.isLocalPlayer)
+            return;
         switch (state)
         {
             case PlayerUIState.MainMenu:
@@ -140,9 +152,13 @@ public class UIManager : MonoBehaviour
                 }
             case PlayerUIState.ClassSelectMenu:
                 {
-                    ClassSelectMenu.SetActive(true);
-                    Cursor.lockState = CursorLockMode.None;
-                    HasUnlockedMouseUIEnabled = true;
+                    if (player.currentClass.className != "Spectator" || player.QueuedTeam != PlayerStats.PlayerTeam.Spectator)
+                    {
+                        ClassSelectMenu.SetActive(true);
+                        Cursor.lockState = CursorLockMode.None;
+                        HasUnlockedMouseUIEnabled = true;
+                        ClassSelectMenu.GetComponent<ClassSelectMenu>().UpdateEliteClassSlots();
+                    }
                     break;
                 }
             case PlayerUIState.OptionsMenu:
@@ -170,6 +186,8 @@ public class UIManager : MonoBehaviour
 
     public bool OnStateExit(PlayerUIState state, PlayerUIState toState)
     {
+        if (!player.netIdentity.isLocalPlayer)
+            return false;
         bool isValid = true;
         switch (state)
         {
@@ -184,7 +202,6 @@ public class UIManager : MonoBehaviour
                     else
                     {
                         MainEscMenu.gameObject.SetActive(false);
-                        
                     }
                     break;
                 }
@@ -226,6 +243,9 @@ public class UIManager : MonoBehaviour
 
     public void TransitionToState(PlayerUIState newState)
     {
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
         PlayerUIState tempState = CurrentUIState;
         if (OnStateExit(tempState, newState))
         {
@@ -272,27 +292,30 @@ public class UIManager : MonoBehaviour
 
 	private void Update()
 	{
-		if (ServerTimer != null && ServerTimer.isWaitingForPlayers)
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
+		if (ServerTimer != null && ServerTimer.currentGameState == GamePhases.GameState.WaitingForPlayers)
 		{
-			var min = (int)ServerTimer.WaitingForPlayersLength / 60;
+			var min = (int)ServerTimer.waitingForPlayersLength / 60;
 			TimerMinutes.text = min.ToString();
-			var secs = (int)ServerTimer.WaitingForPlayersLength % 60;
+			var secs = (int)ServerTimer.waitingForPlayersLength % 60;
 			TimerSeconds.text = secs.ToString();
 		}
 
-		if (ServerTimer != null && ServerTimer.isInBuildPhase)
+		if (ServerTimer != null && ServerTimer.currentGameState == GamePhases.GameState.BuildPhase)
 		{
-			var min = (int)ServerTimer.BuildPhaseTimeLength / 60;
+			var min = (int)ServerTimer.buildPhaseTimeLength / 60;
 			TimerMinutes.text = min.ToString();
-			var secs = (int)ServerTimer.BuildPhaseTimeLength % 60;
+			var secs = (int)ServerTimer.buildPhaseTimeLength % 60;
 			TimerSeconds.text = secs.ToString();
 		}
 
-        if (ServerTimer != null && ServerTimer.isInCombatPhase)
+        if (ServerTimer != null && ServerTimer.currentGameState == GamePhases.GameState.CombatPhase)
         {
-            var min = (int)ServerTimer.CombatPhaseTimeLength / 60;
+            var min = (int)ServerTimer.combatPhaseTimeLength / 60;
             TimerMinutes.text = min.ToString();
-            var secs = (int)ServerTimer.CombatPhaseTimeLength % 60;
+            var secs = (int)ServerTimer.combatPhaseTimeLength % 60;
             TimerSeconds.text = secs.ToString();
         }
 
@@ -308,14 +331,14 @@ public class UIManager : MonoBehaviour
 		// rotate flag arrow ui to point at the flags
 		if (FlagRadialBlue.isActiveAndEnabled)
 		{
-			var targetPosLocal = playerInput.cam.transform.InverseTransformPoint(player._gameManager.blueFlag.transform.position);
+			var targetPosLocal = playerInput.cam.transform.InverseTransformPoint(player.gameManager.blueFlag.transform.position);
 			var targetAngle = -Mathf.Atan2(targetPosLocal.x, targetPosLocal.z) * Mathf.Rad2Deg;
 			FlagRadialBlue.rectTransform.eulerAngles = new Vector3(0,0,targetAngle);
 		}
 
 		if (FlagRadialRed.isActiveAndEnabled)
 		{
-			var targetPosLocal = playerInput.cam.transform.InverseTransformPoint(player._gameManager.redFlag.transform.position);
+			var targetPosLocal = playerInput.cam.transform.InverseTransformPoint(player.gameManager.redFlag.transform.position);
 			var targetAngle = -Mathf.Atan2(targetPosLocal.x, targetPosLocal.z) * Mathf.Rad2Deg;
 			FlagRadialRed.rectTransform.eulerAngles = new Vector3(0, 0, targetAngle);
 		}
@@ -332,12 +355,18 @@ public class UIManager : MonoBehaviour
 
     public void RemoveStatusEffectIcon(StatusEffect effect)
     {
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
         Destroy(effect.ActiveIcon.gameObject);
         effect.ActiveIcon = null;
     }
 
     public void UpdateStatusEffectIcon(StatusEffect s)
     {
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
         if (s.AllowStacking)
         {
             s.ActiveIcon.StacksText.text = s.CurrentStacks.ToString();
@@ -350,14 +379,20 @@ public class UIManager : MonoBehaviour
 
 	public void ShowWepSlotUI()
 	{
-		IsSlotUIOpen = true;
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
+        IsSlotUIOpen = true;
 		slotTimer = Time.time;
 		CurrentWeaponSlots.SetActive(true);
 	}
 
 	public void SetActiveMainHud(bool choice)
 	{
-		if (player.CurrentClass.className != "Spectator")
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
+        if (player.currentClass.className != "Spectator")
 		{
 			if (choice)
 			{
@@ -376,7 +411,10 @@ public class UIManager : MonoBehaviour
 
 	public void SetActivateDeathUI(bool choice)
 	{
-		if (choice == true)
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
+        if (choice)
 		{
 			for (int i = 0; i < RespawnText.Count; i++)
 			{
@@ -386,8 +424,7 @@ public class UIManager : MonoBehaviour
             if (CurrentUIState == PlayerUIState.PropMenu)
                 TransitionToState(PlayerUIState.None);
 		}
-
-		if (choice == false)
+		else
 		{
 			for (int i = 0; i < RespawnText.Count; i++)
 			{
@@ -396,5 +433,45 @@ public class UIManager : MonoBehaviour
 			RespawnTimer.enabled = false;
 		}
 	}
+
+    public void SetActiveYouWillSpawnAsText(bool choice)
+    {
+        if (!player.netIdentity.isLocalPlayer)
+            return;
+
+        if (choice)
+        {
+            YouWillSpawnAsText.enabled = true;
+            YouWillSpawnAsText.text = "You will spawn as a " + player.QueuedClass.className;
+            if (player.currentClass.isElite)
+            {
+                EliteLifeLostText.enabled = true;
+            }
+            else
+            {
+                EliteLifeLostText.enabled = false;
+            }
+        }
+        else
+        {
+            YouWillSpawnAsText.enabled = false;
+            EliteLifeLostText.enabled = false;
+        }
+    }
+
+
+    public IEnumerator ShowYouWillSpawnAsText()
+    {
+        while (spawnAlertTimer > 0)
+        {
+            YouWillSpawnAsText.enabled = true;
+            yield return new WaitForSeconds(spawnAlertTextDuration);
+            spawnAlertTimer -= spawnAlertTextDuration;
+        }
+        if (spawnAlertTimer <= 0)
+        {
+            YouWillSpawnAsText.enabled = false;
+        }
+    }
 
 }

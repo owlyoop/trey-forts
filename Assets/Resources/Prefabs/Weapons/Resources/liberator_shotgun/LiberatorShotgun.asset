@@ -17,10 +17,11 @@ MonoBehaviour:
   icon: {fileID: 0}
   weaponPrefab: {fileID: 2854000010531467, guid: d5d8945b0bf9a8e4393be91e832e12ee,
     type: 3}
-  BaseDamage: 3
-  ShotsPerSecond: 2
-  ClipSize: 6
-  ReloadTime: 1
-  MaxAmmo: 32
+  baseDamage: 3
+  shotsPerSecond: 2
+  clipSize: 8
+  reloadTime: 0.4
+  numAmmoPerReload: 2
+  maxAmmo: 40
   damageType: 0
   weaponComponents: []

@@ -96,23 +96,23 @@ public class HealthAmmoPickup : MonoBehaviour
         if (sentinel == 0)
         {
             var player = other.GetComponent<PlayerStats>();
-            if (player != null && player.CurrentClass.className != "Spectator")
+            if (player != null && player.currentClass.className != "Spectator")
             {
                 if (TypeOfPickup == PickupType.AmmoFull || TypeOfPickup == PickupType.AmmoMedium || TypeOfPickup == PickupType.AmmoSmall)
                 {
                     foreach (GameObject gb in player.wepSlots.weaponSlots)
                     {
                         var weapon = gb.GetComponent<WeaponMotor>();
-                        float ammoAdd = (PickupPercentAdd / 100) * weapon.MaxAmmo;
-                        if ((int)ammoAdd + weapon.CurrentAmmo > weapon.MaxAmmo)
+                        float ammoAdd = (PickupPercentAdd / 100) * weapon.maxAmmo;
+                        if ((int)ammoAdd + weapon.currentAmmo > weapon.maxAmmo)
                         {
-                            weapon.CurrentAmmo = weapon.MaxAmmo;
+                            weapon.currentAmmo = weapon.maxAmmo;
                         }
                         else
                         {
-                            weapon.CurrentAmmo += (int)ammoAdd;
+                            weapon.currentAmmo += (int)ammoAdd;
                         }
-                        Debug.Log(weapon.CurrentAmmo);
+                        Debug.Log(weapon.currentAmmo);
                     }
                     validPickup = true;
                     player.wepSlots.CurrentWeapon.UpdateUI();
@@ -120,7 +120,7 @@ public class HealthAmmoPickup : MonoBehaviour
                 }
                 else
                 {
-                    if (player.CurrentHealth < player.maxHealth.Value)
+                    if (player.currentHealth < player.maxHealth.Value)
                     {
                         player.OnHealthPickup(PickupPercentAdd);
                         validPickup = true;

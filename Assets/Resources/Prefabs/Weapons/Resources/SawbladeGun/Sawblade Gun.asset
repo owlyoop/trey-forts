@@ -21,6 +21,7 @@ MonoBehaviour:
   ShotsPerSecond: 5
   ClipSize: 10
   ReloadTime: 0.25
+  numAmmoPerReload: 1
   MaxAmmo: 100
   damageType: 0
   weaponComponents: []

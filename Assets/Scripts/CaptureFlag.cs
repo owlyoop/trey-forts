@@ -24,14 +24,16 @@ public class CaptureFlag : MonoBehaviour
 
 	public bool isBeingHeld = false;
 
+    GamePhases gameManager;
+
 	private void Start()
 	{
+        gameManager = GameObject.FindObjectOfType<GamePhases>();
 		flagSpawn = new Vector3(this.transform.position.x, this.transform.position.y, this.transform.position.z);
-	}
+        if (team == Team.Blue)
+            gameManager.blueFlag = this;
+        else gameManager.redFlag = this;
 
-	private void Update()
-	{
-		
 	}
 	
 	public void SetIsRotating(bool choice)

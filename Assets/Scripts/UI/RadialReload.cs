@@ -8,9 +8,9 @@ public class RadialReload : MonoBehaviour
 
     public bool isReloading;
 
-    public float _reloadEndTime;
-    public float _reloadStartTime;
-    public float _reloadTime;
+    public float reloadEndTime;
+    public float reloadStartTime;
+    public float reloadTime;
 
     public Image radialImage;
     
@@ -24,14 +24,13 @@ public class RadialReload : MonoBehaviour
     {
         if (isReloading )
         {
-            radialImage.fillAmount = (Time.time - _reloadStartTime) / (_reloadTime);
+            radialImage.fillAmount = (Time.time - reloadStartTime) / (reloadTime);
         }
 
-        if (isReloading && Time.time > _reloadStartTime + _reloadTime)
+        if (isReloading && Time.time > reloadStartTime + reloadTime)
         {
             //reload finished
-
-            _reloadStartTime = Time.time;
+            reloadStartTime = Time.time;
         }
         
     }
@@ -39,9 +38,9 @@ public class RadialReload : MonoBehaviour
     public void StartReload(float reloadTime)
     {
         radialImage.enabled = true;
-        _reloadTime = reloadTime;
-        _reloadStartTime = Time.time;
-        _reloadEndTime = _reloadStartTime + reloadTime;
+        this.reloadTime = reloadTime;
+        reloadStartTime = Time.time;
+        reloadEndTime = reloadStartTime + reloadTime;
         isReloading = true;
 
     }

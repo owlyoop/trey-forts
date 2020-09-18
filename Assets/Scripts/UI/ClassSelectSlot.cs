@@ -12,15 +12,16 @@ public class ClassSelectSlot : MonoBehaviour
     public bool isElite;
     public Text cost;
     public Text dollarSign;
+    public Text numberOfLives;
 
-	public WeaponSet _weaponSet;
+	public WeaponSet weaponSet;
 	public ClassSelectMenu menu;
 
 
 	private void Start()
 	{
 		menu = GetComponentInParent<GridReference>().menu;
-		buttonText.text = _weaponSet.className;
+		buttonText.text = weaponSet.className;
         if (!isElite)
         {
             cost.enabled = false;
@@ -28,17 +29,22 @@ public class ClassSelectSlot : MonoBehaviour
         }
 	}
 
+    public void UpdateLivesText()
+    {
+        numberOfLives.text = menu.player.eliteClassLives[weaponSet.className].ToString();
+    }
+
 	public void OnClickSlot()
 	{
 		//fix
-		menu.selectedClassName.text = _weaponSet.className;
-		menu.selectedClass = _weaponSet;
-		
+		menu.selectedClassName.text = weaponSet.className;
+		menu.selectedClass = weaponSet;
 
-        if (_weaponSet.isElite)
+        if (weaponSet.isElite)
         {
+            menu.ClassSelectButton.interactable = false;
             bool canSelect = false;
-            if (menu.player.CurrentCurrency >= menu.selectedClass.eliteMoneyCost)
+            if (menu.player.currentCurrency >= menu.selectedClass.eliteMoneyCost)
             {
                 canSelect = true;
             }
@@ -47,13 +53,10 @@ public class ClassSelectSlot : MonoBehaviour
                 canSelect = false;
             }
 
-            if (menu.player._gameManager.isInBuildPhase || menu.player._gameManager.isWaitingForPlayers)
+            if (menu.player.gameManager.currentGameState == GamePhases.GameState.BuildPhase || menu.player.gameManager.currentGameState == GamePhases.GameState.WaitingForPlayers)
             {
                 canSelect = false;
             }
-
-            if (menu.player.HasPreviouslyPlayed)
-                canSelect = false;
 
             if (canSelect)
             {
@@ -63,15 +66,26 @@ public class ClassSelectSlot : MonoBehaviour
             {
                 menu.EliteClassButton.interactable = false;
             }
+
+            //check how many lives the player has for the elite class
+            if (menu.player.eliteClassLives[weaponSet.className] > 0)
+            {
+                menu.SpawnAsEliteButton.interactable = true;
+            }
+            else
+            {
+                menu.SpawnAsEliteButton.interactable = false;
+            }
         }
         else
         {
             menu.ClassSelectButton.interactable = true;
+            menu.EliteClassButton.interactable = false;
         }
 
 
 		//clear
-		if (_weaponSet.weaponList.Count > 0 && menu.selectedClassWeapons.Count > 0)
+		if (weaponSet.weaponList.Count > 0 && menu.selectedClassWeapons.Count > 0)
 		{
 			for (int i = 0; i < menu.selectedClassWeapons.Count; i++)
 			{
@@ -80,12 +94,12 @@ public class ClassSelectSlot : MonoBehaviour
 		}
 
 
-		for (int i = 0; i < _weaponSet.weaponList.Count; i++)
+		for (int i = 0; i < weaponSet.weaponList.Count; i++)
 		{
 			GameObject newwep = Instantiate(menu.weaponUIPrefab, menu.wepGrid.transform);
-			newwep.GetComponent<WeaponSlotUI>().wep = _weaponSet.weaponList[i];
-			newwep.GetComponent<WeaponSlotUI>().icon.sprite = _weaponSet.weaponList[i].icon;
-			newwep.GetComponent<WeaponSlotUI>().weaponName.text = _weaponSet.weaponList[i].weaponName;
+			newwep.GetComponent<WeaponSlotUI>().wep = weaponSet.weaponList[i];
+			newwep.GetComponent<WeaponSlotUI>().icon.sprite = weaponSet.weaponList[i].icon;
+			newwep.GetComponent<WeaponSlotUI>().weaponName.text = weaponSet.weaponList[i].weaponName;
 			menu.selectedClassWeapons.Add(newwep);
 		}
 	}

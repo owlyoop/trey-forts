@@ -32,7 +32,7 @@ public class Divekick : Damager
         {
             if (Time.time > _divekickExpireTime)
             {
-                player.CharControl.TransitionToState(player.CurrentClass.defaultState);
+                player.CharControl.TransitionToState(player.currentClass.defaultState);
                 DeactivateDivekick();
             }
         }
@@ -127,7 +127,7 @@ public class Divekick : Damager
         {
             iter++;
             target.TakeDamage(baseDamage, DamageTypes.Physical, player, player.transform.position, PlayerStats.DamageIndicatorType.Directional);
-            player.CharControl.TransitionToState(player.CurrentClass.defaultState);
+            player.CharControl.TransitionToState(player.currentClass.defaultState);
             
         }
 

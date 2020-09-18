@@ -83,7 +83,7 @@ public class FortwarsProp : MonoBehaviour, IDamagable
                 if (Time.time > nextTickTime)
                 {
                     nextTickTime = Time.time + HealthTickDelay;
-                    if (player._gameManager.isInBuildPhase)
+                    if (player.gameManager.currentGameState == GamePhases.GameState.BuildPhase)
                     {
                         remainingBuildHealth -= BuildPhaseHealthPerTick;
                         currentHealth += BuildPhaseHealthPerTick;

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Player Class", menuName = "Fortwars Class")]
+[CreateAssetMenu(fileName = "New Player Class", menuName = "Fortwars/Fortwars Class")]
 public class WeaponSet : ScriptableObject
 {
 	public bool isElite;
@@ -18,8 +18,6 @@ public class WeaponSet : ScriptableObject
     public List<AbilityData> abilityList;
 
 	public List<StatusEffect> PassiveEffects;
-
-
 
 	public string className;
 	public Sprite icon;

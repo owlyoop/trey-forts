@@ -9,11 +9,6 @@ public class HitscanShooter : WeaponMotor
         throw new System.NotImplementedException();
     }
 
-    public override void GetWeaponStats(RangedProjectile wep)
-    {
-        throw new System.NotImplementedException();
-    }
-
     public override void OnSwitchAwayFromWeapon()
     {
         throw new System.NotImplementedException();
@@ -39,7 +34,7 @@ public class HitscanShooter : WeaponMotor
         throw new System.NotImplementedException();
     }
 
-    public override void ReloadButton()
+    public override void ReloadKey()
     {
         throw new System.NotImplementedException();
     }
@@ -69,12 +64,12 @@ public class HitscanShooter : WeaponMotor
         throw new System.NotImplementedException();
     }
 
-    public override void UseButtonHolding()
+    public override void UseKeyHolding()
     {
         throw new System.NotImplementedException();
     }
 
-    public override void UseButtonUp()
+    public override void UseKeyUp()
     {
         throw new System.NotImplementedException();
     }

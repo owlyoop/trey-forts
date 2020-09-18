@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class ProjectileRocket : Projectile
 {
-
-
     public Explosion explosion;
 
     public LayerMask layermask;
@@ -19,6 +17,7 @@ public class ProjectileRocket : Projectile
     {
         rb = this.GetComponent<Rigidbody>();
         Physics.IgnoreCollision(this.GetComponent<Collider>(), player.GetComponent<Collider>());
+        Physics.IgnoreLayerCollision(9,11);
         Invoke("Kill", life);
         rb.AddForce(transform.forward * speed, ForceMode.VelocityChange);
     }
@@ -52,7 +51,7 @@ public class ProjectileRocket : Projectile
 
                 if (isValid && safeguard == 1)
                 {
-                    player.GetComponent<PlayerRpcCalls>().SpawnExplosion(player, transform.position, baseDamage, damageType);
+                    player.GetComponent<PlayerNetworkCalls>().RpcSpawnExplosion(player.netIdentity, transform.position, baseDamage, damageType);
                     safeguard++;
                     Kill();
                 }

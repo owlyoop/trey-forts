@@ -25,16 +25,24 @@ public class YBotAnimations : MonoBehaviour {
 	public Vector3 Offset;
 
 	KinematicCharacterMotor playerKCM;
+    Mirror.NetworkAnimator networkAnim;
+    Mirror.NetworkIdentity networkId;
 
 	void Start ()
 	{
-		animator = this.gameObject.GetComponent<Animator>();
+        if (!playerInputs.player.netIdentity.isLocalPlayer)
+            return;
+        networkAnim = GetComponent<Mirror.NetworkAnimator>();
+        networkId = GetComponent<Mirror.NetworkIdentity>();
+
+        animator = this.gameObject.GetComponent<Animator>();
 		playerKCM = playerInputs.GetComponent<MyCharacterController>().Motor;
 	}
 	
 	void Update ()
 	{
-
+        if (!playerInputs.player.netIdentity.isLocalPlayer)
+            return;
 		KickInput = playerInputs.playerInputs.MeleeKick;
 		JumpInput = playerInputs.playerInputs.Jump;
 		CrouchInput = playerInputs.playerInputs.Crouch;

@@ -587,8 +587,8 @@ namespace KinematicCharacterController.Owly
 					{
 						if (Motor.GroundingStatus.IsStableOnGround)
 						{
-                              if (player.CurrentHealth > 0)
-					              TransitionToState(player.CurrentClass.defaultState);
+                              if (player.currentHealth > 0)
+					              TransitionToState(player.currentClass.defaultState);
 						}
 						else
 						{

@@ -8,50 +8,16 @@ public class Shotgun : WeaponMotor
 	public int numPellets;
 	public float randomSpread = 0.04f;
 
-	public Damager.DamageTypes damageType;
 	public int damagePerPellet;
-	public float shotsPerSecond;
-	public int clipSize;
 
-
-	public Camera cam;
-
-	float lastFireTime;
-	bool isReloading = false;
-	Vector3 shootDirection;
-	public Vector3 shotPoint;
-	public Transform gunEnd;
-
-    public LayerMask layermask;
-
-    int OwnerPunID;
 	public GameObject hitPrefab;
-
-	private void Start()
-	{
-		
-		player = GetComponentInParent<WeaponSlots>().player;
-        cam = player.cam;
-        //OwnerPunID = player.photonView.ViewID;
-		lastFireTime = 0f;
-		CurrentAmmoInClip = clipSize;
-		CurrentAmmo = MaxAmmo;
-		player.OnChangeAmmoInClip(CurrentAmmoInClip);
-		player.OnChangeAmmoReservesAmount(CurrentAmmo);
-	}
-
-	private void Update()
-	{
-
-	}
-
 
 	public override void PrimaryFire()
 	{
-		if (Time.time > lastFireTime + (1 / shotsPerSecond) && CurrentAmmoInClip > 0)
+		if (Time.time > lastFireTime + (1 / shotsPerSecond) && currentAmmoInClip > 0)
 		{
 			isReloading = false;
-			player.ui.RadialReload.enabled = false;
+            player.ui.RadialReload.StopReload();
 			RaycastHit shot;
 			Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
 			shootDirection = cam.transform.forward;
@@ -86,7 +52,6 @@ public class Shotgun : WeaponMotor
 					go.transform.position = shotPoint;
 					go.transform.rotation = Quaternion.FromToRotation(Vector3.forward, shot.normal);
 				}
-
 			}
 
             foreach(IDamagable target in targets)
@@ -94,23 +59,15 @@ public class Shotgun : WeaponMotor
                 target.TakeDamage(damagePerPellet, Damager.DamageTypes.Physical, player, player.transform.position, PlayerStats.DamageIndicatorType.Directional);
             }
 			lastFireTime = Time.time;
-			CurrentAmmoInClip = CurrentAmmoInClip - 1;
-			player.OnChangeAmmoInClip(CurrentAmmoInClip);
+			currentAmmoInClip = currentAmmoInClip - 1;
+			player.OnChangeAmmoInClip(currentAmmoInClip);
 		}
 	}
-	
 
 	public override void GetWeaponStats(Weapon wep)
 	{
-        clipSize = wep.ClipSize;
-        damagePerPellet = wep.BaseDamage;
-        shotsPerSecond = wep.ShotsPerSecond;
         base.GetWeaponStats(wep);
-	}
-
-	public override void ReloadButton()
-	{
-		
+        damagePerPellet = wep.baseDamage;
 	}
 
     public override void UpdateUI()
@@ -158,12 +115,12 @@ public class Shotgun : WeaponMotor
         
     }
 
-    public override void UseButtonHolding()
+    public override void UseKeyHolding()
     {
         
     }
 
-    public override void UseButtonUp()
+    public override void UseKeyUp()
     {
         
     }

@@ -30,61 +30,60 @@ public class WeaponSlots : MonoBehaviour
 
 	public void InitializeWeapons()
 	{
-		if (player.CurrentClass.weaponList.Count > 0)
+		if (weaponSlots.Count > 0)
 		{
-			if (weaponSlots.Count > 0)
+			for (int i = 0; i < weaponSlots.Count; i++)
 			{
-				for (int i = 0; i < weaponSlots.Count; i++)
-				{
-					weaponSlots[i].SetActive(true);
-                    weaponSlots[i].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
-					Destroy(weaponSlots[i]);
-					
-				}
-				weaponSlots.Clear();
+				weaponSlots[i].SetActive(true);
+                weaponSlots[i].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+				Destroy(weaponSlots[i]);
+				
 			}
+			weaponSlots.Clear();
+		}
 
-			for (int i = 0; i < player.CurrentClass.weaponList.Count; i++)
-			{
-				GameObject temp = Instantiate(player.CurrentClass.weaponList[i].weaponPrefab, transform);
-				weaponSlots.Add(temp);
-				ApplyWeaponStats(i);
-                weaponSlots[i].GetComponent<WeaponMotor>().player = player;
-				weaponSlots[i].SetActive(false);
-			}
-			weaponSlots[0].SetActive(true);
+		for (int i = 0; i < player.currentClass.weaponList.Count; i++)
+		{
+			GameObject temp = Instantiate(player.currentClass.weaponList[i].weaponPrefab, transform);
+			weaponSlots.Add(temp);
+			ApplyWeaponStats(i);
+            weaponSlots[i].GetComponent<WeaponMotor>().player = player;
+			weaponSlots[i].SetActive(false);
+		}
+
+        if (weaponSlots.Count > 0)
+        {
+            weaponSlots[0].SetActive(true);
             CurrentWeapon = weaponSlots[0].GetComponent<WeaponMotor>();
-
-            propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
-            propWepSlots[0].SetActive(false);
-            propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
-            propWepSlots[1].SetActive(false);
-
-            if (abilitySlots.Count > 0)
-            {
-                for (int i = 0; i < abilitySlots.Count; i++)
-                {
-                    Destroy(abilitySlots[i]);
-
-                }
-                abilitySlots.Clear();
-            }
-
-            for (int i = 0; i < player.CurrentClass.abilityList.Count; i++)
-            {
-                GameObject temp = Instantiate(player.CurrentClass.abilityList[i].AbilityPrefab, abilitySlotsTransform);
-                temp.GetComponent<AbilityMotor>().owner = player;
-                abilitySlots.Add(temp);
-            }
-
-            
         }
 
+        propWepSlots[0].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+        propWepSlots[0].SetActive(false);
+        propWepSlots[1].GetComponent<WeaponMotor>().OnSwitchAwayFromWeapon();
+        propWepSlots[1].SetActive(false);
+
+        if (abilitySlots.Count > 0)
+        {
+            for (int i = 0; i < abilitySlots.Count; i++)
+            {
+                Destroy(abilitySlots[i]);
+
+            }
+            abilitySlots.Clear();
+        }
+
+        for (int i = 0; i < player.currentClass.abilityList.Count; i++)
+        {
+            GameObject temp = Instantiate(player.currentClass.abilityList[i].AbilityPrefab, abilitySlotsTransform);
+            temp.GetComponent<AbilityMotor>().owner = player;
+            abilitySlots.Add(temp);
+        }
     }
 
 	public void SwitchActiveWeaponSlot(int index)
 	{
 		DecactivateAllWeapons();
+        player.ui.RadialReload.StopReload();
 
 		if (index < weaponSlots.Count)
 		{
@@ -106,7 +105,7 @@ public class WeaponSlots : MonoBehaviour
 
 	public void SwitchToPropMover()
 	{
-		if (!player._gameManager.isInCombatPhase)
+		if (player.gameManager.currentGameState != GamePhases.GameState.CombatPhase)
 		{
 			DecactivateAllWeapons();
 			propWepSlots[1].SetActive(true);
@@ -142,15 +141,7 @@ public class WeaponSlots : MonoBehaviour
 	
 	public void ApplyWeaponStats(int index)
 	{
-		if (player.CurrentClass.weaponList[index] is RangedProjectile)
-		{
-			RangedProjectile tempWep = player.CurrentClass.weaponList[index] as RangedProjectile;
-			weaponSlots[index].GetComponent<ProjectileLauncher>().GetWeaponStats(tempWep);
-		}
-        else
-        {
-            weaponSlots[index].GetComponent<WeaponMotor>().GetWeaponStats(player.CurrentClass.weaponList[index]);
-        }
+        weaponSlots[index].GetComponent<WeaponMotor>().GetWeaponStats(player.currentClass.weaponList[index]);
     }
 
 	public void SetSelectedProp(FortwarsPropData prop)

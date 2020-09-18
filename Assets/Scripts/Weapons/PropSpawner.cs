@@ -4,13 +4,11 @@ using UnityEngine;
 
 public class PropSpawner : WeaponMotor
 {
-
 	public PlayerInput playerInput;
 	public UIManager playerUI;
 	public PropSpawnMenu propUI;
 	public WeaponSlots wepSlots;
 	public FortwarsProp theProp;
-	Camera cam;
 	
 	public GameObject ghostProp;
 	
@@ -26,11 +24,8 @@ public class PropSpawner : WeaponMotor
 
 	public GamePhases gameManager;
 
-    public LayerMask allowedLayers;
-
 	private void Start()
 	{
-        player = playerInput.playerStats;
 		gameManager = GameObject.Find("Game Manager").GetComponent<GamePhases>();
 		InitilaizeValues();
 
@@ -38,8 +33,6 @@ public class PropSpawner : WeaponMotor
 		{
 			SetSelectedProp();
 		}
-
-		
 	}
 
 	private void InitilaizeValues()
@@ -55,7 +48,7 @@ public class PropSpawner : WeaponMotor
 		Destroy(ghostProp);
 		Debug.Log("pp 2");
 		Debug.Log(playerInput.mainUI.PropMenu.hasPropSelected.ToString());
-		if (player.CurrentCurrency > player.wepSlots.selectedProp.currencyCost)
+		if (player.currentCurrency > player.wepSlots.selectedProp.currencyCost)
 		{
 			if (playerInput.mainUI.PropMenu.hasPropSelected)
 			{
@@ -76,18 +69,15 @@ public class PropSpawner : WeaponMotor
 		}
 
 	}
-
-
 	private void Update()
 	{
 		if (ghostProp != null && isPlacingObject)
 		{
 			RaycastHit shot;
-			Vector3 rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
-			Vector3 shootDirection = cam.transform.forward;
-
+			rayOrigin = cam.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
+			shootDirection = cam.transform.forward;
 			
-			if (Physics.Raycast(rayOrigin, shootDirection, out shot, allowedRange, allowedLayers))
+			if (Physics.Raycast(rayOrigin, shootDirection, out shot, allowedRange, layermask))
 			{
                 if (!ghostProp.activeSelf)
                     ghostProp.SetActive(true);
@@ -143,7 +133,7 @@ public class PropSpawner : WeaponMotor
 			Debug.Log(prefabName);
 
             bool validprop = true;
-			if (player.CurrentCurrency - theProp.currencyCost > 0)
+			if (player.currentCurrency - theProp.currencyCost > 0)
 			{
                 if (theProp is MoneyPrinter && player.hasPlacedMoneyPrinter == true)
                 {
@@ -152,8 +142,8 @@ public class PropSpawner : WeaponMotor
 
                 if (validprop)
                 {
-                    player.GetComponent<PlayerRpcCalls>().SpawnFortwarsProp(prefabName, player, ghostProp.transform.position, ghostProp.transform.rotation);
-                    player.OnChangeCurrencyAmount(player.CurrentCurrency - theProp.currencyCost);
+                    player.GetComponent<PlayerNetworkCalls>().RpcSpawnFortwarsProp(prefabName, player.netIdentity, ghostProp.transform.position, ghostProp.transform.rotation);
+                    player.SetCurrencyAmount(player.currentCurrency - theProp.currencyCost);
                 }
 
                 if (theProp is MoneyPrinter)
@@ -176,7 +166,7 @@ public class PropSpawner : WeaponMotor
 		}
 	}
 
-	public override void ReloadButton()
+	public override void ReloadKey()
 	{
 		if (ghostProp != null && isPlacingObject && canPlaceProp)
 		{
@@ -233,22 +223,17 @@ public class PropSpawner : WeaponMotor
         
     }
 
-    public override void UseButtonHolding()
+    public override void UseKeyHolding()
     {
         
     }
 
-    public override void UseButtonUp()
+    public override void UseKeyUp()
     {
         
     }
 
     public override void GetWeaponStats(Weapon wep)
-    {
-        
-    }
-
-    public override void GetWeaponStats(RangedProjectile wep)
     {
         
     }

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3697567d521421745ab7cacf3a126e3a, type: 3}
+  m_Name: Rocketeer2
+  m_EditorClassIdentifier: 
+  isElite: 0
+  eliteMoneyCost: 0
+  maxHealth: 100
+  moveSpeedPercentAdd: 0
+  jumpHeightPercentAdd: 0
+  weaponList:
+  - {fileID: 11400000, guid: b99812d663e3a9c4db0f37957a58b6ec, type: 2}
+  - {fileID: 11400000, guid: b99812d663e3a9c4db0f37957a58b6ec, type: 2}
+  abilityList:
+  - {fileID: 11400000, guid: e4f847c80751f9b4b8d8d5fe869b00e2, type: 2}
+  PassiveEffects: []
+  className: Rocketeer 2
+  icon: {fileID: 21300000, guid: 743f19924e583fb46b7d5074a30537eb, type: 3}
+  defaultState: 2

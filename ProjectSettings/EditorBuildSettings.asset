@@ -9,6 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/mainmenu.unity
     guid: 84f64f2ad469c0f40a252b5f67a1d50d
   - enabled: 1
-    path: Assets/Scenes/mainphoton.unity
+    path: Assets/Scenes/dev_level.unity
     guid: f09d6e0bdaacd55459b0636d5f103ccf
   m_configObjects: {}
